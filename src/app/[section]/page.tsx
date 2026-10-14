@@ -2,8 +2,6 @@ import { notFound } from "next/navigation";
 import { Home, type PageKey } from "../page";
 
 const pageKeys: PageKey[] = [
-  "jelajahi",
-  "produk",
   "koleksi",
   "widyaiswara",
   "ajukan",
