@@ -330,8 +330,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       .from("submissions")
       .select("id, profile_id, title, description, content_type, category_slug, youtube_url, document_path, thumbnail_path, status, feedback, is_published, created_at, profiles(full_name)")
       .order("created_at", { ascending: false });
-    if (currentProfile.role === "admin") query = query.eq("status", "approved");
-    else if (currentProfile.role === "verifikator") query = query.eq("status", "pending");
+    if (currentProfile.role === "verifikator") query = query.eq("status", "pending");
     else query = query.eq("profile_id", activeSession.user.id);
     const { data, error } = await query;
     if (error) {
@@ -849,28 +848,33 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     if (!supabase || !window.confirm(`Hapus postingan “${item.title}”? Tindakan ini tidak dapat dibatalkan.`)) return;
     setBusy(true);
     setMessage("");
-    const { error } = await supabase.from("submissions").delete().eq("id", item.id);
-    if (error) {
+    let response: Response;
+    try {
+      response = await fetch(`/api/submissions/${encodeURIComponent(item.id)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      });
+    } catch {
       setBusy(false);
-      setMessage(`Postingan tidak dapat dihapus: ${error.message}`);
+      setMessage("Tidak dapat menghubungi server untuk menghapus postingan.");
       return;
     }
-    const storageError = item.document_path
-      ? (await supabase.storage.from("contribution-documents").remove([item.document_path])).error
-      : null;
-    const thumbnailStorageError = item.thumbnail_path
-      ? (await supabase.storage.from("submission-thumbnails").remove([item.thumbnail_path])).error
-      : null;
-    setBusy(false);
-    if (storageError || thumbnailStorageError) {
-      const cleanupErrors = [
-        storageError ? `dokumen ${item.document_path}: ${storageError.message}` : "",
-        thumbnailStorageError ? `thumbnail ${item.thumbnail_path}: ${thumbnailStorageError.message}` : "",
-      ].filter(Boolean).join("; ");
-      setMessage(`Postingan berhasil dihapus, tetapi file pendukung tidak dapat dibersihkan (${cleanupErrors}).`);
-    } else {
-      setMessage("Postingan dan file pendukung berhasil dihapus.");
+    let result: { error?: string; warnings?: string[] };
+    try {
+      result = await response.json() as { error?: string; warnings?: string[] };
+    } catch {
+      setBusy(false);
+      setMessage("Respons server tidak dapat dibaca. Status penghapusan belum dapat dipastikan.");
+      return;
     }
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(`Postingan tidak dapat dihapus: ${result.error ?? "Terjadi kesalahan server."}`);
+      return;
+    }
+    setMessage(result.warnings?.length
+      ? `Postingan berhasil dihapus. ${result.warnings.join(" ")}`
+      : "Postingan dan file pendukung berhasil dihapus.");
     await Promise.all([loadWorkspace(session), loadVerifiedSubmissions()]);
   }
 
@@ -1180,13 +1184,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
             </section>}
           </div>
-          {(adminRole || verifierRole) && <div className="workspace-panel submissions-panel"><div className="panel-title"><div><span className="eyebrow">{adminRole ? "POSTINGAN TERVERIFIKASI" : "ANTRIAN VERIFIKASI"}</span><h3>{adminRole ? "Kelola dan terbitkan materi" : "Materi komunitas"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
+          {(adminRole || verifierRole) && <div className="workspace-panel submissions-panel"><div className="panel-title"><div><span className="eyebrow">{adminRole ? "SELURUH PENGAJUAN" : "ANTRIAN VERIFIKASI"}</span><h3>{adminRole ? "Kelola materi kontributor" : "Materi komunitas"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
             {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : <div className="submission-list">{submissions.map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>Simpan perubahan</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
-            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button></div>}{adminRole && item.status === "approved" && <div className="review-actions admin-post-actions">{editingId !== item.id && <button onClick={() => setEditingId(item.id)}>Edit postingan</button>}<button onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button><button onClick={() => deleteSubmission(item)} disabled={busy}>Hapus</button></div>}</article>)}</div>}
+            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{item.status === "approved" && editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
         </div>}
       </section>
