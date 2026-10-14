@@ -1,6 +1,6 @@
-# Panisi
+# Karya Widyaiswara
 
-Panisi adalah MVP ruang belajar ekologi berbasis Next.js dan Supabase. Menu navigasi memiliki halaman tersendiri: Beranda (`/`), Jelajahi, Produk, Koleksi, Widyaiswara, Ajukan, dan Ruang Kerja.
+Karya Widyaiswara adalah platform berbasis Next.js dan Supabase untuk menampilkan karya, materi ajar, dan kontribusi inspiratif para widyaiswara. Menu navigasi memiliki halaman tersendiri: Beranda (`/`), Jelajahi, Karya, Koleksi, Widyaiswara, Unggah Karya, dan Ruang Kerja.
 
 ## Menjalankan aplikasi
 
