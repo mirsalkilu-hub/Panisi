@@ -48,6 +48,7 @@ type PublishedSubmission = {
   thumbnail_path: string | null;
   created_at: string;
   full_name: string;
+  profile_photo_path?: string | null;
 };
 type PublicContributor = {
   id: string;
@@ -84,6 +85,7 @@ type HomeLesson = {
   level: string;
   format: string;
   description?: string;
+  profile_photo_path?: string | null;
   youtube_url?: string | null;
   document_path?: string | null;
   thumbnail_path?: string | null;
@@ -193,6 +195,13 @@ function WorkDescription({ description, href, title }: { description: string; hr
   </div>;
 }
 
+function ContributorPhoto({ name, path, className = "author-avatar" }: { name: string; path?: string | null; className?: string }) {
+  const photoUrl = path && supabase ? supabase.storage.from("profile-photos").getPublicUrl(path).data.publicUrl : null;
+  return photoUrl
+    ? <Image className={`${className} contributor-photo`} src={photoUrl} alt="" width={40} height={40} unoptimized />
+    : <span className={className} aria-hidden="true">{name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>;
+}
+
 function youtubeId(url: string) {
   try {
     const parsed = new URL(url);
@@ -288,6 +297,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [verifiedSubmissions, setVerifiedSubmissions] = useState<PublishedSubmission[]>([]);
   const [verifiedSubmissionsError, setVerifiedSubmissionsError] = useState("");
+  const [contributorPhotoError, setContributorPhotoError] = useState("");
   const [publicContributors, setPublicContributors] = useState<PublicContributor[]>([]);
   const [selectedContributor, setSelectedContributor] = useState<PublicContributor | null>(null);
   const [contributorWorks, setContributorWorks] = useState<PublishedSubmission[]>([]);
@@ -401,6 +411,22 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       if (page.length < pageSize) break;
       offset += pageSize;
     }
+    const contributorIds = [...new Set(allVerified.map((item) => item.profile_id))];
+    const photoPaths = new Map<string, string | null>();
+    let photoLookupError = "";
+    for (let offset = 0; offset < contributorIds.length; offset += pageSize) {
+      const { data: contributors, error: photoError } = await supabase
+        .from("contributor_public_profiles")
+        .select("id, profile_photo_path")
+        .in("id", contributorIds.slice(offset, offset + pageSize));
+      if (photoError) {
+        photoLookupError = `Foto profil kontributor tidak dapat dimuat: ${photoError.message}`;
+        break;
+      }
+      for (const contributor of contributors ?? []) photoPaths.set(contributor.id, contributor.profile_photo_path);
+    }
+    setContributorPhotoError(photoLookupError);
+    for (const item of allVerified) item.profile_photo_path = photoPaths.get(item.profile_id) ?? null;
     setVerifiedSubmissionsError("");
     setVerifiedSubmissions(allVerified);
   }, []);
@@ -1065,6 +1091,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       level: "TERVERIFIKASI",
       format: item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN",
       description: item.description,
+      profile_photo_path: item.profile_photo_path,
       youtube_url: item.youtube_url,
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
@@ -1135,11 +1162,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <div className="content-toolbar">
             <label className="lesson-search"><Icon name="search" size={18} /><input type="search" value={lessonQuery} onChange={(event) => setLessonQuery(event.target.value)} placeholder="Cari judul, tema, atau pengajar..." aria-label="Cari karya widyaiswara" /></label>
           </div>
+          {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
           : filteredLessons.length > 0 ? <div className="lesson-grid">
             {filteredLessons.map((lesson) => <article className="lesson-card" key={lesson.id ?? lesson.title}>
               <Link className="lesson-thumbnail-link" href={workHref(lesson.id, lesson.title)} aria-label={`Buka halaman ${lesson.title}`}><SubmissionThumbnail id={lesson.id} title={lesson.title} contentType={lesson.contentType === "E-Book" ? "ebook" : "video"} categorySlug={lesson.categorySlug} youtubeUrl={lesson.youtube_url} thumbnailPath={lesson.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-              <div className="lesson-meta"><span>{lesson.category}</span><span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><span className="author-avatar">{lesson.author.slice(0, 1)}</span>{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}<span className="lesson-duration">{lesson.time}</span></div>
+              <div className="lesson-meta"><span>{lesson.category}</span><span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><ContributorPhoto name={lesson.author} path={lesson.profile_photo_path} />{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}<span className="lesson-duration">{lesson.time}</span></div>
             </article>)}
           </div> : <p className="lesson-empty">{categoryLessons.length === 0 && !lessonQuery.trim() ? `Belum ada karya terverifikasi dalam kategori ${currentWorkCategory?.name ?? "ini"}.` : `Belum ada karya untuk “${lessonQuery}”. Coba kata kunci lain.`}</p>}
         </div>
@@ -1153,11 +1181,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         </PageHeading>
         <div className="collection-list-section" id="koleksi-terverifikasi">
           <div className="collection-list-heading"><div><span className="eyebrow">HASIL VERIFIKASI</span><h2>Koleksi komunitas</h2><p>Semua pengajuan yang disetujui verifikator, dari setiap kontributor.</p></div><span className="lesson-total">{verifiedSubmissions.length} KARYA</span></div>
+          {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
             : verifiedSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
               {verifiedSubmissions.map((item) => <article className="lesson-card" key={item.id}>
                   <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                  <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · DISETUJUI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><span className="author-avatar">{item.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                  <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · DISETUJUI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
               </article>)}
             </div>
             : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>}
@@ -1189,7 +1218,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {contributorWorks.length > 0 ? filteredContributorWorks.length > 0 ? <div className="lesson-grid">
               {filteredContributorWorks.map((item) => <article className="lesson-card" key={item.id}>
                 <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · TERVERIFIKASI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><span className="author-avatar">{selectedContributor.full_name.slice(0, 1)}</span><span>{selectedContributor.full_name}</span><span className="lesson-duration">{item.content_type === "ebook" ? "PDF" : "VIDEO"}</span></div>
+                <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · TERVERIFIKASI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><ContributorPhoto name={selectedContributor.full_name} path={selectedContributor.profile_photo_path} /><span>{selectedContributor.full_name}</span><span className="lesson-duration">{item.content_type === "ebook" ? "PDF" : "VIDEO"}</span></div>
               </article>)}
             </div> : <p className="lesson-empty">Belum ada karya pada kategori ini.</p> : <p className="lesson-empty">Widyaiswara ini belum memiliki karya yang disetujui verifikator.</p>}
           </>}

@@ -18,6 +18,7 @@ type WorkRecord = {
   created_at: string;
   full_name: string;
   profile_id: string;
+  profile_photo_path: string | null;
 };
 
 function getSupabase() {
@@ -36,7 +37,14 @@ async function getWork(id: string) {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Karya tidak dapat dimuat: ${error.message}`);
-  return data as WorkRecord | null;
+  if (!data) return null;
+  const { data: contributor, error: contributorError } = await supabase
+    .from("contributor_public_profiles")
+    .select("profile_photo_path")
+    .eq("id", data.profile_id)
+    .maybeSingle();
+  if (contributorError) throw new Error(`Foto profil kontributor tidak dapat dimuat: ${contributorError.message}`);
+  return { ...data, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }) {
@@ -88,7 +96,9 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           </section>
           <aside className="work-detail-sidebar">
             <span className="eyebrow">KONTRIBUTOR</span>
-            <div className="work-detail-author-avatar">{work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
+            <div className="work-detail-author-avatar">{work.profile_photo_path
+              ? <Image src={getSupabase().storage.from("profile-photos").getPublicUrl(work.profile_photo_path).data.publicUrl} alt={`Foto profil ${work.full_name}`} width={58} height={58} unoptimized />
+              : work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
             <h2>{work.full_name}</h2>
             <p>Karya ini telah diverifikasi dan dibagikan untuk komunitas Widyaiswara.</p>
             <Link className="button button-outline" href={`/widyaiswara/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
