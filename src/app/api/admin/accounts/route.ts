@@ -199,3 +199,199 @@ export async function POST(request: Request) {
     { status: 201 },
   );
 }
+
+export async function PATCH(request: Request) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return responseError("Konfigurasi Supabase server belum lengkap.", 503);
+  }
+
+  const accessToken = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!accessToken) return responseError("Sesi admin tidak ditemukan.", 401);
+
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
+  if (userError || !userData.user) return responseError("Sesi tidak valid atau sudah berakhir.", 401);
+
+  const { data: adminProfile, error: profileError } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
+  if (profileError) return responseError(`Peran admin tidak dapat diverifikasi: ${profileError.message}`, 500);
+  if (adminProfile.role !== "admin") return responseError("Hanya admin yang dapat mengelola akun.", 403);
+
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return responseError("Format data akun tidak valid.", 400);
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return responseError("Format data akun tidak valid.", 400);
+  }
+  const input = payload as Record<string, unknown>;
+  const stringFields = ["id", "fullName", "jobTitle", "role", "areaOfExpertise", "widyaiswaraExperience", "bio"];
+  if (stringFields.some((field) => input[field] !== undefined && typeof input[field] !== "string")) {
+    return responseError("Format data akun tidak valid.", 400);
+  }
+
+  const id = typeof input.id === "string" ? input.id : "";
+  const fullName = typeof input.fullName === "string" ? input.fullName.trim() : "";
+  const jobTitle = typeof input.jobTitle === "string" ? input.jobTitle.trim() : "";
+  const role = typeof input.role === "string" ? input.role : "";
+  const areaOfExpertise = typeof input.areaOfExpertise === "string" ? input.areaOfExpertise.trim() : "";
+  const widyaiswaraExperience = typeof input.widyaiswaraExperience === "string" ? input.widyaiswaraExperience.trim() : "";
+  const bio = typeof input.bio === "string" ? input.bio.trim() : "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return responseError("ID akun tidak valid.", 400);
+  }
+  if (!fullName || fullName.length > 100) return responseError("Nama harus berisi 1 sampai 100 karakter.", 400);
+  if (!jobTitle || jobTitle.length > 120) return responseError("Jabatan wajib diisi dan maksimal 120 karakter.", 400);
+  if (role !== "verifikator" && role !== "kontributor") {
+    return responseError("Peran akun harus verifikator atau kontributor.", 400);
+  }
+  if (areaOfExpertise.length > 500) return responseError("Bidang keahlian maksimal 500 karakter.", 400);
+  if (widyaiswaraExperience.length > 2000) return responseError("Pengalaman widyaiswara maksimal 2000 karakter.", 400);
+  if (bio.length > 1000) return responseError("Profil profesional maksimal 1000 karakter.", 400);
+  if (role === "kontributor" && (!areaOfExpertise || !widyaiswaraExperience)) {
+    return responseError("Bidang keahlian dan pengalaman wajib diisi untuk akun kontributor.", 400);
+  }
+
+  const { data: target, error: targetError } = await adminClient
+    .from("profiles")
+    .select("id, role")
+    .eq("id", id)
+    .in("role", ["kontributor", "verifikator"])
+    .maybeSingle();
+  if (targetError) return responseError(`Akun tidak dapat dimuat: ${targetError.message}`, 500);
+  if (!target) return responseError("Akun kontributor atau verifikator tidak ditemukan.", 404);
+
+  const { data: updatedAccount, error: updateError } = await adminClient
+    .from("profiles")
+    .update({
+      full_name: fullName,
+      job_title: jobTitle,
+      role,
+      area_of_expertise: role === "kontributor" ? areaOfExpertise : "",
+      widyaiswara_experience: role === "kontributor" ? widyaiswaraExperience : "",
+      bio,
+    })
+    .eq("id", id)
+    .select("id, full_name, role, bio, job_title, profile_photo_path, area_of_expertise, widyaiswara_experience, created_at")
+    .single();
+  if (updateError) return responseError(`Profil akun tidak dapat diperbarui: ${updateError.message}`, 500);
+
+  return NextResponse.json({ account: updatedAccount });
+}
+
+export async function DELETE(request: Request) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return responseError("Konfigurasi Supabase server belum lengkap.", 503);
+  }
+
+  const accessToken = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!accessToken) return responseError("Sesi admin tidak ditemukan.", 401);
+
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
+  if (userError || !userData.user) return responseError("Sesi tidak valid atau sudah berakhir.", 401);
+
+  const { data: adminProfile, error: profileError } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", userData.user.id)
+    .single();
+  if (profileError) return responseError(`Peran admin tidak dapat diverifikasi: ${profileError.message}`, 500);
+  if (adminProfile.role !== "admin") return responseError("Hanya admin yang dapat menghapus akun.", 403);
+
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return responseError("Format data akun tidak valid.", 400);
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return responseError("Format data akun tidak valid.", 400);
+  }
+  const id = (payload as Record<string, unknown>).id;
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return responseError("ID akun tidak valid.", 400);
+  }
+
+  const { data: target, error: targetError } = await adminClient
+    .from("profiles")
+    .select("id, full_name, role, profile_photo_path")
+    .eq("id", id)
+    .in("role", ["kontributor", "verifikator"])
+    .maybeSingle();
+  if (targetError) return responseError(`Akun tidak dapat dimuat: ${targetError.message}`, 500);
+  if (!target) return responseError("Akun kontributor atau verifikator tidak ditemukan.", 404);
+
+  const { data: submissions, error: submissionsError } = await adminClient
+    .from("submissions")
+    .select("profile_id, document_path, thumbnail_path")
+    .eq("profile_id", id);
+  if (submissionsError) return responseError(`Berkas akun tidak dapat dimuat: ${submissionsError.message}`, 500);
+
+  const warnings: string[] = [];
+  const cleanupFiles = async (bucket: string, paths: string[], label: string) => {
+    const safePaths = [...new Set(paths.filter(Boolean))].filter((path) => {
+      if (path.startsWith(`${id}/`)) return true;
+      warnings.push(`${label} tidak dibersihkan karena jalurnya tidak sesuai dengan pemilik akun.`);
+      return false;
+    });
+    if (safePaths.length === 0) return;
+    try {
+      const { error } = await adminClient.storage.from(bucket).remove(safePaths);
+      if (error) {
+        console.error(`Unable to clean up deleted account ${label}:`, error.message);
+        warnings.push(`${label} akun tidak dapat dibersihkan: ${error.message}`);
+      }
+    } catch (error) {
+      const details = error instanceof Error ? error.message : "Kesalahan jaringan.";
+      console.error(`Unable to clean up deleted account ${label}:`, details);
+      warnings.push(`${label} akun tidak dapat dibersihkan: ${details}`);
+    }
+  };
+
+  await cleanupFiles(
+    "profile-photos",
+    target.profile_photo_path ? [target.profile_photo_path] : [],
+    "Foto profil",
+  );
+  await cleanupFiles(
+    "contribution-documents",
+    (submissions ?? []).filter((item) => item.profile_id === id).map((item) => item.document_path ?? ""),
+    "PDF kontribusi",
+  );
+  await cleanupFiles(
+    "submission-thumbnails",
+    (submissions ?? []).filter((item) => item.profile_id === id).map((item) => item.thumbnail_path ?? ""),
+    "Thumbnail kontribusi",
+  );
+
+  if (warnings.length > 0) {
+    return responseError(
+      `Berkas akun tidak dapat dibersihkan sehingga akun tidak dihapus. ${warnings.join(" ")}`,
+      500,
+    );
+  }
+
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
+  if (deleteError) {
+    return responseError(
+      `Akun masih aktif, tetapi berkas terkait telah dibersihkan. Akun tidak dapat dihapus: ${deleteError.message}`,
+      500,
+    );
+  }
+
+  return NextResponse.json({ deleted: true, fullName: target.full_name, role: target.role });
+}
