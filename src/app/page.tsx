@@ -94,7 +94,7 @@ const navItems: [string, string, string][] = [
   ["Koleksi", "/koleksi", "grid"],
   ["Widyaiswara", "/widyaiswara", "users"],
   ["Unggah Karya", "/ajukan", "upload"],
-  ["Ruang Kerja", "/ruang-kerja", "briefcase"],
+  ["Profil", "/ruang-kerja", "briefcase"],
 ];
 
 function Icon({ name, size = 20 }: { name: string; size?: number }) {
@@ -232,7 +232,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
         <span className="eyebrow">AKSES AKUN</span>
         <h2 id="login-title">Selamat datang kembali.</h2>
         <p id="login-description">Masuk untuk menjelajah karya, mengelola konten, dan memantau kontribusi terbaik para widyaiswara.</p>
-        {!supabase && <div className="notice">Hubungkan Supabase terlebih dahulu dengan mengisi <code>.env.local</code>. Panduannya tersedia di README.</div>}
+        {!supabase && <div className="notice">Supabase belum terhubung. Atur <code>NEXT_PUBLIC_SUPABASE_URL</code> dan <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> sebagai environment variables. Di Vercel, buka Project Settings → Environment Variables. Lihat README untuk panduan.</div>}
         <form onSubmit={handleSubmit}>
           <label htmlFor="email">Alamat email</label>
           <input id="email" name="email" type="email" autoComplete="email" placeholder="nama@email.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
@@ -342,7 +342,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     else if (currentProfile.role === "kontributor") query = query.eq("profile_id", activeSession.user.id);
     const { data, error } = await query;
     if (error) {
-      setMessage(`Ruang kerja tidak dapat dimuat: ${error.message}`);
+      setMessage(`Profil tidak dapat dimuat: ${error.message}`);
       return;
     }
     setSubmissions((data ?? []) as Submission[]);
@@ -1053,7 +1053,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {navItems.map(([label, href, icon]) => {
             const isContributorProfile = href === "/ruang-kerja" && profile?.role === "kontributor";
             const isCurrent = href === "/" ? activePage === "beranda" : href.slice(1) === activePage || (href === "/ruang-kerja" && adminManagementPage);
-            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined}><Icon name={isContributorProfile ? "user" : icon} size={15} />{isContributorProfile ? "Profil Saya" : label}</Link>;
+            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined}><Icon name={isContributorProfile ? "user" : icon} size={15} />{isContributorProfile ? "Profil" : label}</Link>;
           })}
         </nav>
         {session ? <button className="button button-outline header-login" onClick={signOut}><Icon name="user" size={16} /> Keluar</button> : <button className="button button-outline header-login" onClick={() => setLoginOpen(true)}><Icon name="user" size={16} /> Masuk</button>}
@@ -1071,7 +1071,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {navItems.map(([label, href, icon]) => {
             const isContributorProfile = href === "/ruang-kerja" && profile?.role === "kontributor";
             const isCurrent = href === "/" ? activePage === "beranda" : href.slice(1) === activePage || (href === "/ruang-kerja" && adminManagementPage);
-            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={isContributorProfile ? "user" : icon} size={17} />{isContributorProfile ? "Profil Saya" : label}</span><Icon name="arrow" size={15} /></Link>;
+            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={isContributorProfile ? "user" : icon} size={17} />{isContributorProfile ? "Profil" : label}</span><Icon name="arrow" size={15} /></Link>;
           })}
         </nav>}
       </header>
@@ -1178,7 +1178,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
         <PageHero eyebrow="UNGGAH KARYA PEMBELAJARAN" title={<>Pengalaman berharga,<br /><em>bagikan agar berdampak.</em></>} description="Ajukan video pembelajaran melalui tautan YouTube atau bagikan e-book dan modul dalam format PDF. Setiap karya akan ditinjau verifikator sebelum ditampilkan kepada komunitas." icon="upload" caption="BAGIKAN • TUMBUH • MENGINSPIRASI">
-          {session && profile?.role === "kontributor" ? <a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka ruang kerja <Icon name="arrow" size={17} /></Link>}
+          {session && profile?.role === "kontributor" ? <a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
         </PageHero>
         {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
         <div className="upload-steps">
@@ -1233,7 +1233,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             </>}
           </article>)}</div>}
         </section>
-        </> : !session ? <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="upload" size={23} /></span><h3>Masuk untuk mulai berbagi karya</h3><p>Pengajuan video dan e-book tersedia bagi akun kontributor. Masuk untuk membuka formulir kontribusi Anda.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div> : <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Fitur unggah untuk akun kontributor</h3><p>Akun Anda memiliki peran {profile?.role}. Pengajuan materi pembelajaran hanya tersedia bagi kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke Ruang Kerja <Icon name="arrow" size={16} /></Link></div>}
+        </> : !session ? <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="upload" size={23} /></span><h3>Masuk untuk mulai berbagi karya</h3><p>Pengajuan video dan e-book tersedia bagi akun kontributor. Masuk untuk membuka formulir kontribusi Anda.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div> : <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Fitur unggah untuk akun kontributor</h3><p>Akun Anda memiliki peran {profile?.role}. Pengajuan materi pembelajaran hanya tersedia bagi kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke Profil <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
@@ -1241,10 +1241,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="workspace-section content-wrap" id="ruang-kerja">
         <header className="collection-page-hero workspace-page-hero">
           <div className="collection-page-copy">
-            <span className="eyebrow">{activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL WIDYAISWARA" : "RUANG KERJA / KARYA WIDYAISWARA"}</span>
-            <h1>{activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Ruang untuk karya dan kolaborasi."}</h1>
+            <span className="eyebrow">{activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL WIDYAISWARA" : "PROFIL / KARYA WIDYAISWARA"}</span>
+            <h1>{activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}</h1>
             <p>{activePage === "admin-akun" ? "Cari, tinjau, dan perbarui akun kontributor maupun verifikator dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}</p>
-            <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button workspace-public-link" href={`/widyaiswara/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke ruang kerja <Icon name="arrow" size={16} /></button>}</div>
+            <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button workspace-public-link" href={`/widyaiswara/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
           </div>
           <div className="collection-page-visual workspace-page-visual" aria-hidden="true">
             <span className="collection-visual-orbit" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />
@@ -1253,7 +1253,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           </div>
         </header>
         {session && profile && adminRole && <nav className="admin-management-nav" aria-label="Halaman administrasi">
-          <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/ruang-kerja"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar ruang kerja</small></span></Link>
+          <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/ruang-kerja"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar profil</small></span></Link>
           <Link className={activePage === "admin-akun" ? "active" : ""} href="/ruang-kerja/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
           <Link className={activePage === "admin-postingan" ? "active" : ""} href="/ruang-kerja/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
         </nav>}
@@ -1261,7 +1261,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi">×</button></div>}
         {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
         {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="play" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai admin untuk mengakses halaman pengelolaan komunitas." : "Masuk untuk mengelola profil widyaiswara, membagikan materi ajar, atau meninjau kontribusi sesuai peranmu."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
-        {session && profile && adminManagementPage && !adminRole && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/ruang-kerja">Kembali ke ruang kerja <Icon name="arrow" size={15} /></Link></div>}
+        {session && profile && adminManagementPage && !adminRole && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/ruang-kerja">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
         {session && profile && adminRole && activePage === "ruang-kerja" && <section className="admin-overview" aria-label="Ringkasan administrasi">
           <div className="admin-overview-copy"><span className="eyebrow">PANEL ADMINISTRATOR</span><h3>Kelola komunitas dan karya.</h3><p>Buat akun tim, pantau profil anggota, dan atur materi yang siap dipublikasikan.</p></div>
           <div className="admin-overview-stats">

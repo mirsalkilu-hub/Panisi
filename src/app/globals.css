@@ -2350,3 +2350,153 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-access-denied { align-items: flex-start; flex-wrap: wrap; }
   .admin-access-denied > a { margin-left: 35px; }
 }
+
+:root {
+  --ink: #172f4d;
+  --muted: #637992;
+  --green: #286cb5;
+  --cream: #f3f7fc;
+  --line: #dce6f1;
+  --background: #f7f9fc;
+  --foreground: #172f4d;
+  color-scheme: light;
+}
+
+html { scroll-padding-top: 92px; }
+body { background: #f7f9fc; color: var(--ink); }
+::selection { background: #d8e9fc; color: #173b62; }
+
+.site-header {
+  backdrop-filter: blur(16px);
+  background: rgba(255,255,255,.94);
+  border-bottom-color: rgba(220,230,241,.9);
+  min-width: 0;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.brand-logo { max-width: 100%; }
+.desktop-nav { gap: clamp(8px,1.55vw,25px); }
+.desktop-nav a { border-radius: 999px; padding: 9px 11px; transition: background .18s ease,color .18s ease; }
+.desktop-nav a:hover, .desktop-nav a.nav-active { background: #edf4fc; color: #205f9f; }
+.mobile-nav { z-index: 31; }
+.mobile-nav a { padding-inline: 14px; }
+
+.button {
+  border-radius: 12px;
+  min-height: 44px;
+  transition: background .18s ease,border-color .18s ease,box-shadow .18s ease,color .18s ease,transform .18s ease;
+}
+.button-primary, .button-dark, .login-submit {
+  background: linear-gradient(135deg,#347fc4,#245f9e);
+  box-shadow: 0 8px 18px rgba(37,98,158,.15);
+}
+.button-primary:hover:not(:disabled), .button-dark:hover:not(:disabled), .login-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg,#286fae,#1d548d);
+  box-shadow: 0 10px 24px rgba(37,98,158,.22);
+}
+.button-outline { background: #fff; border-color: #d4e1ef; color: #315d87; }
+.button-outline:hover:not(:disabled) { background: #f1f6fc; border-color: #b9cee4; }
+button, a, input, textarea, select { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(56,129,199,.4);
+  outline-offset: 3px;
+}
+
+.hero { isolation: isolate; }
+.hero-image { transform: scale(1.01); }
+.collection-page, .contributor-profile, .contributor-directory, .upload-page, .workspace-section {
+  padding-bottom: clamp(52px,7vw,88px);
+}
+.collection-page-hero {
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 22px 58px rgba(24,58,98,.16);
+}
+.collection-page-visual { min-width: 0; }
+.collection-page-actions .button { border-radius: 11px; }
+
+.learning-section { background: linear-gradient(180deg,#f3f7fc 0%,#f8fafd 100%); }
+.work-category-link, .lesson-card, .workspace-panel, .upload-form-panel, .upload-info-panel,
+.work-detail-content, .work-detail-sidebar, .managed-account, .submission-item {
+  border-color: #e0e8f1;
+  box-shadow: 0 8px 26px rgba(25,57,93,.055);
+}
+.work-category-link, .lesson-card, .managed-account, .submission-item {
+  transition: border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.work-category-link:hover, .lesson-card:hover, .managed-account:hover {
+  border-color: #c5d8ec;
+  box-shadow: 0 15px 34px rgba(25,72,119,.1);
+  transform: translateY(-2px);
+}
+.lesson-card { overflow: hidden; }
+.lesson-thumbnail-link { isolation: isolate; }
+.content-toolbar { gap: 12px; }
+.lesson-search, .managed-account-search, .admin-post-search {
+  border-radius: 13px;
+  box-shadow: 0 3px 10px rgba(28,59,91,.025);
+}
+
+.workspace-profile-summary, .profile-photo-field, .password-settings {
+  background: linear-gradient(145deg,#fff,#f7faff);
+  border-color: #e0e8f1;
+}
+.admin-management-nav { border-color: #e0e8f1; }
+.admin-management-nav > a { min-height: 64px; }
+.admin-overview { box-shadow: 0 18px 44px rgba(23,59,96,.15); }
+.admin-overview-links > a { min-height: 76px; }
+.workspace-message, .account-created-notice, .admin-access-denied, .notice { line-height: 1.65; }
+
+.bio-form input, .bio-form textarea, .contribution-form input, .contribution-form textarea,
+.contribution-form select, .login-dialog input, .managed-account-edit-form input,
+.managed-account-edit-form textarea, .managed-account-edit-form select {
+  border-radius: 11px;
+  min-height: 44px;
+}
+.bio-form textarea, .contribution-form textarea, .managed-account-edit-form textarea { min-height: 100px; }
+.contribution-form input[type="file"] { height: auto; min-height: 46px; }
+.bio-form input:focus, .bio-form textarea:focus, .contribution-form input:focus,
+.contribution-form textarea:focus, .contribution-form select:focus {
+  border-color: #78a7d7;
+  box-shadow: 0 0 0 3px rgba(68,127,188,.12);
+}
+.login-dialog { box-shadow: 0 32px 90px rgba(13,37,66,.25); }
+
+.work-detail-page { background: #f5f8fc; }
+.work-detail-heading h1 { color: #193957; }
+.work-detail-layout { gap: 24px; }
+.work-detail-content, .work-detail-sidebar { border-radius: 20px; }
+.work-detail-thumbnail { border-radius: 19px; }
+.work-detail-footer { background: linear-gradient(120deg,#132f4c,#1d4d76); }
+
+.site-footer { background: radial-gradient(ellipse at 85% 0%,rgba(91,153,203,.2),transparent 36%),linear-gradient(120deg,#102d48,#173f62); }
+
+@media (max-width: 880px) {
+  .site-header { padding-inline: max(4%,16px); }
+  .mobile-menu { border-radius: 11px; }
+}
+@media (max-width: 760px) {
+  .collection-page, .contributor-profile, .contributor-directory, .workspace-section, .upload-page {
+    padding-bottom: 56px;
+  }
+  .collection-page-hero { box-shadow: 0 15px 34px rgba(24,58,98,.13); }
+  .work-detail-layout { gap: 16px; }
+  .admin-management-nav > a { min-height: 58px; }
+}
+@media (max-width: 520px) {
+  .site-header { padding-inline: 16px; }
+  .header-login { border-radius: 999px; }
+  .content-wrap { width: calc(100% - 32px); }
+  .collection-page-hero { box-shadow: 0 12px 28px rgba(24,58,98,.12); }
+  .work-category-link, .lesson-card { min-width: 0; }
+  .work-detail-sidebar { position: static; }
+  .admin-management-nav > a { min-height: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
