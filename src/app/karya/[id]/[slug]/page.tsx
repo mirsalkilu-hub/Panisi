@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { workCategories, type WorkCategorySlug } from "../../../work-categories";
 import { workHref, workSlug } from "../../../work-links";
+import { PdfBookReader } from "../../../pdf-book-reader";
 import { SubmissionThumbnail } from "../../../submission-thumbnail";
 
 type WorkRecord = {
@@ -80,10 +81,8 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <SubmissionThumbnail id={work.id} title={work.title} contentType={work.content_type} categorySlug={work.category_slug} youtubeUrl={work.youtube_url} thumbnailPath={work.thumbnail_path} className="work-detail-thumbnail" />
             {work.content_type === "video" ? videoId ? <div className="work-detail-video">
               <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={work.title} referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-            </div> : <p className="lesson-empty" role="alert">Video YouTube untuk karya ini tidak tersedia.</p> : <div className="work-detail-document">
-              <div className="work-detail-document-icon">PDF</div>
-              <div><strong>E-Book / modul pembelajaran</strong><p>Dokumen karya yang telah diverifikasi.</p></div>
-              <a className="button button-primary" href={`/api/submissions/${work.id}/document`} target="_blank" rel="noreferrer">Buka PDF <span aria-hidden="true">↗</span></a>
+            </div> : <p className="lesson-empty" role="alert">Video YouTube untuk karya ini tidak tersedia.</p> : <div className="work-detail-document pdf-book-reader-host">
+              <PdfBookReader submissionId={work.id} title={work.title} />
             </div>}
             <section className="work-detail-description"><span className="eyebrow">TENTANG KARYA</span><p>{work.description}</p></section>
           </section>

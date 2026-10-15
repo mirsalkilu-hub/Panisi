@@ -70,6 +70,7 @@ type ManagedAccount = {
   created_at: string;
 };
 export type PageKey = "beranda" | "koleksi" | "widyaiswara" | "ajukan" | "ruang-kerja" | "admin-akun" | "admin-postingan";
+type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload" | "briefcase";
 type HomeLesson = {
   id: string;
   category: string;
@@ -89,7 +90,7 @@ type HomeLesson = {
   contributor_id?: string;
 };
 
-const navItems: [string, string, string][] = [
+const navItems: [string, string, IconName][] = [
   ["Beranda", "/", "home"],
   ["Koleksi", "/koleksi", "grid"],
   ["Widyaiswara", "/widyaiswara", "users"],
@@ -97,8 +98,8 @@ const navItems: [string, string, string][] = [
   ["Profil", "/ruang-kerja", "briefcase"],
 ];
 
-function Icon({ name, size = 20 }: { name: string; size?: number }) {
-  const paths: Record<string, React.ReactNode> = {
+function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
     leaf: <><path d="M20 4c-8 0-14 4-14 11a5 5 0 0 0 5 5c7 0 11-6 9-16Z" /><path d="M4 21c3-6 7-9 13-12" /></>,
     video: <><rect x="3" y="5" width="13" height="14" rx="2" /><path d="m16 10 5-3v10l-5-3" /></>,
     science: <><path d="M9 3h6M10 3v6l-5.5 9.2A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.8L14 9V3M8 15h8" /><circle cx="12" cy="18" r="1" /></>,
@@ -107,7 +108,7 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     review: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" /><path d="M4 5.5v16M8 8h8M8 12h6M8 16h7" /><path d="m17 8 .7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2L17 8Z" /></>,
     practice: <><path d="M4 4h16v16H4z" /><path d="m8 12 2.5 2.5L16 9" /></>,
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
-    arrow: <><path d="M7 17 17 7M7 7h10v10" /></>,
+    arrow: <><path d="M5 12h14M13 6l6 6-6 6" /></>,
     play: <><path d="m9 6 10 6-10 6z" /></>,
     plus: <><path d="M12 5v14M5 12h14" /></>,
     user: <><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 14 0" /></>,
@@ -122,7 +123,7 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     upload: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m17 8-5-5-5 5M12 3v12" /></>,
     briefcase: <><rect x="3" y="7" width="18" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /></>,
   };
-  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name] ?? paths.leaf}</svg>;
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
 function PageHero({
@@ -138,7 +139,7 @@ function PageHero({
   eyebrow: string;
   title: React.ReactNode;
   description: string;
-  icon: string;
+  icon: IconName;
   caption: string;
   children?: React.ReactNode;
   visual?: React.ReactNode;
@@ -1037,6 +1038,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
+  const latestHomeLesson = homeLessons[0] ?? null;
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1078,7 +1080,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA WIDYAISWARA" title={<>Karya Widyaiswara.<br /><em>Ilmu dibagikan, inspirasi diteruskan.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH">
+        <PageHero eyebrow="KARYA WIDYAISWARA" title={<>Karya Widyaiswara.<br /><em>Ilmu dibagikan, inspirasi diteruskan.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
+          <SubmissionThumbnail id={latestHomeLesson.id} title={latestHomeLesson.title} contentType={latestHomeLesson.contentType === "E-Book" ? "ebook" : "video"} categorySlug={latestHomeLesson.categorySlug} youtubeUrl={latestHomeLesson.youtube_url} thumbnailPath={latestHomeLesson.thumbnail_path} accessToken={session?.access_token} className="home-featured-thumbnail" />
+          <span className="home-featured-badge"><Icon name="check" size={13} /> TERBARU · TERVERIFIKASI</span>
+          <div className="home-featured-caption"><span>{latestHomeLesson.category}</span><strong>{latestHomeLesson.title}</strong><small>{latestHomeLesson.author} · {latestHomeLesson.format}</small></div>
+          <span className="home-featured-edge" aria-hidden="true"><Icon name="arrow" size={17} /></span>
+        </div> : undefined}>
           <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
           <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
         </PageHero>
@@ -1178,7 +1185,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
         <PageHero eyebrow="UNGGAH KARYA PEMBELAJARAN" title={<>Pengalaman berharga,<br /><em>bagikan agar berdampak.</em></>} description="Ajukan video pembelajaran melalui tautan YouTube atau bagikan e-book dan modul dalam format PDF. Setiap karya akan ditinjau verifikator sebelum ditampilkan kepada komunitas." icon="upload" caption="BAGIKAN • TUMBUH • MENGINSPIRASI">
-          {session && profile?.role === "kontributor" ? <a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
+          {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
         </PageHero>
         {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
         <div className="upload-steps">
@@ -1208,8 +1215,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <aside className="workspace-panel upload-info-panel"><span className="upload-info-icon"><Icon name={contributionType === "video" ? "video" : "book"} size={24} /></span><span className="eyebrow">SEBELUM MENGIRIM</span><h3>Pastikan karya siap dibagikan.</h3><p>{contributionType === "video" ? "Pastikan tautan YouTube dapat dibuka dan mengarah ke materi yang ingin dibagikan." : "Gunakan PDF yang jelas dan terbaca. Berkas maksimal 20 MB dan hanya dapat diakses tim verifikasi sebelum disetujui."}</p><ul><li><Icon name="check" size={15} /> Judul dan deskripsi sesuai isi karya</li><li><Icon name="check" size={15} /> Materi mendukung pembelajaran</li><li><Icon name="check" size={15} /> Status dapat dipantau di halaman ini</li></ul></aside>
         </div>
         <section className="workspace-panel submissions-panel contributor-submissions-panel" id="kontribusiku">
-          <div className="panel-title"><div><span className="eyebrow">KONTRIBUSIKU</span><h3>Pengajuan karya saya</h3><p className="workspace-intro">Periksa status pengajuan. Karya yang masih menunggu verifikasi dapat diedit di sini.</p></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
-          {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Anda belum mengajukan karya.</p></div> : <div className="submission-list">{submissions.map((item) => <article className="submission-item" key={item.id}>
+          <div className="panel-title"><div><span className="eyebrow">KARYA SAYA</span><h3>Riwayat kiriman</h3><p className="workspace-intro">Pantau karya yang pernah Anda kirim dan tindak lanjut status verifikasinya.</p></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
+          {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada karya yang dikirim.</p><a className="submission-detail-link" href="#formulir-pengajuan">Mulai unggah karya <Icon name="arrow" size={15} /></a></div> : <div className="submission-list contributor-submission-list">{submissions.map((item) => <article className="submission-item contributor-submission-item" key={item.id}>
             <div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>
             {editingId === item.id ? <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
@@ -1221,11 +1228,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 : <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 20 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>Simpan perubahan</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
             </form></> : <>
-              <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" />
-              <div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div>
-              <h4>{item.status === "approved" ? <Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link> : item.title}</h4><p className="submission-description">{item.description}</p>
-              {item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}
-              {item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}
+              <div className="contributor-submission-summary">
+                <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="contributor-submission-thumbnail" />
+                <div className="contributor-submission-copy">
+                  <div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div>
+                  <h4>{item.status === "approved" ? <Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link> : item.title}</h4>
+                  <p className="submission-description">{item.description}</p>
+                </div>
+              </div>
               {item.feedback && <p className="review-feedback">{item.feedback}</p>}
               {item.status === "pending"
                 ? <div className="review-actions"><button type="button" onClick={() => setEditingId(item.id)}>Edit pengajuan</button></div>
