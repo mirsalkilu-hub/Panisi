@@ -12,9 +12,29 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
   const [reader, setReader] = useState<ReaderState>({ status: "loading" });
   const [firstPageNumber, setFirstPageNumber] = useState(1);
   const [turnDirection, setTurnDirection] = useState<"next" | "previous">("next");
+  const [isTurning, setIsTurning] = useState(false);
+  const [isAnimatingTurn, setIsAnimatingTurn] = useState(false);
   const leftPage = useRef<HTMLCanvasElement>(null);
   const rightPage = useRef<HTMLCanvasElement>(null);
+  const underLeftPage = useRef<HTMLCanvasElement>(null);
+  const underRightPage = useRef<HTMLCanvasElement>(null);
+  const turningFront = useRef<HTMLCanvasElement>(null);
+  const turningBack = useRef<HTMLCanvasElement>(null);
+  const turnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingTurn = useRef<"next" | "previous" | null>(null);
   const documentUrl = `/api/submissions/${encodeURIComponent(submissionId)}/document`;
+
+  function startTurn(direction: "next" | "previous", document: PDFDocumentProxy) {
+    if (turnTimer.current) clearTimeout(turnTimer.current);
+    setIsAnimatingTurn(true);
+    turnTimer.current = setTimeout(() => {
+      setFirstPageNumber((page) => direction === "next"
+        ? Math.min(page + 2, Math.max(1, document.numPages % 2 ? document.numPages : document.numPages - 1))
+        : Math.max(1, page - 2));
+      setIsAnimatingTurn(false);
+      setIsTurning(false);
+    }, 650);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +75,7 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
 
     async function renderPage(pageNumber: number, canvas: HTMLCanvasElement | null) {
       if (!canvas || pageNumber > document.numPages) return;
+      if (pageNumber < 1) return;
       const page: PDFPageProxy = await document.getPage(pageNumber);
       if (cancelled) return;
 
@@ -77,11 +98,25 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
       await renderTasks[renderTasks.length - 1].promise;
     }
 
+    const underFirstPage = turnDirection === "next" ? firstPageNumber + 2 : Math.max(1, firstPageNumber - 2);
+    const frontPageNumber = turnDirection === "next" ? firstPageNumber + 1 : firstPageNumber;
+    const backPageNumber = turnDirection === "next" ? firstPageNumber + 2 : firstPageNumber - 1;
     void Promise.all([
       renderPage(firstPageNumber, leftPage.current),
       renderPage(firstPageNumber + 1, rightPage.current),
-    ]).catch((error: unknown) => {
+      renderPage(underFirstPage, underLeftPage.current),
+      renderPage(underFirstPage + 1, underRightPage.current),
+      renderPage(frontPageNumber, turningFront.current),
+      renderPage(backPageNumber, turningBack.current),
+    ]).then(() => {
+      if (!cancelled && pendingTurn.current === turnDirection) {
+        pendingTurn.current = null;
+        startTurn(turnDirection, document);
+      }
+    }).catch((error: unknown) => {
       if (!cancelled && !(error instanceof Error && error.name === "RenderingCancelledException")) {
+        pendingTurn.current = null;
+        setIsTurning(false);
         setReader({
           status: "error",
           message: error instanceof Error ? error.message : "Halaman PDF tidak dapat ditampilkan.",
@@ -93,14 +128,20 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
       cancelled = true;
       for (const task of renderTasks) task.cancel();
     };
-  }, [firstPageNumber, reader]);
+  }, [firstPageNumber, reader, turnDirection]);
+
+  useEffect(() => () => {
+    if (turnTimer.current) clearTimeout(turnTimer.current);
+  }, []);
 
   function turnPage(direction: "next" | "previous") {
-    if (reader.status !== "ready") return;
-    setTurnDirection(direction);
-    setFirstPageNumber((page) => direction === "next"
-      ? Math.min(page + 2, Math.max(1, reader.document.numPages % 2 ? reader.document.numPages : reader.document.numPages - 1))
-      : Math.max(1, page - 2));
+    if (reader.status !== "ready" || isTurning || pendingTurn.current) return;
+    setIsTurning(true);
+    if (direction === turnDirection) startTurn(direction, reader.document);
+    else {
+      pendingTurn.current = direction;
+      setTurnDirection(direction);
+    }
   }
 
   const pageCount = reader.status === "ready" ? reader.document.numPages : 0;
@@ -117,18 +158,28 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
       {reader.status === "error" ? <div className="pdf-book-reader-error" role="alert">E-Book tidak dapat dimuat: {reader.message}</div>
         : reader.status === "loading" ? <div className="pdf-book-reader-loading" role="status">Menyiapkan halaman e-book…</div>
           : <>
-            <div className={`pdf-book-stage turn-${turnDirection}`}>
-              <div className="pdf-book-spread">
+            <div className={`pdf-book-stage${isAnimatingTurn ? ` is-turning turn-${turnDirection}` : ""}`}>
+              <div className="pdf-book-spread pdf-book-spread-under" aria-hidden="true">
+                <div className="pdf-book-leaf"><canvas ref={underLeftPage} /></div>
+                <div className="pdf-book-leaf">{firstPageNumber + (turnDirection === "next" ? 3 : -1) <= pageCount
+                  ? <canvas ref={underRightPage} />
+                  : <div className="pdf-book-blank" />}</div>
+              </div>
+              <div className="pdf-book-spread pdf-book-spread-current">
                 <div className="pdf-book-leaf"><canvas ref={leftPage} aria-label={`Halaman ${firstPageNumber}`} /></div>
                 <div className="pdf-book-leaf">{firstPageNumber + 1 <= pageCount
                   ? <canvas ref={rightPage} aria-label={`Halaman ${firstPageNumber + 1}`} />
                   : <div className="pdf-book-blank" aria-hidden="true" />}</div>
               </div>
+              <div className={`pdf-book-turn-sheet${isAnimatingTurn ? " is-turning" : ""}`} aria-hidden="true">
+                <div className="pdf-book-turn-face pdf-book-turn-front"><canvas ref={turningFront} /></div>
+                <div className="pdf-book-turn-face pdf-book-turn-back"><canvas ref={turningBack} /></div>
+              </div>
             </div>
             <nav className="pdf-book-controls" aria-label="Navigasi halaman e-book">
-              <button type="button" onClick={() => turnPage("previous")} disabled={firstPageNumber <= 1}>← Sebelumnya</button>
+              <button type="button" onClick={() => turnPage("previous")} disabled={firstPageNumber <= 1 || isTurning}>← Sebelumnya</button>
               <span>Halaman {firstPageNumber}{firstPageNumber + 1 <= pageCount ? `–${firstPageNumber + 1}` : ""} dari {pageCount}</span>
-              <button type="button" onClick={() => turnPage("next")} disabled={firstPageNumber + 1 >= pageCount}>Berikutnya →</button>
+              <button type="button" onClick={() => turnPage("next")} disabled={firstPageNumber + 1 >= pageCount || isTurning}>Berikutnya →</button>
             </nav>
           </>}
     </section>

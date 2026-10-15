@@ -1106,6 +1106,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             const isCurrent = href === "/" ? activePage === "beranda" : href.slice(1) === activePage || (href === "/ruang-kerja" && adminManagementPage);
             return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={isContributorProfile ? "user" : icon} size={17} />{isContributorProfile ? "Profil" : label}</span><Icon name="arrow" size={15} /></Link>;
           })}
+          {session ? <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); void signOut(); }}><span><Icon name="user" size={17} />Keluar</span><Icon name="arrow" size={15} /></button>
+            : <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); setLoginOpen(true); }}><span><Icon name="user" size={17} />Masuk</span><Icon name="arrow" size={15} /></button>}
         </nav>}
       </header>
 

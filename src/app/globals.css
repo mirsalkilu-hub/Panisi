@@ -1990,6 +1990,208 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
     margin-top: 18px;
   }
 }
+.mobile-nav-auth {
+  align-items: center;
+  background: #f0f6fc;
+  border: 1px solid #dbe8f5;
+  border-radius: 12px;
+  color: #285f94;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: space-between;
+  margin-top: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+}
+.mobile-nav-auth > span { align-items: center; display: inline-flex; gap: 10px; }
+.mobile-nav-auth > svg { height: 15px; width: 15px; }
+.mobile-nav-auth:hover { background: #e6f0fa; }
+.pdf-book-stage {
+  --book-padding: clamp(12px,2vw,22px);
+  align-items: center;
+  display: grid;
+  min-height: 240px;
+  padding: var(--book-padding);
+  position: relative;
+  transform-style: preserve-3d;
+}
+.pdf-book-spread {
+  animation: none;
+  grid-area: 1 / 1;
+  width: min(100%,980px);
+}
+.pdf-book-spread-under { opacity: 0; position: relative; z-index: 1; }
+.pdf-book-spread-current { position: relative; z-index: 2; }
+.pdf-book-stage.is-turning .pdf-book-spread-under { opacity: 1; }
+.pdf-book-stage.is-turning .pdf-book-spread-current { visibility: hidden; }
+.pdf-book-turn-sheet {
+  bottom: var(--book-padding);
+  left: 50%;
+  perspective: 1800px;
+  position: absolute;
+  top: var(--book-padding);
+  transform: rotateY(0);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  visibility: hidden;
+  width: calc((100% - (2 * var(--book-padding))) / 2);
+  z-index: 3;
+}
+.pdf-book-stage.turn-previous .pdf-book-turn-sheet {
+  left: var(--book-padding);
+  transform-origin: right center;
+}
+.pdf-book-turn-sheet.is-turning { visibility: visible; }
+.pdf-book-turn-face {
+  align-items: center;
+  backface-visibility: hidden;
+  background: linear-gradient(90deg,#f9f8f4,#fff 12%,#fff 91%,#e6e4de);
+  box-shadow: 0 7px 18px rgba(18,39,61,.18);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 9px;
+  position: absolute;
+}
+.pdf-book-turn-front { transform: rotateY(0); }
+.pdf-book-turn-back {
+  background: linear-gradient(270deg,#f9f8f4,#fff 12%,#fff 91%,#e6e4de);
+  transform: rotateY(180deg);
+}
+.pdf-book-turn-face canvas { display: block; height: auto !important; max-height: 100%; max-width: 100%; object-fit: contain; }
+.pdf-book-stage.is-turning.turn-next .pdf-book-turn-sheet { animation: pdf-page-turn-next .64s cubic-bezier(.22,.72,.26,1) forwards; }
+.pdf-book-stage.is-turning.turn-previous .pdf-book-turn-sheet { animation: pdf-page-turn-previous .64s cubic-bezier(.22,.72,.26,1) forwards; }
+@keyframes pdf-page-turn-next {
+  0% { box-shadow: 0 5px 10px rgba(18,39,61,.08); transform: rotateY(0); }
+  38% { box-shadow: -18px 8px 28px rgba(18,39,61,.2); }
+  100% { box-shadow: -5px 3px 13px rgba(18,39,61,.12); transform: rotateY(-180deg); }
+}
+@keyframes pdf-page-turn-previous {
+  0% { box-shadow: 0 5px 10px rgba(18,39,61,.08); transform: rotateY(0); }
+  38% { box-shadow: 18px 8px 28px rgba(18,39,61,.2); }
+  100% { box-shadow: 5px 3px 13px rgba(18,39,61,.12); transform: rotateY(180deg); }
+}
+@media (max-width: 760px) {
+  .site-header:not(.work-detail-header) > .header-login { display: none; }
+  .mobile-nav { padding-bottom: 17px; }
+  .mobile-nav a { min-height: 48px; }
+  .pdf-book-stage { min-height: 180px; }
+  .pdf-book-turn-face { padding: 6px; }
+}
+@media (max-width: 520px) {
+  .pdf-book-stage { --book-padding: 8px; overflow: hidden; }
+  .pdf-book-spread { align-items: stretch; flex-direction: column; }
+  .pdf-book-stage.is-turning .pdf-book-spread-current { animation: pdf-mobile-book-turn .64s cubic-bezier(.22,.72,.26,1) both; transform-origin: left center; visibility: visible; }
+  .pdf-book-stage.turn-previous.is-turning .pdf-book-spread-current { transform-origin: right center; }
+  .pdf-book-turn-sheet { display: none; }
+  .pdf-book-spread-under { min-width: 0; }
+  .pdf-book-spread-current { min-width: 0; }
+  .pdf-book-spread > .pdf-book-leaf { width: 100%; }
+  .pdf-book-controls { flex-wrap: wrap; }
+  .pdf-book-controls > span { order: -1; flex-basis: 100%; }
+  .pdf-book-controls button { flex: 1; }
+}
+@keyframes pdf-mobile-book-turn {
+  0% { filter: brightness(1); transform: perspective(900px) rotateY(0); }
+  45% { filter: brightness(.82); }
+  100% { filter: brightness(1); transform: perspective(900px) rotateY(-8deg); }
+}
+@media (max-width: 760px) {
+  .site-footer { padding: 34px 5% 20px; }
+  .footer-top { gap: 22px 16px; }
+  .footer-links { gap: 10px; }
+  .footer-links a { min-height: 34px; }
+  .work-detail { padding-top: 20px; }
+  .work-detail-content, .work-detail-sidebar { border-radius: 16px; }
+  .work-detail-description { padding: 20px; }
+  .work-detail-description p { font-size: 13px; }
+  .workspace-profile-summary { min-width: 0; }
+  .workspace-profile-summary > div { overflow-wrap: anywhere; }
+}
+@media (max-width: 520px) {
+  .site-header:not(.work-detail-header) { padding-inline: 16px; }
+  .site-header:not(.work-detail-header) .mobile-menu { border-radius: 12px; height: 40px; width: 40px; }
+  .mobile-nav-auth { min-height: 48px; }
+  .page-heading { padding-bottom: 17px; }
+  .page-heading h1 { line-height: 1.12; }
+  .page-heading-actions .button { min-height: 44px; }
+  .section-heading h2, .collection-list-heading h2, .contributor-works-heading h2 { line-height: 1.16; }
+  .work-category-link { min-height: 104px; }
+  .work-category-link strong { font-size: 11px; line-height: 1.35; }
+  .work-category-link small { font-size: 9px; line-height: 1.45; }
+  .lesson-grid { gap: 14px; grid-template-columns: minmax(0,1fr); }
+  .lesson-card { border-radius: 17px; padding: 9px 9px 13px; }
+  .lesson-art { border-radius: 13px; height: clamp(175px,54vw,220px); }
+  .lesson-meta { align-items: center; flex-direction: row; flex-wrap: wrap; font-size: 8px; gap: 7px; }
+  .lesson-card h3 { font-size: 16px; line-height: 1.4; margin: 8px 3px; }
+  .lesson-description { font-size: 12px; line-height: 1.65; }
+  .lesson-author { align-items: center; flex-wrap: nowrap; gap: 8px; }
+  .lesson-author a { font-size: 11px; }
+  .lesson-duration { margin-left: auto; }
+  .lesson-card > .lesson-description-wrap,
+  .collection-works-grid .lesson-card > .lesson-description-wrap { min-height: 0; }
+  .content-toolbar { gap: 9px; }
+  .lesson-search { min-height: 48px; }
+  .contributor-directory-card {
+    display: grid;
+    gap: 3px 13px;
+    grid-template-areas:
+      "avatar label"
+      "avatar name"
+      "avatar job"
+      "expert expert"
+      "action action";
+    grid-template-columns: 52px minmax(0,1fr);
+    padding: 15px;
+  }
+  .contributor-directory-card > .contributor-avatar {
+    grid-area: avatar;
+    height: 52px;
+    margin: 0;
+    width: 52px;
+  }
+  .contributor-directory-card > .eyebrow { align-self: end; grid-area: label; }
+  .contributor-directory-card > strong { align-self: center; font-size: 14px; grid-area: name; margin: 0; }
+  .contributor-directory-card > .directory-job-title { align-self: start; grid-area: job; }
+  .contributor-directory-card > .directory-expertise { grid-area: expert; margin-top: 10px; min-height: 0; }
+  .contributor-directory-card > .directory-action { grid-area: action; margin-top: 12px; padding-top: 10px; }
+  .contributor-bio-grid { gap: 10px; grid-template-columns: minmax(0,1fr); }
+  .contributor-work-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .contributor-work-filters button { min-width: 0; }
+  .contributor-submissions-panel { margin-top: 20px; padding: 14px; }
+  .contributor-submissions-panel .panel-title { flex-direction: column; }
+  .contributor-submission-summary { grid-template-columns: 84px minmax(0,1fr); }
+  .upload-steps article { border-radius: 13px; }
+  .upload-info-panel, .upload-form-panel, .workspace-panel { border-radius: 15px; }
+  .upload-info-panel, .upload-form-panel, .workspace-panel { padding: 15px; }
+  .bio-form input, .bio-form textarea, .contribution-form input, .contribution-form textarea,
+  .contribution-form select, .login-dialog input, .managed-account-edit-form input,
+  .managed-account-edit-form textarea, .managed-account-edit-form select { min-height: 46px; }
+  .bio-form textarea, .contribution-form textarea, .managed-account-edit-form textarea { min-height: 105px; }
+  .review-actions { gap: 8px; }
+  .review-actions button { min-height: 40px; }
+  .footer-top { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .footer-message strong { font-size: 21px; }
+  .footer-bottom { overflow-wrap: anywhere; }
+  .work-detail-header > .header-login { display: inline-flex; font-size: 10px; min-height: 38px; padding-inline: 10px; }
+  .work-detail-breadcrumb { gap: 6px; }
+  .work-detail-heading h1 { font-size: clamp(26px,7vw,34px); line-height: 1.15; }
+  .work-detail-byline { font-size: 10px; }
+  .work-detail-description { padding: 17px; }
+}
+@media (max-width: 360px) {
+  .content-wrap { width: calc(100% - 28px); }
+  .site-header:not(.work-detail-header) { padding-inline: 14px; }
+  .brand-logo { width: 138px; }
+  .page-heading .eyebrow { font-size: 8px; letter-spacing: .12em; }
+  .work-category-menu { grid-template-columns: minmax(0,1fr); }
+  .work-category-link { align-items: center; flex-direction: row; min-height: 76px; }
+  .work-detail-header > .header-login { font-size: 9px; }
+}
 
 @media (max-height: 600px) and (min-width: 521px) {
   .dialog-backdrop { align-items: flex-start; }
