@@ -162,6 +162,37 @@ function PageHero({
   </header>;
 }
 
+function PageHeading({
+  eyebrow,
+  title,
+  description,
+  children,
+  className = "",
+}: {
+  eyebrow: string;
+  title: React.ReactNode;
+  description: string;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return <header className={`page-heading ${className}`}>
+    <div>
+      <span className="eyebrow">{eyebrow}</span>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {children && <div className="page-heading-actions">{children}</div>}
+    </div>
+  </header>;
+}
+
+function WorkDescription({ description, href, title }: { description: string; href: string; title: string }) {
+  if (!description.trim()) return null;
+  return <div className="lesson-description-wrap">
+    <p className="lesson-description">{description}</p>
+    <Link className="read-more-link" href={href} aria-label={`Baca selengkapnya tentang ${title}`}>Baca selengkapnya <Icon name="arrow" size={14} /></Link>
+  </div>;
+}
+
 function youtubeId(url: string) {
   try {
     const parsed = new URL(url);
@@ -1106,7 +1137,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           : filteredLessons.length > 0 ? <div className="lesson-grid">
             {filteredLessons.map((lesson) => <article className="lesson-card" key={lesson.id ?? lesson.title}>
               <Link className="lesson-thumbnail-link" href={workHref(lesson.id, lesson.title)} aria-label={`Buka halaman ${lesson.title}`}><SubmissionThumbnail id={lesson.id} title={lesson.title} contentType={lesson.contentType === "E-Book" ? "ebook" : "video"} categorySlug={lesson.categorySlug} youtubeUrl={lesson.youtube_url} thumbnailPath={lesson.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-              <div className="lesson-meta"><span>{lesson.category}</span><span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <p className="lesson-description">{lesson.description}</p>}<div className="lesson-author"><span className="author-avatar">{lesson.author.slice(0, 1)}</span>{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}<span className="lesson-duration">{lesson.time}</span></div>
+              <div className="lesson-meta"><span>{lesson.category}</span><span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><span className="author-avatar">{lesson.author.slice(0, 1)}</span>{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}<span className="lesson-duration">{lesson.time}</span></div>
             </article>)}
           </div> : <p className="lesson-empty">{categoryLessons.length === 0 && !lessonQuery.trim() ? `Belum ada karya terverifikasi dalam kategori ${currentWorkCategory?.name ?? "ini"}.` : `Belum ada karya untuk “${lessonQuery}”. Coba kata kunci lain.`}</p>}
         </div>
@@ -1115,16 +1146,16 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "koleksi" && <>
       <section className="collection-page content-wrap" id="koleksi">
-        <PageHero eyebrow="KOLEKSI KARYA WIDYAISWARA" title={<>Pengetahuan teruji,<br /><em>siap menginspirasi.</em></>} description="Jelajahi seluruh karya komunitas yang telah ditinjau dan disetujui verifikator. Temukan pengalaman serta gagasan yang dapat diterapkan dalam pembelajaran." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH">
-          <a className="button" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a>
-        </PageHero>
+        <PageHeading eyebrow="KOLEKSI KARYA WIDYAISWARA" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi seluruh karya komunitas yang telah ditinjau dan disetujui verifikator. Temukan pengalaman serta gagasan yang dapat diterapkan dalam pembelajaran.">
+          <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a>
+        </PageHeading>
         <div className="collection-list-section" id="koleksi-terverifikasi">
           <div className="collection-list-heading"><div><span className="eyebrow">HASIL VERIFIKASI</span><h2>Koleksi komunitas</h2><p>Semua pengajuan yang disetujui verifikator, dari setiap kontributor.</p></div><span className="lesson-total">{verifiedSubmissions.length} KARYA</span></div>
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
             : verifiedSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
               {verifiedSubmissions.map((item) => <article className="lesson-card" key={item.id}>
                   <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                  <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · DISETUJUI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><p className="lesson-description">{item.description}</p><div className="lesson-author"><span className="author-avatar">{item.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                  <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · DISETUJUI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><span className="author-avatar">{item.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
               </article>)}
             </div>
             : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>}
@@ -1138,9 +1169,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {contributorLoading ? <div className="contributor-state" role="status">Memuat profil widyaiswara...</div>
           : contributorError ? <div className="contributor-state contributor-error" role="alert">{contributorError}</div>
           : selectedContributor && <>
-            <PageHero eyebrow="PROFIL WIDYAISWARA" title={<>{selectedContributor.full_name}<br /><em>{selectedContributor.job_title}</em></>} description="Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna." icon="user" caption="WIDYAISWARA • KONTRIBUTOR" className="contributor-page-hero" visual={<><span className="collection-visual-orbit orbit-a" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />{selectedContributor.profile_photo_path && supabase
-              ? <Image className="contributor-hero-photo" src={supabase.storage.from("profile-photos").getPublicUrl(selectedContributor.profile_photo_path).data.publicUrl} alt="" width={150} height={150} unoptimized />
-              : <span className="contributor-hero-photo contributor-avatar">{selectedContributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}<span className="collection-visual-caption">WIDYAISWARA • KONTRIBUTOR</span></>} />
+            <PageHeading eyebrow="PROFIL WIDYAISWARA" title={selectedContributor.full_name} description="Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna." className="contributor-page-heading">
+              <span className="contributor-job-title">{selectedContributor.job_title}</span>
+            </PageHeading>
             <div className="contributor-bio-grid">
               <article><span className="eyebrow">BIDANG KEAHLIAN</span><p>{selectedContributor.area_of_expertise || "Informasi bidang keahlian belum tersedia."}</p></article>
               <article><span className="eyebrow">PENGALAMAN WIDYAISWARA</span><p>{selectedContributor.widyaiswara_experience || "Informasi pengalaman belum tersedia."}</p></article>
@@ -1156,7 +1187,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {contributorWorks.length > 0 ? filteredContributorWorks.length > 0 ? <div className="lesson-grid">
               {filteredContributorWorks.map((item) => <article className="lesson-card" key={item.id}>
                 <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · TERVERIFIKASI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><p className="lesson-description">{item.description}</p><div className="lesson-author"><span className="author-avatar">{selectedContributor.full_name.slice(0, 1)}</span><span>{selectedContributor.full_name}</span><span className="lesson-duration">{item.content_type === "ebook" ? "PDF" : "VIDEO"}</span></div>
+                <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · TERVERIFIKASI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><span className="author-avatar">{selectedContributor.full_name.slice(0, 1)}</span><span>{selectedContributor.full_name}</span><span className="lesson-duration">{item.content_type === "ebook" ? "PDF" : "VIDEO"}</span></div>
               </article>)}
             </div> : <p className="lesson-empty">Belum ada karya pada kategori ini.</p> : <p className="lesson-empty">Widyaiswara ini belum memiliki karya yang disetujui verifikator.</p>}
           </>}
@@ -1165,7 +1196,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "widyaiswara" && !selectedContributorId && <>
       <section className="contributor-directory content-wrap">
-        <PageHero eyebrow="KOMUNITAS KARYA WIDYAISWARA" title={<>Kenali para penggerak,<br /><em>inspirasi pembelajaran.</em></>} description="Jelajahi profil, bidang keahlian, pengalaman, dan karya yang telah dibagikan para widyaiswara." icon="users" caption="KOMUNITAS • KEAHLIAN • PENGALAMAN" />
+        <PageHeading eyebrow="KOMUNITAS KARYA WIDYAISWARA" title="Kenali para penggerak inspirasi pembelajaran." description="Jelajahi profil, bidang keahlian, pengalaman, dan karya yang telah dibagikan para widyaiswara." />
         <div className="section-heading"><div><span className="eyebrow">PARA PENGGERAK PEMBELAJARAN</span><h2>Komunitas widyaiswara.</h2><p className="workspace-intro">Kenali pengalaman, keahlian, dan kontribusi para widyaiswara dalam satu ruang.</p></div><span className="lesson-total">{publicContributors.length} WIDYAISWARA</span></div>
         {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
           : publicContributors.length > 0 ? <div className="contributor-directory-grid">{publicContributors.map((contributor) => <Link className="contributor-directory-card" href={`/widyaiswara/${contributor.id}`} key={contributor.id}>
@@ -1184,9 +1215,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
-        <PageHero eyebrow="UNGGAH KARYA PEMBELAJARAN" title={<>Pengalaman berharga,<br /><em>bagikan agar berdampak.</em></>} description="Ajukan video pembelajaran melalui tautan YouTube atau bagikan e-book dan modul dalam format PDF. Setiap karya akan ditinjau verifikator sebelum ditampilkan kepada komunitas." icon="upload" caption="BAGIKAN • TUMBUH • MENGINSPIRASI">
+        <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" title="Pengalaman berharga, bagikan agar berdampak." description="Ajukan video pembelajaran melalui tautan YouTube atau bagikan e-book dan modul dalam format PDF. Setiap karya akan ditinjau verifikator sebelum ditampilkan kepada komunitas." className="upload-page-heading">
           {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
-        </PageHero>
+        </PageHeading>
         {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
         <div className="upload-steps">
           <article><span>01</span><Icon name="user" size={19} /><strong>Lengkapi profil</strong><p>Pastikan keahlian dan pengalaman Anda telah tercantum.</p></article>
@@ -1249,19 +1280,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {workspacePage && <>
       <section className="workspace-section content-wrap" id="ruang-kerja">
-        <header className="collection-page-hero workspace-page-hero">
-          <div className="collection-page-copy">
-            <span className="eyebrow">{activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL WIDYAISWARA" : "PROFIL / KARYA WIDYAISWARA"}</span>
-            <h1>{activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}</h1>
-            <p>{activePage === "admin-akun" ? "Cari, tinjau, dan perbarui akun kontributor maupun verifikator dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}</p>
-            <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button workspace-public-link" href={`/widyaiswara/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
-          </div>
-          <div className="collection-page-visual workspace-page-visual" aria-hidden="true">
-            <span className="collection-visual-orbit" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />
-            <span className="workspace-profile-mark">{profile?.profile_photo_path && supabase ? <Image src={supabase.storage.from("profile-photos").getPublicUrl(profile.profile_photo_path).data.publicUrl} alt="" width={92} height={92} unoptimized /> : <Icon name={profile?.role === "kontributor" ? "user" : "briefcase"} size={44} />}</span>
-            <span className="collection-visual-caption">{profile ? profile.role.toLocaleUpperCase("id-ID") : "KARYA · KOLABORASI · INSPIRASI"}</span>
-          </div>
-        </header>
+        <PageHeading
+          className="workspace-page-heading"
+          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL WIDYAISWARA" : "PROFIL / KARYA WIDYAISWARA"}
+          title={activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
+          description={activePage === "admin-akun" ? "Cari, tinjau, dan perbarui akun kontributor maupun verifikator dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
+        >
+          <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/widyaiswara/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
+        </PageHeading>
         {session && profile && adminRole && <nav className="admin-management-nav" aria-label="Halaman administrasi">
           <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/ruang-kerja"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar profil</small></span></Link>
           <Link className={activePage === "admin-akun" ? "active" : ""} href="/ruang-kerja/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
