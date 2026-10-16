@@ -859,27 +859,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .role-list { color: #627e9e; font-size: 9px; font-weight: 700; }
 .workspace-grid { gap: 24px; grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr); }
 .admin-overview {
-  align-items: center;
+  align-items: start;
   background: radial-gradient(ellipse at 92% 0, rgba(141,185,230,.24), transparent 36%), linear-gradient(120deg,#173a62,#285d91);
   border: 1px solid #285d91;
   border-radius: 22px;
   box-shadow: 0 18px 42px rgba(26,65,108,.14);
   color: #fff;
   display: grid;
-  gap: 26px;
-  grid-template-columns: minmax(220px,.8fr) minmax(0,1.5fr);
+  gap: 18px 24px;
+  grid-template-columns: minmax(0,1fr) auto;
   margin-bottom: 23px;
   overflow: hidden;
   padding: 26px 30px;
 }
 .admin-overview-copy .eyebrow { color: #bad6f1; font-size: 9px; font-weight: 700; letter-spacing: .16em; }
-.admin-overview-copy h3 { color: #fff; font-size: clamp(22px,3vw,30px); letter-spacing: -.04em; margin: 10px 0 7px; }
+.admin-overview-copy h3 { color: #fff; font-size: clamp(22px,3vw,30px); letter-spacing: -.04em; margin: 8px 0 6px; }
 .admin-overview-copy p { color: #d1e1f2; font-size: 11px; line-height: 1.7; margin: 0; max-width: 330px; }
-.admin-overview-stats { display: grid; gap: 11px; grid-template-columns: repeat(3,minmax(0,1fr)); }
-.admin-overview-stats article { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.13); border-radius: 15px; display: flex; flex-direction: column; min-width: 0; padding: 15px; }
-.admin-overview-stats article > span { color: #c4d8ed; font-size: 8px; font-weight: 700; letter-spacing: .12em; }
-.admin-overview-stats article strong { color: #fff; font-size: 27px; letter-spacing: -.04em; line-height: 1.2; margin-top: 9px; }
-.admin-overview-stats article small { color: #c3d7eb; font-size: 9px; line-height: 1.5; margin-top: 5px; }
+.admin-overview-session { align-items: flex-end; display: flex; flex-direction: column; gap: 7px; padding-top: 4px; }
+.admin-overview-session > span { align-items: center; background: rgba(6,20,42,.3); border: 1px solid rgba(79,221,198,.35); border-radius: 999px; color: #9aefd9; display: inline-flex; font-size: 8px; font-weight: 750; gap: 5px; padding: 6px 10px; }
+.admin-overview-session > strong { color: #e5effa; font-size: 10px; font-weight: 600; }
+.admin-overview-stats { display: grid; gap: 11px; grid-column: 1 / -1; grid-template-columns: repeat(3,minmax(0,1fr)); }
+.admin-overview-stats article { align-items: center; background: rgba(4,17,38,.34); border: 1px solid rgba(200,224,246,.15); border-radius: 12px; display: flex; gap: 11px; min-width: 0; padding: 11px 13px; }
+.admin-overview-stat-icon { align-items: center; background: rgba(71,183,206,.12); border: 1px solid rgba(87,206,221,.22); border-radius: 9px; color: #70d7e2; display: inline-flex; flex: 0 0 34px; height: 34px; justify-content: center; }
+.admin-overview-stats article > div { display: flex; flex-direction: column; min-width: 0; }
+.admin-overview-stats article > div > span { color: #c4d8ed; font-size: 8px; font-weight: 700; letter-spacing: .1em; line-height: 1.4; }
+.admin-overview-stats article strong { color: #fff; font-size: 23px; line-height: 1.15; margin-top: 3px; }
+.admin-overview-stats article small { color: #c3d7eb; font-size: 9px; line-height: 1.4; margin-top: 2px; }
 .workspace-panel {
   background: #fff;
   border: 1px solid #e1eaf5;
@@ -1139,7 +1144,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .workspace-section { padding: 60px 0; }
   .workspace-heading { align-items: flex-start; flex-direction: column; }
   .workspace-grid { grid-template-columns: 1fr; }
-  .admin-overview { align-items: stretch; gap: 20px; grid-template-columns: 1fr; padding: 23px; }
+  .admin-overview { align-items: stretch; gap: 15px; grid-template-columns: minmax(0,1fr) auto; padding: 22px; }
   .workspace-panel { padding: 20px; }
   .footer-top { gap: 30px; grid-template-columns: 1fr 1fr; }
   .footer-brand-block { grid-column: 1 / -1; }
@@ -2879,6 +2884,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-accounts-grid .managed-account-actions { justify-content: flex-start; }
   .admin-overview-links { grid-template-columns: 1fr; }
   .admin-overview { grid-template-columns: 1fr; }
+  .admin-overview-session { align-items: flex-start; }
+  .admin-overview-stats { grid-template-columns: 1fr; }
   .admin-account-overview { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .admin-account-overview-heading { grid-column: 1 / -1; }
   .admin-account-stat:first-of-type { border-left: 0; padding-left: 0; }

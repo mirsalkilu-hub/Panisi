@@ -1413,10 +1413,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {session && profile && adminManagementPage && !adminRole && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/profil">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
         {session && profile && adminRole && activePage === "ruang-kerja" && <section className="admin-overview" aria-label="Ringkasan administrasi">
           <div className="admin-overview-copy"><span className="eyebrow">PANEL ADMINISTRATOR</span><h3>Kelola komunitas dan karya.</h3><p>Buat akun tim, pantau profil anggota, dan atur materi yang siap dipublikasikan.</p></div>
+          <div className="admin-overview-session"><span><Icon name="check" size={13} /> ADMIN AKTIF</span><strong>{profile.full_name}</strong></div>
           <div className="admin-overview-stats">
-            <article><span>SELURUH AKUN</span><strong>{managedAccounts.length}</strong><small>Kontributor dan verifikator</small></article>
-            <article><span>KONTRIBUTOR</span><strong>{managedAccounts.filter((account) => account.role === "kontributor").length}</strong><small>Penggerak berbagi karya</small></article>
-            <article><span>VERIFIKATOR</span><strong>{managedAccounts.filter((account) => account.role === "verifikator").length}</strong><small>Tim peninjau kontribusi</small></article>
+            <article><span className="admin-overview-stat-icon"><Icon name="users" size={17} /></span><div><span>SELURUH AKUN</span><strong>{managedAccounts.length}</strong><small>Kontributor dan verifikator</small></div></article>
+            <article><span className="admin-overview-stat-icon"><Icon name="file" size={17} /></span><div><span>SELURUH PENGAJUAN</span><strong>{submissions.length}</strong><small>Semua status karya</small></div></article>
+            <article><span className="admin-overview-stat-icon"><Icon name="check" size={17} /></span><div><span>MENUNGGU VERIFIKASI</span><strong>{submissions.filter((submission) => submission.status === "pending").length}</strong><small>Perlu ditinjau tim</small></div></article>
           </div>
           <div className="admin-overview-links">
             <Link href="/profil/akun"><span className="admin-overview-link-icon"><Icon name="users" size={20} /></span><span><strong>Kelola akun</strong><small>Buat akun, cari anggota, dan perbarui peran atau profil.</small></span><Icon name="arrow" size={17} /></Link>
