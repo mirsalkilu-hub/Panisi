@@ -1963,7 +1963,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   min-height: 100dvh;
   overscroll-behavior: contain;
   padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
-  z-index: 100;
 }
 .login-dialog {
   background: linear-gradient(155deg, #fff 0%, #fff 72%, #f5f9ff 100%);
@@ -1976,39 +1975,27 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   padding: clamp(27px, 5vw, 42px);
   width: min(100%, 470px);
 }
-.login-dialog-heading {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  margin-bottom: 22px;
-}
 .dialog-mark {
   background: #edf5ff;
   border: 1px solid #e2edfa;
-  border-radius: 15px;
-  flex: 0 0 50px;
-  height: 50px;
-  margin: 0;
-  padding: 7px;
-  width: 50px;
+  border-radius: 16px;
+  height: 54px;
+  margin-bottom: 23px;
+  padding: 8px;
+  width: 54px;
 }
 .login-dialog .eyebrow {
-  background: #f0f6fc;
-  border: 1px solid #e2edf8;
-  border-radius: 999px;
   color: #3977b8;
-  display: inline-flex;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  padding: 8px 11px;
+  display: block;
+  font-size: 10px;
+  letter-spacing: .15em;
 }
 .login-dialog h2 {
   color: #1d385b;
   font-size: clamp(27px, 6vw, 36px);
   letter-spacing: -.055em;
   line-height: 1.16;
-  margin: 0 0 10px;
+  margin: 11px 0 10px;
   max-width: 350px;
 }
 .login-dialog > p {
@@ -2116,17 +2103,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
     width: 100%;
   }
   .dialog-mark {
-    flex-basis: 46px;
-    height: 46px;
-    width: 46px;
-  }
-  .login-dialog-heading {
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .login-dialog .eyebrow {
-    font-size: 8px;
-    padding: 7px 9px;
+    height: 48px;
+    margin-bottom: 18px;
+    width: 48px;
   }
   .login-dialog > p {
     font-size: 12px;

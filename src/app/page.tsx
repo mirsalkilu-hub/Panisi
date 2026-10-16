@@ -287,10 +287,8 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-title" aria-describedby="login-description">
         <button className="dialog-close" type="button" onClick={onClose} aria-label="Tutup"><Icon name="close" size={17} /></button>
-        <div className="login-dialog-heading">
-          <Image className="dialog-mark" src="/panisi-mark.svg" alt="" width={52} height={52} />
-          <span className="eyebrow">AKSES AKUN</span>
-        </div>
+        <Image className="dialog-mark" src="/panisi-mark.svg" alt="" width={52} height={52} />
+        <span className="eyebrow">AKSES AKUN</span>
         <h2 id="login-title">Selamat datang kembali.</h2>
         <p id="login-description">Masuk untuk menjelajah karya, mengelola konten, dan memantau kontribusi terbaik para kontributor.</p>
         {!supabase && <div className="notice">Supabase belum terhubung. Atur <code>NEXT_PUBLIC_SUPABASE_URL</code> dan <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> sebagai environment variables. Di Vercel, buka Project Settings → Environment Variables. Lihat README untuk panduan.</div>}
