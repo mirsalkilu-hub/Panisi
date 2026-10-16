@@ -84,7 +84,14 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
 
       const baseViewport = page.getViewport({ scale: 1 });
       const availableWidth = Math.max(canvas.parentElement?.clientWidth ?? 0, 240);
-      const scale = Math.min((availableWidth * 1.8) / baseViewport.width, 1.6);
+      const stage = readerElement.current?.querySelector<HTMLElement>(".pdf-book-stage");
+      const fullscreenPageHeight = isFullscreen
+        ? Math.max((stage?.clientHeight ?? window.innerHeight) - 44, 240)
+          / (window.innerWidth <= 520 && document.numPages > 1 ? 2 : 1)
+        : 0;
+      const scale = isFullscreen
+        ? Math.min((availableWidth * 1.8) / baseViewport.width, fullscreenPageHeight / baseViewport.height, 2.5)
+        : Math.min((availableWidth * 1.8) / baseViewport.width, 1.6);
       const viewport = page.getViewport({ scale });
       const outputScale = Math.min(window.devicePixelRatio || 1, 2);
       if (!canvas.getContext("2d")) throw new Error("Pembaca PDF tidak dapat menyiapkan kanvas.");
@@ -131,7 +138,7 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
       cancelled = true;
       for (const task of renderTasks) task.cancel();
     };
-  }, [firstPageNumber, reader, turnDirection]);
+  }, [firstPageNumber, isFullscreen, reader, turnDirection]);
 
   useEffect(() => () => {
     if (turnTimer.current) clearTimeout(turnTimer.current);

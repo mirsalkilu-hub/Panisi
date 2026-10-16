@@ -1901,8 +1901,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 }
 .pdf-book-reader-actions > a:hover, .pdf-book-reader-actions > button:hover { background: rgba(255,255,255,.12); border-color: rgba(228,241,255,.55); }
 .pdf-book-reader:fullscreen { background: #edf1f6; border: 0; border-radius: 0; display: flex; flex-direction: column; height: 100vh; margin: 0; max-height: 100vh; width: 100vw; }
-.pdf-book-reader:fullscreen .pdf-book-stage { flex: 1; overflow: auto; }
-.pdf-book-reader:fullscreen .pdf-book-spread { max-width: min(1200px, 95vw); }
+.pdf-book-reader:fullscreen .pdf-book-stage { flex: 1; min-height: 0; overflow: auto; place-items: center; }
+.pdf-book-reader:fullscreen .pdf-book-spread { max-width: none; width: 100%; }
+.pdf-book-reader:fullscreen .pdf-book-spread canvas { max-height: calc(100vh - 180px); }
 .pdf-book-stage { background: radial-gradient(ellipse at center,#f4f6f9 0%,#e4e8ee 75%); padding: clamp(12px,2vw,22px); perspective: 1800px; }
 .pdf-book-spread {
   animation: pdf-book-turn .42s cubic-bezier(.2,.7,.2,1);

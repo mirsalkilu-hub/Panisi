@@ -1586,6 +1586,16 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {activePage !== "admin-postingan" && !submissionManagementView &&
           <div className={`workspace-panel${adminRole ? " admin-workspace-panel" : ""}`}>
             <div className="panel-title"><div><span className="eyebrow">{adminRole && activePage === "admin-akun" ? "PUSAT MANAJEMEN AKUN" : profile.role === "kontributor" ? "DATA PROFIL" : "PROFIL PROFESIONAL"}</span><h3>{adminRole && activePage === "admin-akun" ? "Akun kontributor & verifikator" : profile.role === "kontributor" ? "Informasi kontributor" : "Biodata dan keahlian"}</h3></div><span className="role-badge">{profile.role}</span></div>
+            {adminRole && activePage === "admin-akun" && <section className="password-settings" aria-labelledby="admin-password-title">
+              <div className="password-settings-heading"><span className="workspace-security-icon"><Icon name="check" size={18} /></span><div><span className="eyebrow">KEAMANAN AKUN ADMIN</span><h3 id="admin-password-title">Ganti kata sandi</h3></div></div>
+              <p>Gunakan kata sandi baru minimal 8 karakter untuk akun administrator Anda.</p>
+              <form onSubmit={updatePassword} className="bio-form password-form">
+                <label htmlFor="new_password">Kata sandi baru</label><input id="new_password" name="new_password" type="password" autoComplete="new-password" minLength={8} required />
+                <label htmlFor="confirm_password">Konfirmasi kata sandi baru</label><input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required />
+                <button className="button button-outline" disabled={busy}>{busy ? "Memperbarui..." : "Perbarui kata sandi"} <Icon name="arrow" size={16} /></button>
+              </form>
+              {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
+            </section>}
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
               <div className="account-form-field"><label htmlFor="account_full_name">Nama lengkap</label><input id="account_full_name" name="account_full_name" required maxLength={100} /></div>
               <div className="account-form-field"><label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Kontributor Ahli Madya" required maxLength={120} /></div>
