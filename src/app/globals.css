@@ -3294,6 +3294,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .workspace-page-heading > div { max-width: none; }
 .workspace-page-heading h1 { font-size: clamp(28px,3.8vw,39px); }
 .workspace-hero-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+.workspace-access-panel { box-shadow: 0 10px 30px rgba(25,61,94,.05); margin: 24px auto 0; max-width: 780px; }
+.workspace-access-panel .role-list { margin-top: 4px; }
 .collection-list-section { padding-top: 33px; }
 .lesson-description-wrap { margin: 8px 3px 13px; }
 .lesson-description-wrap .lesson-description {
