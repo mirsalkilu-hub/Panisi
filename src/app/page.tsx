@@ -1517,7 +1517,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             <p>Pusat ilmu, informasi, dan karya pembelajaran yang bertumbuh melalui kolaborasi.</p>
           </div>
           <div className="footer-message"><span className="eyebrow">PINISI</span><strong>Pusat Ilmu dan Informasi<br />Bersinergi.</strong><span>Berbagi karya, memperluas manfaat pengetahuan.</span></div>
-          <nav className="footer-links" aria-label="Tautan footer"><span>JELAJAHI</span><Link href="/#karya">Karya komunitas</Link><Link href="/koleksi">Koleksi karya</Link><Link href="/kontributor">Komunitas</Link><Link href="/ajukan">Bagikan karya</Link></nav>
+          <nav className="footer-links" aria-label="Menu utama footer"><span>MENU UTAMA</span>{navItems.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}</nav>
         </div>
         <div className="footer-bottom"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
       </footer>
