@@ -11,7 +11,7 @@ type AccountRequest = {
   widyaiswaraExperience: string;
 };
 
-const maxPhotoSize = 5 * 1024 * 1024;
+const maxPhotoSize = 500 * 1024;
 const photoTypes = new Map([
   ["image/jpeg", "jpg"],
   ["image/png", "png"],
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     return responseError("Jabatan wajib diisi dan maksimal 120 karakter.", 400);
   }
   if (profilePhoto) {
-    if (profilePhoto.size > maxPhotoSize) return responseError("Ukuran foto maksimal 5 MB.", 400);
+    if (profilePhoto.size > maxPhotoSize) return responseError("Ukuran foto maksimal 500 KB.", 400);
     if (!photoTypes.has(profilePhoto.type)) {
       return responseError("Foto harus berformat JPG, PNG, atau WebP.", 400);
     }

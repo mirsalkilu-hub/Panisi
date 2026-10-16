@@ -97,6 +97,7 @@ type HomeLesson = {
 
 const maxSubmissionPdfSize = 2 * 1024 * 1024;
 const maxSubmissionImageSize = 500 * 1024;
+const maxProfilePhotoSize = 500 * 1024;
 const navItems: [string, string, IconName][] = [
   ["Beranda", "/", "home"],
   ["Koleksi", "/koleksi", "grid"],
@@ -141,6 +142,7 @@ function PageHero({
   children,
   feature,
   visual,
+  hideVisual = false,
   className = "",
 }: {
   eyebrow: string;
@@ -151,6 +153,7 @@ function PageHero({
   children?: React.ReactNode;
   feature?: React.ReactNode;
   visual?: React.ReactNode;
+  hideVisual?: boolean;
   className?: string;
 }) {
   return <header className={`collection-page-hero ${className}`}>
@@ -160,13 +163,13 @@ function PageHero({
       <p>{description}</p>
       {(children || feature) && <div className="collection-page-actions">{children}{feature}</div>}
     </div>
-    <div className={`collection-page-visual${visual ? " custom-page-visual" : ""}`} aria-hidden={visual ? undefined : true}>
+    {!hideVisual && <div className={`collection-page-visual${visual ? " custom-page-visual" : ""}`} aria-hidden={visual ? undefined : true}>
       {visual ?? <>
       <span className="collection-visual-orbit orbit-a" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />
       <span className="collection-visual-book"><Icon name={icon} size={68} /></span>
       <span className="collection-visual-caption">{caption}</span>
       </>}
-    </div>
+    </div>}
   </header>;
 }
 
@@ -588,8 +591,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       return;
     }
     if (photoFile instanceof File && photoFile.size > 0
-      && (!["image/jpeg", "image/png", "image/webp"].includes(photoFile.type) || photoFile.size > 5 * 1024 * 1024)) {
-      setMessage("Foto profil harus berformat JPG, PNG, atau WebP dan maksimal 5 MB.");
+      && (!["image/jpeg", "image/png", "image/webp"].includes(photoFile.type) || photoFile.size > maxProfilePhotoSize)) {
+      setMessage("Foto profil harus berformat JPG, PNG, atau WebP dan maksimal 500 KB.");
       return;
     }
     if (photoFile instanceof File && photoFile.size > 0) {
@@ -611,7 +614,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       });
       if (uploadError) {
         setBusy(false);
-        setMessage(`Foto profil gagal diunggah: ${uploadError.message}`);
+        const isStoragePolicyError = /row-level security policy/i.test(uploadError.message);
+        setMessage(isStoragePolicyError
+          ? `Foto profil gagal diunggah karena izin penyimpanan Supabase belum sesuai. Terapkan migrasi 20261016030000_profile_photo_storage_policies.sql, lalu coba lagi. Detail: ${uploadError.message}`
+          : `Foto profil gagal diunggah: ${uploadError.message}`);
         return;
       }
     }
@@ -1208,7 +1214,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Dua karya terbaru">
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" hideVisual className="home-main-banner" feature={latestHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Dua karya terbaru">
           <div className="home-latest-posts-list">{latestHomeSubmissions.map((item) => <Link className="home-latest-post" href={workHref(item.id, item.title)} key={item.id}>
             <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
             <span className="home-latest-post-copy"><strong>{item.title}</strong><span>{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
@@ -1450,7 +1456,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
               <div className="account-form-field"><label htmlFor="account_full_name">Nama lengkap</label><input id="account_full_name" name="account_full_name" required maxLength={100} /></div>
               <div className="account-form-field"><label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Kontributor Ahli Madya" required maxLength={120} /></div>
-              <div className="account-form-field"><label htmlFor="account_profile_photo">Foto profil (JPG, PNG, atau WebP; maks. 5 MB)</label><input id="account_profile_photo" name="account_profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /></div>
+              <div className="account-form-field"><label htmlFor="account_profile_photo">Foto profil (JPG, PNG, atau WebP; maks. 500 KB)</label><input id="account_profile_photo" name="account_profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /></div>
               <div className="account-form-field"><label htmlFor="account_email">Alamat email</label><input id="account_email" name="account_email" type="email" autoComplete="off" required /></div>
               <div className="account-form-field"><label htmlFor="account_password">Kata sandi sementara (min. 8 karakter)</label><input id="account_password" name="account_password" type="password" autoComplete="new-password" minLength={8} required /></div>
               <div className="account-form-field"><label htmlFor="account_role">Peran</label><select id="account_role" name="account_role" value={newAccountRole} onChange={(event) => setNewAccountRole(event.target.value === "verifikator" ? "verifikator" : "kontributor")}><option value="kontributor">Kontributor</option><option value="verifikator">Verifikator</option></select></div>
@@ -1495,7 +1501,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 <div className="profile-photo-preview">{profile.profile_photo_path && supabase
                   ? <Image src={supabase.storage.from("profile-photos").getPublicUrl(profile.profile_photo_path).data.publicUrl} alt={`Foto profil ${profile.full_name}`} width={76} height={76} unoptimized />
                   : <span>{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}</div>
-                <div className="profile-photo-copy"><label htmlFor="profile_photo">Foto profil</label><input id="profile_photo" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /><small>JPG, PNG, atau WebP · maksimal 5 MB</small></div>
+                <div className="profile-photo-copy"><label htmlFor="profile_photo">Foto profil</label><input id="profile_photo" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /><small>JPG, PNG, atau WebP · maksimal 500 KB</small></div>
               </div>}
               <label htmlFor="full_name">Nama lengkap</label><input id="full_name" name="full_name" defaultValue={profile.full_name} required maxLength={100} />
               <label htmlFor="job_title">Jabatan</label><input id="job_title" name="job_title" defaultValue={profile.job_title} required maxLength={120} />

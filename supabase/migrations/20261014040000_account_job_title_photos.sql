@@ -7,7 +7,7 @@ values (
   'profile-photos',
   'profile-photos',
   true,
-  5242880,
+  512000,
   array['image/jpeg', 'image/png', 'image/webp']
 )
 on conflict (id) do update set
