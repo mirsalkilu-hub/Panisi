@@ -1415,7 +1415,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               <div className="contributor-published-heading"><h2>Karya Terbit</h2><span>{contributorWorks.length} karya</span></div>
             {contributorWorks.length > 0 ? <div className="lesson-grid contributor-published-grid">
               {contributorWorks.map((item) => <article className="lesson-card" key={item.id}>
-                <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
+                <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /></Link>
                 <div className="contributor-work-copy">
                   <CategoryLabel className="contributor-work-category" categorySlug={item.category_slug} />
                   <h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3>
