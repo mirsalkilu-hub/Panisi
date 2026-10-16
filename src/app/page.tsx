@@ -314,6 +314,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [verifiedSubmissionsError, setVerifiedSubmissionsError] = useState("");
   const [contributorPhotoError, setContributorPhotoError] = useState("");
   const [publicContributors, setPublicContributors] = useState<PublicContributor[]>([]);
+  const [contributorQuery, setContributorQuery] = useState("");
   const [selectedContributor, setSelectedContributor] = useState<PublicContributor | null>(null);
   const [contributorWorks, setContributorWorks] = useState<PublishedSubmission[]>([]);
   const [contributionCategory, setContributionCategory] = useState<WorkCategorySlug>("video");
@@ -1126,6 +1127,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const searchText = `${submission.title} ${submission.description} ${contributorName} ${categoryName}`.toLocaleLowerCase("id-ID");
     return matchesStatus && (!submissionQuery.trim() || searchText.includes(submissionQuery.trim().toLocaleLowerCase("id-ID")));
   });
+  const filteredPublicContributors = publicContributors.filter((contributor) => {
+    const searchText = [contributor.full_name, contributor.job_title, contributor.area_of_expertise, contributor.widyaiswara_experience]
+      .join(" ")
+      .toLocaleLowerCase("id-ID");
+    return searchText.includes(contributorQuery.trim().toLocaleLowerCase("id-ID"));
+  });
   const homeLessons: HomeLesson[] = verifiedSubmissions.map((item, index) => ({
       id: item.id,
       category: allWorkCategories.find((category) => category.slug === item.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KARYA KONTRIBUTOR",
@@ -1294,24 +1301,31 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "widyaiswara" && !selectedContributorId && <>
       <section className="collection-page content-wrap contributor-directory-page">
         <PageHeading eyebrow="DIREKTORI KONTRIBUTOR" icon="users" title="Kontributor PINISI" description="Temukan kontributor, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
-          <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{publicContributors.length} kontributor</span>
+          <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{filteredPublicContributors.length}{contributorQuery.trim() ? ` / ${publicContributors.length}` : ""} kontributor</span>
         </PageHeading>
+        <div className="contributor-directory-toolbar">
+          <label className="contributor-directory-search"><Icon name="search" size={17} /><input type="search" value={contributorQuery} onChange={(event) => setContributorQuery(event.target.value)} placeholder="Cari nama, jabatan, atau keahlian..." aria-label="Cari kontributor" /></label>
+          {contributorQuery && <button type="button" className="contributor-directory-clear" onClick={() => setContributorQuery("")}>Hapus pencarian</button>}
+        </div>
           {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
-          : publicContributors.length > 0 ? <div className="contributor-directory-grid">{publicContributors.map((contributor) => <Link className="contributor-directory-card" href={`/kontributor/${contributor.id}`} key={contributor.id}>
-            <div className="contributor-directory-card-heading">
-              {contributor.profile_photo_path && supabase
-                ? <Image className="contributor-avatar" src={supabase.storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl} alt="" width={62} height={62} unoptimized />
-                : <span className="contributor-avatar">{contributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}
-              <h2>{contributor.full_name}</h2>
-            </div>
-            <div className="directory-expertise-block">
-              <span className="directory-expertise-label"><Icon name="insight" size={15} />Fokus Keahlian:</span>
-              <p className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</p>
-            </div>
-            <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
-            <span className="directory-action">Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></span>
-          </Link>)}</div>
-          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil kontributor segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
+          : filteredPublicContributors.length > 0 ? <div className="contributor-directory-grid">{filteredPublicContributors.map((contributor) => <article className="contributor-directory-card" key={contributor.id}>
+            <Link className="contributor-directory-profile-link" href={`/kontributor/${contributor.id}`}>
+              <div className="contributor-directory-card-heading">
+                {contributor.profile_photo_path && supabase
+                  ? <Image className="contributor-avatar" src={supabase.storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl} alt="" width={62} height={62} unoptimized />
+                  : <span className="contributor-avatar">{contributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}
+                <h2>{contributor.full_name}</h2>
+              </div>
+              <div className="directory-expertise-block">
+                <span className="directory-expertise-label"><Icon name="insight" size={15} />Fokus Keahlian:</span>
+                <p className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</p>
+              </div>
+              <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
+            </Link>
+            <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} compact /></div>
+          </article>)}</div>
+          : publicContributors.length > 0 ? <div className="contributor-search-empty"><Icon name="search" size={21} /><p>Tidak ada kontributor yang cocok dengan pencarian.</p><button type="button" onClick={() => setContributorQuery("")}>Hapus pencarian</button></div>
+            : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil kontributor segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
