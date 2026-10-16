@@ -3062,11 +3062,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .home-page-hero .collection-page-copy h1 { max-width: 630px; text-shadow: 0 2px 20px rgba(3,18,35,.32); }
 .home-page-hero .collection-page-copy > p { max-width: 510px; text-shadow: 0 1px 12px rgba(3,18,35,.4); }
 .home-main-banner .home-latest-posts {
-  backdrop-filter: blur(12px);
-  background: rgba(7,25,44,.84);
-  border: 1px solid rgba(220,239,255,.28);
+  backdrop-filter: blur(15px) saturate(130%);
+  background: rgba(7,25,44,.42);
+  border: 1px solid rgba(228,243,255,.42);
   border-radius: 13px;
   bottom: 24px;
+  box-shadow: 0 16px 38px rgba(2,12,25,.2), inset 0 1px 0 rgba(255,255,255,.08);
   display: grid;
   gap: 8px;
   max-width: 360px;
@@ -3076,14 +3077,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   width: 36%;
   z-index: 3;
 }
-.home-latest-posts-heading { align-items: center; border-bottom: 1px solid rgba(220,239,255,.16); color: #a7f0dc; display: flex; font-size: 8px; font-weight: 750; justify-content: space-between; letter-spacing: .07em; padding: 0 1px 7px; }
+.home-latest-posts-heading { align-items: center; border-bottom: 1px solid rgba(220,239,255,.28); color: #b9f4e3; display: flex; font-size: 8px; font-weight: 750; justify-content: space-between; letter-spacing: .07em; padding: 0 1px 7px; text-shadow: 0 1px 5px rgba(0,0,0,.4); }
 .home-latest-posts-heading > span { align-items: center; display: inline-flex; gap: 5px; }
 .home-latest-posts-heading small { color: #b9d5e8; font-size: 7px; }
 .home-latest-posts-list { display: grid; gap: 6px; }
 .home-latest-post {
   align-items: center;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(220,239,255,.12);
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(220,239,255,.22);
   border-radius: 8px;
   color: #fff;
   display: grid;
@@ -3094,14 +3095,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   text-decoration: none;
   transition: background .18s,border-color .18s;
 }
-.home-latest-post:hover { background: rgba(255,255,255,.13); border-color: rgba(220,239,255,.3); }
+.home-latest-post:hover { background: rgba(255,255,255,.17); border-color: rgba(220,239,255,.48); }
 .home-latest-thumbnail { aspect-ratio: 1.2; border: 0; border-radius: 6px; height: 44px; min-height: 0; width: 56px; }
 .home-latest-thumbnail .submission-thumbnail-copy,
 .home-latest-thumbnail .submission-thumbnail-mark,
 .home-latest-thumbnail .submission-thumbnail-overlay { display: none; }
 .home-latest-post-copy { display: grid; gap: 4px; min-width: 0; }
-.home-latest-post-copy > strong { color: #fff; display: -webkit-box; font-size: 10px; line-height: 1.35; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.home-latest-post-meta { color: #c6d7e8; font-size: 8px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-latest-post-copy > strong { color: #fff; display: -webkit-box; font-size: 10px; line-height: 1.35; overflow: hidden; text-shadow: 0 1px 5px rgba(0,0,0,.48); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.home-latest-post-meta { color: #dceaf7; font-size: 8px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px rgba(0,0,0,.45); white-space: nowrap; }
 .home-latest-post-index { color: #93b7d2; font-size: 8px; font-weight: 750; justify-self: center; }
 .home-published-section .lesson-card { border-radius: 18px; }
 .home-published-section .lesson-card h3 { line-height: 1.4; }
