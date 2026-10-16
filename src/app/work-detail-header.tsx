@@ -1,0 +1,77 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+
+const navigation = [
+  { label: "Beranda", href: "/", icon: "home" },
+  { label: "Koleksi", href: "/koleksi", icon: "grid" },
+  { label: "Widyaiswara", href: "/widyaiswara", icon: "users" },
+  { label: "Unggah Karya", href: "/ajukan", icon: "upload" },
+  { label: "Profil", href: "/ruang-kerja", icon: "user" },
+];
+
+function NavigationIcon({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-6h6v6" /></>,
+    grid: <><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="8" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /><rect x="13" y="13" width="8" height="8" rx="1" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" /><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    upload: <><path d="M12 16V4m0 0L7 9m5-5 5 5" /><path d="M4 16v4h16v-4" /></>,
+    user: <><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 14 0" /></>,
+  };
+  return <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+}
+
+export function WorkDetailHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <header className="site-header work-detail-header">
+      <Link className="brand" href="/" aria-label="PANISI — Karya Widyaiswara">
+        <Image className="brand-logo" src="/panisi-logo.svg" alt="PANISI — Karya Widyaiswara" width={190} height={48} priority />
+      </Link>
+      <nav className="desktop-nav" aria-label="Navigasi utama">
+        {navigation.map((item) => (
+          <Link
+            className={item.href === "/koleksi" ? "nav-active" : ""}
+            href={item.href}
+            key={item.href}
+            aria-current={item.href === "/koleksi" ? "page" : undefined}
+          >
+            <><NavigationIcon name={item.icon} />{item.label}</>
+          </Link>
+        ))}
+      </nav>
+      <Link className="button button-outline header-login" href="/koleksi">Kembali ke koleksi</Link>
+      <button
+        className="mobile-menu"
+        type="button"
+        aria-label={menuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+        aria-expanded={menuOpen}
+        aria-controls="work-detail-mobile-navigation"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+          {menuOpen ? <path d="m18 6-12 12M6 6l12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+        </svg>
+      </button>
+      {menuOpen && (
+        <nav className="mobile-nav" id="work-detail-mobile-navigation" aria-label="Navigasi seluler">
+          {navigation.map((item) => (
+            <Link
+              className={item.href === "/koleksi" ? "nav-active" : ""}
+              href={item.href}
+              key={item.href}
+              aria-current={item.href === "/koleksi" ? "page" : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span><NavigationIcon name={item.icon} />{item.label}</span><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </Link>
+          ))}
+          <Link className="mobile-nav-auth" href="/koleksi" onClick={() => setMenuOpen(false)}>Kembali ke koleksi</Link>
+        </nav>
+      )}
+    </header>
+  );
+}

@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { workCategories, type ContentType, type WorkCategorySlug } from "./work-categories";
 import { workHref } from "./work-links";
 import { SubmissionThumbnail } from "./submission-thumbnail";
+import { CategoryIcon } from "./category-icon";
 
 type Role = "admin" | "verifikator" | "kontributor";
 type Profile = {
@@ -71,7 +72,7 @@ type ManagedAccount = {
   created_at: string;
 };
 export type PageKey = "beranda" | "koleksi" | "widyaiswara" | "ajukan" | "ruang-kerja" | "admin-akun" | "admin-postingan";
-type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload" | "briefcase";
+type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload";
 type HomeLesson = {
   id: string;
   category: string;
@@ -92,18 +93,21 @@ type HomeLesson = {
   contributor_id?: string;
 };
 
+const maxSubmissionPdfSize = 2 * 1024 * 1024;
+const maxSubmissionImageSize = 500 * 1024;
+
 const navItems: [string, string, IconName][] = [
   ["Beranda", "/", "home"],
   ["Koleksi", "/koleksi", "grid"],
   ["Widyaiswara", "/widyaiswara", "users"],
   ["Unggah Karya", "/ajukan", "upload"],
-  ["Profil", "/ruang-kerja", "briefcase"],
+  ["Profil", "/ruang-kerja", "user"],
 ];
 
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, React.ReactNode> = {
     leaf: <><path d="M20 4c-8 0-14 4-14 11a5 5 0 0 0 5 5c7 0 11-6 9-16Z" /><path d="M4 21c3-6 7-9 13-12" /></>,
-    video: <><rect x="3" y="5" width="13" height="14" rx="2" /><path d="m16 10 5-3v10l-5-3" /></>,
+    video: <><rect x="3" y="5" width="13" height="14" rx="2" /><path d="m16 10 5-3v10l-5-3M8 9l4 3-4 3" /></>,
     science: <><path d="M9 3h6M10 3v6l-5.5 9.2A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.8L14 9V3M8 15h8" /><circle cx="12" cy="18" r="1" /></>,
     star: <><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" /></>,
     insight: <><path d="M9 18h6M10 22h4M8.2 14.5A7 7 0 1 1 15.8 14.5c-.9.7-1.3 1.3-1.5 2.5h-4.6c-.2-1.2-.6-1.8-1.5-2.5Z" /><path d="M12 7v4M10 9h4" /></>,
@@ -123,7 +127,6 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     grid: <><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></>,
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" /><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
     upload: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m17 8-5-5-5 5M12 3v12" /></>,
-    briefcase: <><rect x="3" y="7" width="18" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /></>,
   };
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -168,23 +171,31 @@ function PageHeading({
   eyebrow,
   title,
   description,
+  icon,
   children,
   className = "",
 }: {
   eyebrow: string;
   title: React.ReactNode;
   description: string;
+  icon?: IconName;
   children?: React.ReactNode;
   className?: string;
 }) {
   return <header className={`page-heading ${className}`}>
     <div>
-      <span className="eyebrow">{eyebrow}</span>
+      <span className="eyebrow page-heading-eyebrow">{icon && <Icon name={icon} size={15} />}{eyebrow}</span>
       <h1>{title}</h1>
       <p>{description}</p>
       {children && <div className="page-heading-actions">{children}</div>}
     </div>
   </header>;
+}
+
+function CategoryLabel({ categorySlug, className = "" }: { categorySlug: WorkCategorySlug; className?: string }) {
+  const category = workCategories.find((item) => item.slug === categorySlug);
+  if (!category) return null;
+  return <span className={className}><CategoryIcon categorySlug={categorySlug} />{category.name}</span>;
 }
 
 function WorkDescription({ description, href, title }: { description: string; href: string; title: string }) {
@@ -195,10 +206,10 @@ function WorkDescription({ description, href, title }: { description: string; hr
   </div>;
 }
 
-function ContributorPhoto({ name, path, className = "author-avatar" }: { name: string; path?: string | null; className?: string }) {
+function ContributorPhoto({ name, path, className = "author-avatar", width = 40, height = 40, loading = "lazy" }: { name: string; path?: string | null; className?: string; width?: number; height?: number; loading?: "eager" | "lazy" }) {
   const photoUrl = path && supabase ? supabase.storage.from("profile-photos").getPublicUrl(path).data.publicUrl : null;
   return photoUrl
-    ? <Image className={`${className} contributor-photo`} src={photoUrl} alt="" width={40} height={40} unoptimized />
+    ? <Image className={`${className} contributor-photo`} src={photoUrl} alt="" width={width} height={height} loading={loading} unoptimized />
     : <span className={className} aria-hidden="true">{name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>;
 }
 
@@ -227,8 +238,8 @@ async function getThumbnailValidationError(value: FormDataEntryValue | null, req
   if (!(value instanceof File) || value.size === 0) {
     return required ? "Unggah thumbnail landscape untuk karya ini." : null;
   }
-  if (!["image/jpeg", "image/png", "image/webp"].includes(value.type) || value.size > 5 * 1024 * 1024) {
-    return "Thumbnail harus berformat JPG, PNG, atau WebP dan maksimal 5 MB.";
+  if (!["image/jpeg", "image/png", "image/webp"].includes(value.type) || value.size > maxSubmissionImageSize) {
+    return "Gambar sampul harus berformat JPG, PNG, atau WebP dan maksimal 500 KB.";
   }
   const signature = new Uint8Array(await value.slice(0, 12).arrayBuffer());
   if (!hasValidImageSignature(value.type, signature)) {
@@ -268,7 +279,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
   return (
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-title" aria-describedby="login-description">
-        <button className="dialog-close" type="button" onClick={onClose} aria-label="Tutup">×</button>
+        <button className="dialog-close" type="button" onClick={onClose} aria-label="Tutup"><Icon name="close" size={17} /></button>
         <Image className="dialog-mark" src="/panisi-mark.svg" alt="" width={52} height={52} />
         <span className="eyebrow">AKSES AKUN</span>
         <h2 id="login-title">Selamat datang kembali.</h2>
@@ -282,7 +293,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button-primary login-submit" disabled={!supabase || busy}>{busy ? "Memproses..." : "Masuk"} <Icon name="arrow" size={17} /></button>
         </form>
-        <span className="dialog-help">Belum memiliki akun? Hubungi administrator Karya Widyaiswara.</span>
+        <span className="dialog-help">Akses kontributor dan verifikator dikelola administrator PANISI. Hubungi tim administrator untuk mendapatkan akun.</span>
       </section>
     </div>
   );
@@ -301,8 +312,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [publicContributors, setPublicContributors] = useState<PublicContributor[]>([]);
   const [selectedContributor, setSelectedContributor] = useState<PublicContributor | null>(null);
   const [contributorWorks, setContributorWorks] = useState<PublishedSubmission[]>([]);
-  const [contributorWorkTypeFilter, setContributorWorkTypeFilter] = useState<"all" | "video" | "ebook">("all");
-  const [contributionType, setContributionType] = useState<"video" | "ebook">("video");
+  const [contributionCategory, setContributionCategory] = useState<WorkCategorySlug>("video");
+  const contributionType = contributionCategory === "video" ? "video" : "ebook";
   const [contributorLoading, setContributorLoading] = useState(false);
   const [contributorError, setContributorError] = useState("");
   const [managedAccounts, setManagedAccounts] = useState<ManagedAccount[]>([]);
@@ -430,10 +441,6 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     setVerifiedSubmissionsError("");
     setVerifiedSubmissions(allVerified);
   }, []);
-
-  const filteredContributorWorks = contributorWorkTypeFilter === "all"
-    ? contributorWorks
-    : contributorWorks.filter((item) => item.content_type === contributorWorkTypeFilter);
 
   const loadPublicContributors = useCallback(async () => {
     if (!supabase) {
@@ -645,8 +652,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const values = new FormData(form);
     const title = values.get("title")?.toString().trim() ?? "";
     const description = values.get("description")?.toString().trim() ?? "";
-    const contentType = contributionType;
     const categorySlug = values.get("category_slug")?.toString() ?? "";
+    const contentType = categorySlug === "video" ? "video" : "ebook";
     const videoUrl = contentType === "video" ? values.get("youtube_url")?.toString().trim() ?? "" : null;
     const file = values.get("document");
     const thumbnailFile = values.get("thumbnail");
@@ -659,11 +666,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       return;
     }
     if (contentType === "ebook" && (!(file instanceof File) || file.size === 0 || file.type !== "application/pdf")) {
-      setMessage("Pilih file e-book dengan format PDF.");
+      setMessage("Pilih berkas karya dengan format PDF.");
       return;
     }
-    if (file instanceof File && file.size > 20 * 1024 * 1024) {
-      setMessage("Ukuran PDF maksimal 20 MB.");
+    if (file instanceof File && file.size > maxSubmissionPdfSize) {
+      setMessage("Ukuran PDF maksimal 2 MB.");
       return;
     }
     if (contentType === "video" && !youtubeId(videoUrl ?? "")) {
@@ -684,7 +691,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       const { error: uploadError } = await supabase.storage.from("contribution-documents").upload(path, file, { contentType: "application/pdf", upsert: false });
       if (uploadError) {
         setBusy(false);
-        setMessage(`E-book gagal diunggah: ${uploadError.message}`);
+        setMessage(`Berkas PDF gagal diunggah: ${uploadError.message}`);
         return;
       }
     }
@@ -728,8 +735,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       return;
     }
     form.reset();
-    setContributionType("video");
-    setMessage(`${contentType === "ebook" ? "E-Book" : "Video"} pembelajaran berhasil diajukan untuk diverifikasi.`);
+    setContributionCategory("video");
+    setMessage(`Karya kategori ${workCategories.find((category) => category.slug === categorySlug)?.name ?? "pilihan"} berhasil diajukan untuk diverifikasi.`);
     await loadWorkspace(session);
   }
 
@@ -922,9 +929,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     if (!title || title.length > 120 || !description || description.length > 2000
       || !workCategories.some((category) => category.slug === categorySlug)
       || (replacementDocument instanceof File && replacementDocument.size > 0
-        && (replacementDocument.type !== "application/pdf" || replacementDocument.size > 20 * 1024 * 1024))
-      || (submission?.content_type === "video" && !youtubeId(videoUrl))) {
-      setMessage("Lengkapi judul, deskripsi, dan kategori. Pastikan tautan YouTube valid atau PDF berukuran maksimal 20 MB.");
+        && (replacementDocument.type !== "application/pdf" || replacementDocument.size > maxSubmissionPdfSize))
+      || (submission?.content_type === "video" && !youtubeId(videoUrl))
+      || (submission && categorySlug !== submission.category_slug
+        && (submission.content_type === "video") !== (categorySlug === "video"))) {
+      setMessage("Lengkapi judul, deskripsi, dan kategori. Video memerlukan tautan YouTube; kategori lain menggunakan PDF maksimal 2 MB.");
       return;
     }
     const thumbnailError = await getThumbnailValidationError(replacementThumbnail, false);
@@ -1084,12 +1093,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       title: item.title,
       author: item.full_name,
       contributor_id: item.profile_id,
-      contentType: item.content_type === "ebook" ? "E-Book" as const : "Video" as const,
+      contentType: workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Video",
       time: item.content_type === "ebook" ? "PDF" : "YOUTUBE",
       color: (["forest", "sun", "ocean"] as const)[index % 3],
       symbol: "↗",
       level: "TERVERIFIKASI",
-      format: item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN",
+      format: item.content_type === "ebook" ? "PDF" : "VIDEO YOUTUBE",
       description: item.description,
       profile_photo_path: item.profile_photo_path,
       youtube_url: item.youtube_url,
@@ -1108,7 +1117,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   return (
     <main>
       <header className="site-header">
-        <Link className="brand" href="/" aria-label="Karya Widyaiswara"><Image className="brand-logo" src="/panisi-logo.svg" alt="Karya Widyaiswara" width={190} height={48} priority /></Link>
+        <Link className="brand" href="/" aria-label="PANISI — Karya Widyaiswara"><Image className="brand-logo" src="/panisi-logo.svg" alt="PANISI — Karya Widyaiswara" width={190} height={48} priority /></Link>
         <nav className="desktop-nav" aria-label="Navigasi utama">
           {navItems.map(([label, href, icon]) => {
             const isContributorProfile = href === "/ruang-kerja" && profile?.role === "kontributor";
@@ -1141,7 +1150,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
         <PageHero eyebrow="KARYA WIDYAISWARA" title={<>Karya Widyaiswara.<br /><em>Ilmu dibagikan, inspirasi diteruskan.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
-          <SubmissionThumbnail id={latestHomeLesson.id} title={latestHomeLesson.title} contentType={latestHomeLesson.contentType === "E-Book" ? "ebook" : "video"} categorySlug={latestHomeLesson.categorySlug} youtubeUrl={latestHomeLesson.youtube_url} thumbnailPath={latestHomeLesson.thumbnail_path} accessToken={session?.access_token} className="home-featured-thumbnail" />
+          <SubmissionThumbnail id={latestHomeLesson.id} title={latestHomeLesson.title} contentType={latestHomeLesson.categorySlug === "video" ? "video" : "ebook"} categorySlug={latestHomeLesson.categorySlug} youtubeUrl={latestHomeLesson.youtube_url} thumbnailPath={latestHomeLesson.thumbnail_path} accessToken={session?.access_token} className="home-featured-thumbnail" />
           <span className="home-featured-badge"><Icon name="check" size={13} /> TERBARU · TERVERIFIKASI</span>
           <div className="home-featured-caption"><span>{latestHomeLesson.category}</span><strong>{latestHomeLesson.title}</strong><small>{latestHomeLesson.author} · {latestHomeLesson.format}</small></div>
           <span className="home-featured-edge" aria-hidden="true"><Icon name="arrow" size={17} /></span>
@@ -1156,7 +1165,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <nav className="work-category-menu" aria-label="Filter kategori karya">
             <button type="button" className={`work-category-link${selectedCategory === null ? " category-active" : ""}`} onClick={() => setSelectedCategory(null)} aria-pressed={selectedCategory === null}><span className="work-category-icon"><Icon name="grid" size={21} /></span><span><strong>Semua Karya</strong><small>Jelajahi seluruh karya</small></span></button>
             {workCategories.map((category) => <button type="button" className={`work-category-link${selectedCategory === category.slug ? " category-active" : ""}`} onClick={() => setSelectedCategory(category.slug)} key={category.slug} aria-pressed={selectedCategory === category.slug}>
-              <span className="work-category-icon"><Icon name={category.icon} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
+              <span className="work-category-icon"><CategoryIcon categorySlug={category.slug} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
             </button>)}
           </nav>
           <div className="content-toolbar">
@@ -1166,27 +1175,27 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
           : filteredLessons.length > 0 ? <div className="lesson-grid">
             {filteredLessons.map((lesson) => <article className="lesson-card" key={lesson.id ?? lesson.title}>
-              <Link className="lesson-thumbnail-link" href={workHref(lesson.id, lesson.title)} aria-label={`Buka halaman ${lesson.title}`}><SubmissionThumbnail id={lesson.id} title={lesson.title} contentType={lesson.contentType === "E-Book" ? "ebook" : "video"} categorySlug={lesson.categorySlug} youtubeUrl={lesson.youtube_url} thumbnailPath={lesson.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-              <div className="lesson-meta"><span>{lesson.category}</span><span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><ContributorPhoto name={lesson.author} path={lesson.profile_photo_path} />{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}<span className="lesson-duration">{lesson.time}</span></div>
+              <Link className="lesson-thumbnail-link" href={workHref(lesson.id, lesson.title)} aria-label={`Buka halaman ${lesson.title}`}><SubmissionThumbnail id={lesson.id} title={lesson.title} contentType={lesson.categorySlug === "video" ? "video" : "ebook"} categorySlug={lesson.categorySlug} youtubeUrl={lesson.youtube_url} thumbnailPath={lesson.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
+              <div className="lesson-meta"><CategoryLabel categorySlug={lesson.categorySlug} /> <span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={lesson.author} path={lesson.profile_photo_path} />{lesson.contributor_id ? <Link href={`/widyaiswara/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}</div><span className="lesson-duration">{lesson.time}</span></div>
             </article>)}
-          </div> : <p className="lesson-empty">{categoryLessons.length === 0 && !lessonQuery.trim() ? `Belum ada karya terverifikasi dalam kategori ${currentWorkCategory?.name ?? "ini"}.` : `Belum ada karya untuk “${lessonQuery}”. Coba kata kunci lain.`}</p>}
+          </div> : <div className="lesson-empty-state"><span className="lesson-empty-icon"><Icon name={lessonQuery.trim() ? "search" : "book"} size={20} /></span><div><strong>{lessonQuery.trim() ? `Tidak ada karya yang cocok dengan “${lessonQuery}”.` : `Belum ada karya terverifikasi dalam kategori ${currentWorkCategory?.name ?? "ini"}.`}</strong><p>{lessonQuery.trim() ? "Coba kata kunci lain atau hapus pencarian untuk melihat semua karya." : "Jelajahi kategori lain atau kirim karya agar dapat dibagikan kepada komunitas."}</p></div>{lessonQuery.trim() ? <button type="button" onClick={() => setLessonQuery("")}>Hapus pencarian</button> : <Link href="/ajukan">Ajukan karya <Icon name="arrow" size={14} /></Link>}</div>}
         </div>
       </section>
       </>}
 
       {activePage === "koleksi" && <>
       <section className="collection-page content-wrap" id="koleksi">
-        <PageHeading eyebrow="KOLEKSI KARYA WIDYAISWARA" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi seluruh karya komunitas yang telah ditinjau dan disetujui verifikator. Temukan pengalaman serta gagasan yang dapat diterapkan dalam pembelajaran.">
+        <PageHeading eyebrow="KOLEKSI KARYA WIDYAISWARA" icon="grid" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi karya pembelajaran yang telah diverifikasi. Temukan pengalaman dan gagasan yang dapat diterapkan dalam kegiatan belajar.">
           <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a>
         </PageHeading>
         <div className="collection-list-section" id="koleksi-terverifikasi">
-          <div className="collection-list-heading"><div><span className="eyebrow">HASIL VERIFIKASI</span><h2>Koleksi komunitas</h2><p>Semua pengajuan yang disetujui verifikator, dari setiap kontributor.</p></div><span className="lesson-total">{verifiedSubmissions.length} KARYA</span></div>
+          <div className="collection-list-heading"><div><span className="eyebrow">KARYA TERVERIFIKASI</span><h2>Koleksi komunitas</h2><p>Karya yang telah disetujui dan dibagikan oleh para kontributor.</p></div><span className="lesson-total">{verifiedSubmissions.length} KARYA</span></div>
           {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
             : verifiedSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
               {verifiedSubmissions.map((item) => <article className="lesson-card" key={item.id}>
                   <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                  <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · DISETUJUI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                  <div className="lesson-meta"><CategoryLabel categorySlug={item.category_slug} /> <span>{item.content_type === "ebook" ? "PDF" : "VIDEO · DISETUJUI"}</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link></div><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
               </article>)}
             </div>
             : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>}
@@ -1200,81 +1209,97 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {contributorLoading ? <div className="contributor-state" role="status">Memuat profil widyaiswara...</div>
           : contributorError ? <div className="contributor-state contributor-error" role="alert">{contributorError}</div>
           : selectedContributor && <>
-            <PageHeading eyebrow="PROFIL WIDYAISWARA" title={selectedContributor.full_name} description="Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna." className="contributor-page-heading">
-              <span className="contributor-job-title">{selectedContributor.job_title}</span>
-            </PageHeading>
-            <div className="contributor-bio-grid">
-              <article><span className="eyebrow">BIDANG KEAHLIAN</span><p>{selectedContributor.area_of_expertise || "Informasi bidang keahlian belum tersedia."}</p></article>
-              <article><span className="eyebrow">PENGALAMAN WIDYAISWARA</span><p>{selectedContributor.widyaiswara_experience || "Informasi pengalaman belum tersedia."}</p></article>
-            </div>
-            <div className="contributor-works-heading"><div><span className="eyebrow">KARYA YANG DIBAGIKAN</span><h2>Kontribusi pembelajaran</h2></div><span className="lesson-total">{contributorWorks.length} KARYA</span></div>
-            <nav className="contributor-work-filters" aria-label="Filter kategori karya kontributor">
-              {([
-                ["all", "Semua karya", contributorWorks.length],
-                ["video", "Video pembelajaran", contributorWorks.filter((item) => item.content_type === "video").length],
-                ["ebook", "E-Book pembelajaran", contributorWorks.filter((item) => item.content_type === "ebook").length],
-              ] as const).map(([filter, label, count]) => <button type="button" key={filter} className={contributorWorkTypeFilter === filter ? "active" : ""} onClick={() => setContributorWorkTypeFilter(filter)}>{label}<span>{count}</span></button>)}
-            </nav>
-            {contributorWorks.length > 0 ? filteredContributorWorks.length > 0 ? <div className="lesson-grid">
-              {filteredContributorWorks.map((item) => <article className="lesson-card" key={item.id}>
+            <article className="contributor-profile-hero">
+              <ContributorPhoto name={selectedContributor.full_name} path={selectedContributor.profile_photo_path} className="contributor-profile-photo" width={142} height={142} loading="eager" />
+              <div className="contributor-profile-content">
+                <span className="contributor-profile-badge"><Icon name="star" size={14} />{selectedContributor.job_title || "Widyaiswara"}</span>
+                <h1>{selectedContributor.full_name}</h1>
+                <div className="contributor-profile-expertise">
+                  <strong><Icon name="insight" size={15} />Bidang Keahlian:</strong>
+                  <p>{selectedContributor.area_of_expertise || "Informasi bidang keahlian belum tersedia."}</p>
+                </div>
+                <p className="contributor-profile-bio">{selectedContributor.widyaiswara_experience || "Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna."}</p>
+                <div className="contributor-profile-work-count"><Icon name="book" size={17} /><span><strong>{contributorWorks.length}</strong> Karya Terbit</span></div>
+              </div>
+            </article>
+            <section className="contributor-published-works">
+              <div className="contributor-published-heading"><h2>Karya Terbit</h2><span>{contributorWorks.length} karya</span></div>
+            {contributorWorks.length > 0 ? <div className="lesson-grid contributor-published-grid">
+              {contributorWorks.map((item) => <article className="lesson-card" key={item.id}>
                 <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
-                <div className="lesson-meta"><span>{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "KARYA"}</span><span>{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"} · TERVERIFIKASI</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><ContributorPhoto name={selectedContributor.full_name} path={selectedContributor.profile_photo_path} /><span>{selectedContributor.full_name}</span><span className="lesson-duration">{item.content_type === "ebook" ? "PDF" : "VIDEO"}</span></div>
+                <div className="contributor-work-copy">
+                  <CategoryLabel className="contributor-work-category" categorySlug={item.category_slug} />
+                  <h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3>
+                  <WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} />
+                  <div className="contributor-work-footer"><span>Terverifikasi</span><span>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                </div>
               </article>)}
-            </div> : <p className="lesson-empty">Belum ada karya pada kategori ini.</p> : <p className="lesson-empty">Widyaiswara ini belum memiliki karya yang disetujui verifikator.</p>}
+            </div> : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={24} /></span><h3>Belum ada karya terbit</h3><p>Karya yang telah disetujui akan tampil di sini. Sementara itu, jelajahi koleksi dari widyaiswara lainnya.</p><Link className="text-link" href="/koleksi">Jelajahi koleksi <Icon name="arrow" size={16} /></Link></div>}
+            </section>
           </>}
       </section>
       </>}
 
       {activePage === "widyaiswara" && !selectedContributorId && <>
-      <section className="contributor-directory content-wrap">
-        <PageHeading eyebrow="KOMUNITAS KARYA WIDYAISWARA" title="Kenali para penggerak inspirasi pembelajaran." description="Jelajahi profil, bidang keahlian, pengalaman, dan karya yang telah dibagikan para widyaiswara." />
-        <div className="section-heading"><div><span className="eyebrow">PARA PENGGERAK PEMBELAJARAN</span><h2>Komunitas widyaiswara.</h2><p className="workspace-intro">Kenali pengalaman, keahlian, dan kontribusi para widyaiswara dalam satu ruang.</p></div><span className="lesson-total">{publicContributors.length} WIDYAISWARA</span></div>
-        {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
+      <section className="collection-page content-wrap contributor-directory-page">
+        <PageHeading eyebrow="DIREKTORI WIDYAISWARA" icon="users" title="Widyaiswara PANISI." description="Temukan widyaiswara, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
+          <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{publicContributors.length} widyaiswara</span>
+        </PageHeading>
+          {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
           : publicContributors.length > 0 ? <div className="contributor-directory-grid">{publicContributors.map((contributor) => <Link className="contributor-directory-card" href={`/widyaiswara/${contributor.id}`} key={contributor.id}>
-            {contributor.profile_photo_path && supabase
-              ? <Image className="contributor-avatar" src={supabase.storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl} alt="" width={62} height={62} unoptimized />
-              : <span className="contributor-avatar">{contributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}
-            <span className="eyebrow">WIDYAISWARA</span><strong>{contributor.full_name}</strong><span className="directory-job-title">{contributor.job_title}</span><span className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</span><span className="directory-action">Lihat profil <Icon name="arrow" size={15} /></span>
+            <div className="contributor-directory-card-heading">
+              {contributor.profile_photo_path && supabase
+                ? <Image className="contributor-avatar" src={supabase.storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl} alt="" width={62} height={62} unoptimized />
+                : <span className="contributor-avatar">{contributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}
+              <h2>{contributor.full_name}</h2>
+            </div>
+            <div className="directory-expertise-block">
+              <span className="directory-expertise-label"><Icon name="insight" size={15} />Fokus Keahlian:</span>
+              <p className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</p>
+            </div>
+            <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
+            <span className="directory-action">Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></span>
           </Link>)}</div>
-          : <p className="lesson-empty">Profil widyaiswara akan tampil di sini setelah tersedia.</p>}
-      </section>
-      <section className="teacher-section" id="widyaiswara">
-        <div className="teacher-copy"><span className="eyebrow">KOMUNITAS WIDYAISWARA</span><h2>Berbagi keahlian,<br /><em>menguatkan pendidikan.</em></h2><p>Karya Widyaiswara mempertemukan para pendidik untuk berbagi metode, wawasan, dan pengalaman yang dapat menginspirasi pembelajaran di berbagai tempat.</p><Link className="text-link" href="/ajukan">Bagikan karya Anda <Icon name="arrow" size={16} /></Link></div>
-        <div className="teacher-quote"><span className="quote-mark">“</span><blockquote>Pengetahuan yang dibagikan hari ini dapat membuka kemungkinan baru bagi pembelajaran esok hari.</blockquote><span className="quote-credit">BERBAGI • BELAJAR • BERTUMBUH</span><span className="teacher-leaf"><Icon name="book" size={84} /></span></div>
+          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil widyaiswara segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PANISI.</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
-        <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" title="Pengalaman berharga, bagikan agar berdampak." description="Ajukan video pembelajaran melalui tautan YouTube atau bagikan e-book dan modul dalam format PDF. Setiap karya akan ditinjau verifikator sebelum ditampilkan kepada komunitas." className="upload-page-heading">
+        <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" icon="upload" title="Bagikan karya pembelajaran Anda." description="Pilih kategori untuk memulai pengajuan. Video menggunakan tautan YouTube; E-Book, Populer, Review, Best Practice, Science, dan Insight menggunakan PDF maksimal 2 MB. Gambar sampul dibatasi 500 KB." className="upload-page-heading">
           {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
         </PageHeading>
-        {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
+        {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         <div className="upload-steps">
-          <article><span>01</span><Icon name="user" size={19} /><strong>Lengkapi profil</strong><p>Pastikan keahlian dan pengalaman Anda telah tercantum.</p></article>
-          <article><span>02</span><Icon name="video" size={19} /><strong>Pilih format karya</strong><p>Ajukan video YouTube atau unggah e-book PDF.</p></article>
-          <article><span>03</span><Icon name="check" size={19} /><strong>Tunggu verifikasi</strong><p>Pantau status atau edit pengajuan di halaman ini sebelum diverifikasi.</p></article>
+          <article><span>01</span><Icon name="user" size={19} /><strong>Lengkapi profil</strong><p>Pastikan bidang keahlian dan pengalaman Anda sudah tercantum.</p></article>
+          <article><span>02</span><Icon name="grid" size={19} /><strong>Pilih kategori karya</strong><p>Video memakai tautan YouTube; enam kategori lainnya memakai PDF maksimal 2 MB.</p></article>
+          <article><span>03</span><Icon name="check" size={19} /><strong>Kirim untuk verifikasi</strong><p>Pantau status dan perbarui pengajuan dari halaman ini.</p></article>
         </div>
         {session && profile?.role === "kontributor" ? <>
         <div className="workspace-grid upload-workspace-grid" id="formulir-pengajuan">
           <div className="workspace-panel upload-form-panel">
-            <div className="panel-title"><div><span className="eyebrow">FORMULIR KONTRIBUSI</span><h3>Ajukan materi ajar</h3></div><span className="role-badge">Kontributor</span></div>
-            <div className="contribution-type-picker" role="group" aria-label="Pilih jenis karya">
-              <button type="button" className={contributionType === "video" ? "active" : ""} aria-pressed={contributionType === "video"} onClick={() => setContributionType("video")}><Icon name="video" size={19} /><span><strong>Video pembelajaran</strong><small>Bagikan video dari YouTube</small></span></button>
-              <button type="button" className={contributionType === "ebook" ? "active" : ""} aria-pressed={contributionType === "ebook"} onClick={() => setContributionType("ebook")}><Icon name="book" size={19} /><span><strong>E-Book pembelajaran</strong><small>Unggah buku atau modul PDF</small></span></button>
-            </div>
             <form onSubmit={submitContribution} className="contribution-form">
+              <div className="contribution-form-heading">
+                <div className="contribution-form-heading-title"><span className="contribution-form-heading-icon"><Icon name="upload" size={19} /></span><div><span className="eyebrow">FORMULIR PENGAJUAN</span><h3>Ajukan karya</h3></div><span className="role-badge">Kontributor</span></div>
+                <div className="contribution-category-field">
+                  <label htmlFor="category_slug"><Icon name="grid" size={15} />Kategori karya</label>
+                  <select id="category_slug" name="category_slug" value={contributionCategory} onChange={(event) => {
+                    const category = workCategories.find((item) => item.slug === event.target.value);
+                    if (category) setContributionCategory(category.slug);
+                  }} required>{workCategories.map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
+                  <small className="contribution-category-hint">Kategori Video menampilkan kolom tautan embed YouTube. Enam kategori lainnya menampilkan unggahan PDF maksimal 2 MB.</small>
+                </div>
+              </div>
               <label htmlFor="title">Judul materi</label><input id="title" name="title" placeholder="Contoh: Teknik fasilitasi kelas interaktif" required maxLength={120} />
               <label htmlFor="description">Deskripsi</label><textarea id="description" name="description" placeholder="Jelaskan tujuan dan isi materi ajar..." rows={4} required maxLength={2000} />
-              <label htmlFor="category_slug">Kategori karya</label><select id="category_slug" name="category_slug" defaultValue="video" required>{workCategories.map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
-              <label htmlFor="thumbnail">Thumbnail landscape (wajib, JPG/PNG/WebP, maks. 5 MB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Pilih gambar landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi. Thumbnail akan tampil pada kartu dan halaman karya.</small>
+              <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Gunakan orientasi landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.</small>
               {contributionType === "video"
-                ? <><label htmlFor="youtube_url">Tautan video pembelajaran YouTube</label><input id="youtube_url" name="youtube_url" type="url" placeholder="https://www.youtube.com/watch?v=..." required /></>
-                : <><label htmlFor="document">File e-book atau modul (PDF, maks. 20 MB)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Unggah satu dokumen PDF untuk ditinjau verifikator.</small></>}
+                ? <><label htmlFor="youtube_url">Tautan video YouTube</label><input id="youtube_url" name="youtube_url" type="url" placeholder="https://www.youtube.com/watch?v=..." required /><small className="upload-hint">Kolom ini hanya tampil untuk kategori Video.</small></>
+                : <><label htmlFor="document">Berkas karya (PDF, maks. 2 MB)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Kolom PDF tampil untuk semua kategori selain Video.</small></>}
               <button className="button button-primary" disabled={busy}>{busy ? "Mengirim..." : "Ajukan untuk verifikasi"} <Icon name="arrow" size={16} /></button>
             </form>
           </div>
-          <aside className="workspace-panel upload-info-panel"><span className="upload-info-icon"><Icon name={contributionType === "video" ? "video" : "book"} size={24} /></span><span className="eyebrow">SEBELUM MENGIRIM</span><h3>Pastikan karya siap dibagikan.</h3><p>{contributionType === "video" ? "Pastikan tautan YouTube dapat dibuka dan mengarah ke materi yang ingin dibagikan." : "Gunakan PDF yang jelas dan terbaca. Berkas maksimal 20 MB dan hanya dapat diakses tim verifikasi sebelum disetujui."}</p><ul><li><Icon name="check" size={15} /> Judul dan deskripsi sesuai isi karya</li><li><Icon name="check" size={15} /> Materi mendukung pembelajaran</li><li><Icon name="check" size={15} /> Status dapat dipantau di halaman ini</li></ul></aside>
+          <aside className="workspace-panel upload-info-panel"><span className="upload-info-icon"><Icon name={contributionType === "video" ? "video" : "book"} size={24} /></span><span className="eyebrow">SEBELUM MENGIRIM</span><h3>Pastikan karya siap dibagikan.</h3><p>{contributionType === "video" ? "Kategori Video menggunakan tautan YouTube. Pastikan tautan dapat dibuka dan mengarah ke materi yang ingin dibagikan." : "Kategori ini menggunakan PDF yang jelas dan terbaca dengan ukuran maksimal 2 MB."}</p><ul><li><Icon name="check" size={15} /> Gambar sampul maksimal 500 KB</li><li><Icon name="check" size={15} /> Materi mendukung pembelajaran</li><li><Icon name="check" size={15} /> Status dapat dipantau di halaman ini</li></ul></aside>
         </div>
         <section className="workspace-panel submissions-panel contributor-submissions-panel" id="kontribusiku">
           <div className="panel-title"><div><span className="eyebrow">KARYA SAYA</span><h3>Riwayat kiriman</h3><p className="workspace-intro">Pantau karya yang pernah Anda kirim dan tindak lanjut status verifikasinya.</p></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
@@ -1283,17 +1308,17 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {editingId === item.id ? <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
-              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
-              <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti thumbnail landscape (opsional, JPG/PNG/WebP, maks. 5 MB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" /><small className="upload-hint">Kosongkan jika thumbnail saat ini tetap digunakan.</small>
+              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
+              <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" /><small className="upload-hint">Kosongkan jika gambar saat ini tetap digunakan.</small>
               {item.content_type === "video"
                 ? <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan video YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>
-                : <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 20 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
+                : <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 2 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>Simpan perubahan</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
             </form></> : <>
               <div className="contributor-submission-summary">
                 <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="contributor-submission-thumbnail" />
                 <div className="contributor-submission-copy">
-                  <div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK" : "VIDEO"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div>
+                  <div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div>
                   <h4>{item.status === "approved" ? <Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link> : item.title}</h4>
                   <p className="submission-description">{item.description}</p>
                 </div>
@@ -1305,7 +1330,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             </>}
           </article>)}</div>}
         </section>
-        </> : !session ? <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="upload" size={23} /></span><h3>Masuk untuk mulai berbagi karya</h3><p>Pengajuan video dan e-book tersedia bagi akun kontributor. Masuk untuk membuka formulir kontribusi Anda.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div> : <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Fitur unggah untuk akun kontributor</h3><p>Akun Anda memiliki peran {profile?.role}. Pengajuan materi pembelajaran hanya tersedia bagi kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke Profil <Icon name="arrow" size={16} /></Link></div>}
+        </> : !session ? <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="upload" size={23} /></span><h3>Masuk untuk mulai berbagi karya</h3><p>Pengajuan video melalui YouTube dan karya PDF tersedia bagi akun kontributor. Masuk untuk membuka formulir kontribusi Anda.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div> : <div className="upload-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Fitur unggah untuk akun kontributor</h3><p>Akun Anda memiliki peran {profile?.role}. Pengajuan materi pembelajaran hanya tersedia bagi kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke Profil <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
@@ -1325,9 +1350,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <Link className={activePage === "admin-postingan" ? "active" : ""} href="/ruang-kerja/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
         </nav>}
         {profile?.role === "kontributor" && <div className="workspace-profile-summary"><span className="workspace-profile-avatar">{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><div><strong>{profile.full_name}</strong><span>{profile.job_title || "Widyaiswara"} · Profil profesional publik</span></div><span className="role-badge">Kontributor</span></div>}
-        {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi">×</button></div>}
-        {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan">×</button></div>}
-        {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="play" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai admin untuk mengakses halaman pengelolaan komunitas." : "Masuk untuk mengelola profil widyaiswara, membagikan materi ajar, atau meninjau kontribusi sesuai peranmu."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
+        {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button></div>}
+        {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
+        {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="user" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai administrator untuk mengelola akun dan postingan komunitas." : "Masuk untuk mengelola profil, mengajukan karya, atau meninjau kontribusi sesuai peran akun Anda."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
         {session && profile && adminManagementPage && !adminRole && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/ruang-kerja">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
         {session && profile && adminRole && activePage === "ruang-kerja" && <section className="admin-overview" aria-label="Ringkasan administrasi">
           <div className="admin-overview-copy"><span className="eyebrow">PANEL ADMINISTRATOR</span><h3>Kelola komunitas dan karya.</h3><p>Buat akun tim, pantau profil anggota, dan atur materi yang siap dipublikasikan.</p></div>
@@ -1423,12 +1448,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : adminRole && filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>Tidak ada postingan yang cocok dengan pencarian atau filter.</p></div> : <div className="submission-list">{(adminRole ? filteredSubmissions : submissions).map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
-              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
-              <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti thumbnail (opsional, JPG/PNG/WebP, maks. 5 MB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" />
+              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
+              <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" />
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
-              {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 20 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
+              {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 2 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
-            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "E-BOOK PEMBELAJARAN" : "VIDEO PEMBELAJARAN"}<span className="submission-category">{workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Kategori"}</span></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
+            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
         </div>}
       </section>
@@ -1438,7 +1463,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         <div className="footer-top">
           <div className="footer-brand-block">
             <Link className="brand footer-brand" href="/" aria-label="Karya Widyaiswara"><Image className="brand-logo" src="/panisi-logo-light.svg" alt="Karya Widyaiswara" width={190} height={48} /></Link>
-            <p>Ruang bersama untuk merawat gagasan, membagikan pengalaman, dan menumbuhkan pembelajaran yang bermakna.</p>
+            <p>Temukan karya pembelajaran, profil widyaiswara, dan praktik baik yang dibagikan untuk memperkuat layanan pendidikan.</p>
           </div>
           <div className="footer-message"><span className="eyebrow">KARYA WIDYAISWARA</span><strong>Ilmu dibagikan.<br />Inspirasi diteruskan.</strong><span>Setiap karya adalah kontribusi untuk pendidikan Indonesia.</span></div>
           <nav className="footer-links" aria-label="Tautan footer"><span>JELAJAHI</span><Link href="/#karya">Karya komunitas</Link><Link href="/koleksi">Koleksi karya</Link><Link href="/widyaiswara">Komunitas</Link><Link href="/ajukan">Bagikan karya</Link></nav>
@@ -1467,10 +1492,10 @@ function DocumentPreview({ path, title }: { path: string; title: string }) {
     });
     return () => { active = false; };
   }, [path]);
-  if (error) return <div className="document-preview-error" role="alert">Pratinjau e-book tidak tersedia: {error}</div>;
-  if (!url) return <div className="document-preview-loading"><Icon name="file" size={17} /> Memuat pratinjau e-book...</div>;
+  if (error) return <div className="document-preview-error" role="alert">Pratinjau PDF tidak tersedia: {error}</div>;
+  if (!url) return <div className="document-preview-loading"><Icon name="file" size={17} /> Memuat pratinjau PDF...</div>;
   return <div className="document-preview">
-    <div className="document-preview-toolbar"><span><Icon name="file" size={16} /> Pratinjau e-book</span><a href={url} target="_blank" rel="noreferrer">Buka PDF untuk cetak <Icon name="arrow" size={14} /></a></div>
-    <iframe src={url} title={`Pratinjau e-book: ${title}`} loading="lazy" />
+    <div className="document-preview-toolbar"><span><Icon name="file" size={16} /> Pratinjau PDF</span><a href={url} target="_blank" rel="noreferrer">Buka PDF untuk cetak <Icon name="arrow" size={14} /></a></div>
+    <iframe src={url} title={`Pratinjau PDF: ${title}`} loading="lazy" />
   </div>;
 }

@@ -55,7 +55,7 @@ export function SubmissionThumbnail({
       <span className="submission-thumbnail-copy">
         <span>{category?.name ?? "Karya Widyaiswara"}</span>
         <strong>{title}</strong>
-        <small>{contentType === "ebook" ? "E-BOOK / MODUL" : "VIDEO PEMBELAJARAN"}</small>
+        <small>{contentType === "ebook" ? "DOKUMEN PDF" : "VIDEO PEMBELAJARAN"}</small>
       </span>
       <span className="submission-thumbnail-mark" aria-hidden="true">{contentType === "ebook"
         ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" /><path d="M4 5.5v16M8 7h8M8 11h7" /></svg>

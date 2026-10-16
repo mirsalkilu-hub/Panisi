@@ -6,6 +6,9 @@ import { workCategories, type WorkCategorySlug } from "../../../work-categories"
 import { workHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
 import { SubmissionThumbnail } from "../../../submission-thumbnail";
+import { WorkShareActions } from "../../../work-share-actions";
+import { WorkDetailHeader } from "../../../work-detail-header";
+import { CategoryIcon } from "../../../category-icon";
 
 type WorkRecord = {
   id: string;
@@ -63,45 +66,51 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   if (slug !== workSlug(work.title)) redirect(workHref(work.id, work.title));
   const category = workCategories.find((item) => item.slug === work.category_slug);
   const publishedDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(work.created_at));
+  const publishedYear = new Intl.DateTimeFormat("id-ID", { year: "numeric" }).format(new Date(work.created_at));
+  const citation = `${work.full_name}. (${publishedYear}). ${work.title}. PANISI.`;
   const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
 
   return (
     <main className="work-detail-page">
-      <header className="site-header work-detail-header">
-        <Link className="brand" href="/" aria-label="Karya Widyaiswara">
-          <Image className="brand-logo" src="/panisi-logo.svg" alt="Karya Widyaiswara" width={190} height={48} priority />
-        </Link>
-        <nav className="desktop-nav" aria-label="Navigasi utama">
-          <Link href="/">Beranda</Link><Link href="/koleksi" className="nav-active" aria-current="page">Koleksi</Link>
-          <Link href="/widyaiswara">Widyaiswara</Link><Link href="/ajukan">Unggah Karya</Link>
-        </nav>
-        <Link className="button button-outline header-login" href="/koleksi">Kembali ke koleksi</Link>
-      </header>
+      <WorkDetailHeader />
       <article className="work-detail content-wrap">
         <nav className="work-detail-breadcrumb" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span>/</span><Link href="/koleksi">Koleksi</Link><span>/</span><span>{category?.name ?? "Karya"}</span></nav>
         <header className="work-detail-heading">
-          <div className="work-detail-tags"><span>{category?.name ?? "Karya Widyaiswara"}</span><span>{work.content_type === "ebook" ? "E-Book" : "Video pembelajaran"}</span><span>Terverifikasi</span></div>
+          <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Widyaiswara"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
           <p className="work-detail-byline">Dibagikan oleh <Link href={`/widyaiswara/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
+          <WorkShareActions title={work.title} citation={citation} />
         </header>
         <div className="work-detail-layout">
           <section className="work-detail-content" aria-label="Isi karya">
-            <SubmissionThumbnail id={work.id} title={work.title} contentType={work.content_type} categorySlug={work.category_slug} youtubeUrl={work.youtube_url} thumbnailPath={work.thumbnail_path} className="work-detail-thumbnail" />
-            {work.content_type === "video" ? videoId ? <div className="work-detail-video">
-              <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={work.title} referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-            </div> : <p className="lesson-empty" role="alert">Video YouTube untuk karya ini tidak tersedia.</p> : <div className="work-detail-document pdf-book-reader-host">
+            {work.content_type === "video" ? <>
+              <SubmissionThumbnail id={work.id} title={work.title} contentType={work.content_type} categorySlug={work.category_slug} youtubeUrl={work.youtube_url} thumbnailPath={work.thumbnail_path} className="work-detail-thumbnail" />
+              {videoId ? <div className="work-detail-video">
+                <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={work.title} referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+              </div> : <p className="lesson-empty" role="alert">Video YouTube untuk karya ini tidak tersedia.</p>}
+            </> : <div className="work-detail-document pdf-book-reader-host">
               <PdfBookReader submissionId={work.id} title={work.title} />
             </div>}
-            <section className="work-detail-description"><span className="eyebrow">TENTANG KARYA</span><p>{work.description}</p></section>
+            <section className="work-detail-description"><span className="eyebrow">RINGKASAN KARYA</span><p>{work.description}</p></section>
           </section>
           <aside className="work-detail-sidebar">
-            <span className="eyebrow">KONTRIBUTOR</span>
-            <div className="work-detail-author-avatar">{work.profile_photo_path
-              ? <Image src={getSupabase().storage.from("profile-photos").getPublicUrl(work.profile_photo_path).data.publicUrl} alt={`Foto profil ${work.full_name}`} width={58} height={58} unoptimized />
-              : work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
-            <h2>{work.full_name}</h2>
-            <p>Karya ini telah diverifikasi dan dibagikan untuk komunitas Widyaiswara.</p>
-            <Link className="button button-outline" href={`/widyaiswara/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
+            <section className="work-detail-sidebar-section">
+              <span className="eyebrow">KONTRIBUTOR</span>
+              <div className="work-detail-author-avatar">{work.profile_photo_path
+                ? <Image src={getSupabase().storage.from("profile-photos").getPublicUrl(work.profile_photo_path).data.publicUrl} alt={`Foto profil ${work.full_name}`} width={58} height={58} unoptimized />
+                : work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
+              <h2>{work.full_name}</h2>
+              <Link className="button button-outline" href={`/widyaiswara/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
+            </section>
+            <section className="work-detail-sidebar-section work-detail-metadata">
+              <span className="eyebrow">INFORMASI KARYA</span>
+              <dl>
+                <div><dt>Kategori</dt><dd>{category?.name ?? "Karya Widyaiswara"}</dd></div>
+                <div><dt>Format</dt><dd>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</dd></div>
+                <div><dt>Diterbitkan</dt><dd><time dateTime={work.created_at}>{publishedDate}</time></dd></div>
+                <div><dt>Status</dt><dd><span className="work-verified-status">Terverifikasi</span></dd></div>
+              </dl>
+            </section>
           </aside>
         </div>
         <Link className="work-detail-back" href="/koleksi">← Kembali ke semua karya</Link>

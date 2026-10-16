@@ -14,6 +14,9 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
   const [turnDirection, setTurnDirection] = useState<"next" | "previous">("next");
   const [isTurning, setIsTurning] = useState(false);
   const [isAnimatingTurn, setIsAnimatingTurn] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState("");
+  const readerElement = useRef<HTMLElement>(null);
   const leftPage = useRef<HTMLCanvasElement>(null);
   const rightPage = useRef<HTMLCanvasElement>(null);
   const underLeftPage = useRef<HTMLCanvasElement>(null);
@@ -134,6 +137,14 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
     if (turnTimer.current) clearTimeout(turnTimer.current);
   }, []);
 
+  useEffect(() => {
+    function updateFullscreenState() {
+      setIsFullscreen(document.fullscreenElement === readerElement.current);
+    }
+    document.addEventListener("fullscreenchange", updateFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
+  }, []);
+
   function turnPage(direction: "next" | "previous") {
     if (reader.status !== "ready" || isTurning || pendingTurn.current) return;
     setIsTurning(true);
@@ -146,17 +157,36 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
 
   const pageCount = reader.status === "ready" ? reader.document.numPages : 0;
 
+  async function toggleFullscreen() {
+    try {
+      setFullscreenError("");
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await readerElement.current?.requestFullscreen();
+    } catch (error) {
+      setFullscreenError(error instanceof Error
+        ? `Mode layar penuh tidak dapat dibuka: ${error.message}`
+        : "Mode layar penuh tidak dapat dibuka.");
+    }
+  }
+
   return (
-    <section className="pdf-book-reader" aria-label={`Pembaca e-book: ${title}`}>
+    <section ref={readerElement} className="pdf-book-reader" aria-label={`Pembaca PDF: ${title}`}>
       <header className="pdf-book-reader-toolbar">
         <div className="pdf-book-reader-heading">
           <span className="pdf-book-reader-icon" aria-hidden="true">PDF</span>
-          <div><strong>{title}</strong><span>E-Book · buka halaman seperti membaca buku</span></div>
+          <div><strong>{title}</strong><span>Dokumen PDF · baca per halaman</span></div>
         </div>
-        <a href={documentUrl} target="_blank" rel="noreferrer">Buka PDF <span aria-hidden="true">↗</span></a>
+        <div className="pdf-book-reader-actions">
+          <button type="button" onClick={() => void toggleFullscreen()} aria-label="Buka atau tutup mode layar penuh">
+            {isFullscreen ? "Keluar layar penuh" : "Layar penuh"}
+          </button>
+          <a href={`${documentUrl}?download=1`}>Unduh PDF <span aria-hidden="true">↓</span></a>
+          <a href={documentUrl} target="_blank" rel="noreferrer">Buka PDF <span aria-hidden="true">↗</span></a>
+        </div>
       </header>
-      {reader.status === "error" ? <div className="pdf-book-reader-error" role="alert">E-Book tidak dapat dimuat: {reader.message}</div>
-        : reader.status === "loading" ? <div className="pdf-book-reader-loading" role="status">Menyiapkan halaman e-book…</div>
+      {fullscreenError && <p className="pdf-book-reader-error" role="alert">{fullscreenError}</p>}
+      {reader.status === "error" ? <div className="pdf-book-reader-error" role="alert">PDF tidak dapat dimuat: {reader.message}</div>
+        : reader.status === "loading" ? <div className="pdf-book-reader-loading" role="status">Menyiapkan halaman PDF…</div>
           : <>
             <div className={`pdf-book-stage${isAnimatingTurn ? ` is-turning turn-${turnDirection}` : ""}`}>
               <div className="pdf-book-spread pdf-book-spread-under" aria-hidden="true">
@@ -176,7 +206,7 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
                 <div className="pdf-book-turn-face pdf-book-turn-back"><canvas ref={turningBack} /></div>
               </div>
             </div>
-            <nav className="pdf-book-controls" aria-label="Navigasi halaman e-book">
+            <nav className="pdf-book-controls" aria-label="Navigasi halaman dokumen PDF">
               <button type="button" onClick={() => turnPage("previous")} disabled={firstPageNumber <= 1 || isTurning}>← Sebelumnya</button>
               <span>Halaman {firstPageNumber}{firstPageNumber + 1 <= pageCount ? `–${firstPageNumber + 1}` : ""} dari {pageCount}</span>
               <button type="button" onClick={() => turnPage("next")} disabled={firstPageNumber + 1 >= pageCount || isTurning}>Berikutnya →</button>
