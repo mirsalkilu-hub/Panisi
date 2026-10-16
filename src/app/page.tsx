@@ -331,7 +331,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [managedAccountEditRole, setManagedAccountEditRole] = useState<ManagedAccountRole | null>(null);
   const [managedAccountError, setManagedAccountError] = useState("");
   const [submissionQuery, setSubmissionQuery] = useState("");
-  const [submissionStatusFilter, setSubmissionStatusFilter] = useState<"all" | Submission["status"]>("all");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState<"all" | Submission["status"]>(() =>
+    activePage === "ruang-kerja" ? "pending" : "all",
+  );
   const [loginOpen, setLoginOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState<ToastNotice | null>(null);
@@ -792,12 +794,25 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       setMessage("Alasan penolakan wajib diisi.");
       return;
     }
-    const { error } = await supabase.from("submissions").update({ status, feedback: feedback.trim() }).eq("id", id);
-    if (error) setMessage(`Status tidak dapat diperbarui: ${error.message}`);
-    else {
-      setMessage("Status kontribusi berhasil diperbarui.");
-      await Promise.all([loadWorkspace(session), loadVerifiedSubmissions()]);
+    setBusy(true);
+    setMessage("");
+    const { data, error } = await supabase.from("submissions")
+      .update({ status, feedback: feedback.trim() })
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+    setBusy(false);
+    if (error) {
+      setMessage(`Status tidak dapat diperbarui: ${error.message}`);
+      return;
     }
+    if (!data) {
+      setMessage("Postingan sudah berubah atau tidak lagi menunggu verifikasi. Muat ulang daftar untuk melihat status terbaru.");
+      await loadWorkspace(session);
+      return;
+    }
+    setMessage("Status kontribusi berhasil diperbarui.");
+    await Promise.all([loadWorkspace(session), loadVerifiedSubmissions()]);
   }
 
   async function createAccount(event: FormEvent<HTMLFormElement>) {
@@ -1137,6 +1152,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const searchText = `${submission.title} ${submission.description} ${contributorName} ${categoryName}`.toLocaleLowerCase("id-ID");
     return matchesStatus && (!submissionQuery.trim() || searchText.includes(submissionQuery.trim().toLocaleLowerCase("id-ID")));
   });
+  if (verifierRole) {
+    filteredSubmissions.sort((left, right) =>
+      Number(right.status === "pending") - Number(left.status === "pending")
+      || new Date(right.created_at).getTime() - new Date(left.created_at).getTime(),
+    );
+  }
   const filteredPublicContributors = publicContributors.filter((contributor) => {
     const searchText = [contributor.full_name, contributor.job_title, contributor.area_of_expertise, contributor.widyaiswara_experience]
       .join(" ")
@@ -1418,7 +1439,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : submissionManagementView ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
           description={activePage === "admin-akun" ? "Buat akun, atur peran, dan kelola profil tim dari satu tempat." : submissionManagementView ? "Tinjau seluruh postingan kontributor, pantau status verifikasi, dan hapus karya bila diperlukan." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
         >
-          <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
+          <div className="workspace-hero-actions">{session && verifierRole && <a className="button button-outline workspace-public-link" href="#daftar-pengajuan"><Icon name="file" size={16} /> Tinjau pengajuan ({submissions.filter((item) => item.status === "pending").length})</a>}{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
         </PageHeading>
         {session && profile && adminRole && <nav className="admin-management-nav" aria-label="Halaman administrasi">
           <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/profil"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar profil</small></span></Link>
@@ -1524,10 +1545,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
             </section>}
           </div>}
-          {submissionManagementView && <div className="workspace-panel submissions-panel admin-posts-panel"><div className="panel-title"><div><span className="eyebrow">SELURUH PENGAJUAN</span><h3>Kelola materi kontributor</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
+          {submissionManagementView && <div className="workspace-panel submissions-panel admin-posts-panel" id="daftar-pengajuan"><div className="panel-title"><div><span className="eyebrow">{verifierRole ? "ANTREAN VERIFIKASI" : "SELURUH PENGAJUAN"}</span><h3>{verifierRole ? "Tinjau karya kontributor" : "Kelola materi kontributor"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
             <div className="admin-post-toolbar"><label className="admin-post-search"><Icon name="search" size={17} /><input type="search" value={submissionQuery} onChange={(event) => setSubmissionQuery(event.target.value)} placeholder="Cari judul, kontributor, atau kategori..." aria-label="Cari postingan kontributor" /></label><div className="managed-account-filters" role="group" aria-label="Filter status postingan">{([{ value: "all", label: "Semua" }, { value: "pending", label: "Menunggu" }, { value: "approved", label: "Terverifikasi" }, { value: "rejected", label: "Revisi" }] as const).map((filter) => <button type="button" key={filter.value} className={submissionStatusFilter === filter.value ? "active" : ""} aria-pressed={submissionStatusFilter === filter.value} onClick={() => setSubmissionStatusFilter(filter.value)}>{filter.label}<span>{filter.value === "all" ? submissions.length : submissions.filter((item) => item.status === filter.value).length}</span></button>)}</div></div>
             {filteredSubmissions.length > 0 && <div className="admin-post-table-head" aria-hidden="true"><span>Detail karya</span><span>Format / kategori</span><span>Status</span><span>Tanggal</span><span>Aksi</span></div>}
-            {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>Tidak ada postingan yang cocok dengan pencarian atau filter.</p></div> : <div className="submission-list">{filteredSubmissions.map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
+            {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>{verifierRole ? "Belum ada pengajuan dari kontributor." : "Belum ada materi di sini."}</p></div> : filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>{verifierRole && submissionStatusFilter === "pending" && !submissionQuery.trim() ? "Tidak ada pengajuan yang menunggu verifikasi." : "Tidak ada postingan yang cocok dengan pencarian atau filter."}</p></div> : <div className="submission-list">{filteredSubmissions.map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
               <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{[...workCategories, ...legacyWorkCategories.filter((category) => category.slug === item.category_slug)].filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
@@ -1535,7 +1556,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
               {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
-            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button></div>}{verifierRole && <div className="review-actions"><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
+            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && youtubeId(item.youtube_url) && <a className="admin-video-link" href={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} target="_blank" rel="noreferrer"><Icon name="video" size={18} /><span><strong>Tinjau video</strong><small>Buka pemutar video di tab baru</small></span><span className="admin-document-open">Putar video <Icon name="arrow" size={14} /></span></a>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && <div className="review-actions admin-post-actions">{item.status === "pending" && <><button type="button" onClick={() => reviewSubmission(item.id, "approved")} disabled={busy}><Icon name="check" size={15} /> Setujui</button><button type="button" onClick={() => reviewSubmission(item.id, "rejected")} disabled={busy}>Minta revisi</button></> }<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
         </div>}
       </section>

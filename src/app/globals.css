@@ -2851,6 +2851,23 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-posts-panel .admin-document-link,
 .admin-posts-panel .admin-document-loading,
 .admin-posts-panel .admin-document-error { grid-area: document; }
+.admin-posts-panel .admin-video-link {
+  align-items: center;
+  background: #f7faff;
+  border: 1px solid #e0e9f3;
+  border-radius: 11px;
+  color: #3476b8;
+  display: flex;
+  gap: 10px;
+  grid-area: document;
+  min-width: 0;
+  padding: 10px 12px;
+}
+.admin-video-link > span:nth-child(2) { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.admin-video-link strong { color: #294968; font-size: 11px; }
+.admin-video-link small { color: #71869b; font-size: 9px; }
+.admin-video-link > svg { flex: 0 0 auto; }
+.admin-posts-panel .admin-post-actions { gap: 6px; }
 .admin-posts-panel .review-actions { align-self: center; border: 0; grid-area: actions; justify-content: flex-end; margin: 0; padding: 0; }
 .admin-posts-panel .edit-post-form { grid-area: edit; }
 .admin-posts-panel .review-actions { flex-wrap: wrap; }
@@ -3403,6 +3420,80 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+.contributor-directory-page {
+  padding-bottom: clamp(38px, 5vw, 64px);
+  padding-top: clamp(22px, 3vw, 34px);
+}
+.contributor-directory-page > .page-heading {
+  align-items: center;
+  background: radial-gradient(ellipse at 88% 15%, rgba(125, 183, 236, .24), transparent 35%), linear-gradient(120deg, #15365d, #285f96);
+  border: 1px solid #234f7c;
+  border-radius: 22px;
+  box-shadow: 0 18px 40px rgba(26, 64, 108, .14);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding: 22px 28px;
+}
+.contributor-directory-page > .page-heading > div { max-width: 780px; }
+.contributor-directory-page > .page-heading .eyebrow { color: #bdd9f5; }
+.contributor-directory-page > .page-heading h1 { color: #fff; font-size: clamp(28px, 3.5vw, 38px); margin: 7px 0; }
+.contributor-directory-page > .page-heading > div > p { color: #d4e3f2; font-size: 12px; line-height: 1.6; }
+.contributor-directory-page > .page-heading .page-heading-actions { flex: 0 0 auto; margin: 0; }
+.contributor-directory-page .widyaiswara-directory-count {
+  align-items: center;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(226,239,252,.3);
+  border-radius: 999px;
+  color: #fff;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+.contributor-directory-page .contributor-directory-toolbar { margin-bottom: 16px; }
+.contributor-directory-page .contributor-directory-grid {
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.contributor-directory-page .contributor-directory-card {
+  border-radius: 16px;
+  padding: 19px;
+}
+.contributor-directory-page .contributor-directory-card-heading { gap: 12px; min-height: 54px; }
+.contributor-directory-page .contributor-avatar { flex-basis: 54px; height: 54px; width: 54px; }
+.contributor-directory-page .contributor-directory-card-heading h2 { font-size: 15px; }
+.contributor-directory-page .directory-expertise-block { margin-top: 14px; padding-top: 12px; }
+.contributor-directory-page .directory-expertise,
+.contributor-directory-page .directory-bio {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+}
+.contributor-directory-page .directory-expertise { -webkit-line-clamp: 3; }
+.contributor-directory-page .directory-bio { -webkit-line-clamp: 2; }
+.contributor-directory-page .contributor-directory-card-actions { padding-top: 11px; }
+
+@media (max-width: 880px) {
+  .contributor-directory-page .contributor-directory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .contributor-directory-page { padding-bottom: 38px; padding-top: 18px; }
+  .contributor-directory-page > .page-heading {
+    align-items: flex-start;
+    border-radius: 18px;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 20px;
+  }
+  .contributor-directory-page > .page-heading h1 { font-size: 28px; }
+  .contributor-directory-page > .page-heading .page-heading-actions { margin: 0; }
+  .contributor-directory-page .contributor-directory-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .contributor-submission-list { border-top: 1px solid #e2eaf2; gap: 0; margin-top: 20px; }
