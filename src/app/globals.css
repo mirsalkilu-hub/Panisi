@@ -4009,24 +4009,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 @media (min-width: 761px) {
   .site-footer > .footer-top {
-    gap: 0;
-    grid-template-columns: repeat(3,minmax(0,1fr));
-  }
-  .site-footer > .footer-top > .footer-message {
-    align-items: center;
-    text-align: center;
-  }
-  .site-footer > .footer-top > .footer-links {
-    align-items: flex-end;
-    text-align: right;
+    gap: clamp(28px,3.75vw,54px);
+    grid-template-columns: minmax(240px,1.2fr) minmax(210px,1fr) minmax(135px,auto);
   }
   .site-footer > .footer-bottom {
+    column-gap: clamp(28px,3.75vw,54px);
     display: grid;
-    grid-template-columns: repeat(3,minmax(0,1fr));
+    grid-template-columns: minmax(240px,1.2fr) minmax(210px,1fr) minmax(135px,auto);
   }
   .site-footer > .footer-bottom > :nth-child(2) {
-    justify-self: center;
-    text-align: center;
+    justify-self: start;
+    text-align: left;
   }
   .site-footer > .footer-bottom > :last-child {
     justify-self: end;
