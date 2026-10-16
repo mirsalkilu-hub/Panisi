@@ -156,6 +156,7 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
   }
 
   const pageCount = reader.status === "ready" ? reader.document.numPages : 0;
+  const isSinglePage = pageCount === 1;
 
   async function toggleFullscreen() {
     try {
@@ -188,7 +189,7 @@ export function PdfBookReader({ submissionId, title }: { submissionId: string; t
       {reader.status === "error" ? <div className="pdf-book-reader-error" role="alert">PDF tidak dapat dimuat: {reader.message}</div>
         : reader.status === "loading" ? <div className="pdf-book-reader-loading" role="status">Menyiapkan halaman PDF…</div>
           : <>
-            <div className={`pdf-book-stage${isAnimatingTurn ? ` is-turning turn-${turnDirection}` : ""}`}>
+            <div className={`pdf-book-stage${isSinglePage ? " is-single-page" : ""}${isAnimatingTurn ? ` is-turning turn-${turnDirection}` : ""}`}>
               <div className="pdf-book-spread pdf-book-spread-under" aria-hidden="true">
                 <div className="pdf-book-leaf"><canvas ref={underLeftPage} /></div>
                 <div className="pdf-book-leaf">{firstPageNumber + (turnDirection === "next" ? 3 : -1) <= pageCount

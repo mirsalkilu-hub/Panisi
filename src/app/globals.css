@@ -3951,3 +3951,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .registration-brand { margin-bottom: 23px; }
   .registration-brand img { width: 165px; }
 }
+.pdf-book-stage.is-single-page .pdf-book-spread-under,
+.pdf-book-stage.is-single-page .pdf-book-turn-sheet,
+.pdf-book-stage.is-single-page .pdf-book-spread-current > .pdf-book-leaf:last-child {
+  display: none;
+}
+.pdf-book-stage.is-single-page .pdf-book-spread-current > .pdf-book-leaf:first-child {
+  border-radius: 5px;
+  flex-basis: 100%;
+}
