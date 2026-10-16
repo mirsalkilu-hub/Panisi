@@ -1153,7 +1153,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
-  const latestVerifiedSubmission = verifiedSubmissions[0] ?? null;
+  const latestVerifiedSubmissions = verifiedSubmissions.slice(0, 3);
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1205,11 +1205,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestVerifiedSubmission && <Link className="home-latest-post" href={workHref(latestVerifiedSubmission.id, latestVerifiedSubmission.title)}>
-          <SubmissionThumbnail id={latestVerifiedSubmission.id} title={latestVerifiedSubmission.title} contentType={latestVerifiedSubmission.content_type} categorySlug={latestVerifiedSubmission.category_slug} youtubeUrl={latestVerifiedSubmission.youtube_url} thumbnailPath={latestVerifiedSubmission.thumbnail_path} className="home-latest-thumbnail" />
-          <span className="home-latest-post-copy"><span className="home-latest-post-label"><Icon name="check" size={12} /> KARYA TERBARU TERVERIFIKASI</span><strong>{latestVerifiedSubmission.title}</strong><span className="home-latest-post-meta">{allWorkCategories.find((category) => category.slug === latestVerifiedSubmission.category_slug)?.name ?? "Karya"} · {latestVerifiedSubmission.full_name}</span></span>
-          <Icon name="arrow" size={17} />
-        </Link>}>
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestVerifiedSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Tiga postingan terakhir yang terverifikasi">
+          <div className="home-latest-posts-heading"><span><Icon name="check" size={12} /> KARYA TERBARU</span><small>3 TERVERIFIKASI</small></div>
+          <div className="home-latest-posts-list">{latestVerifiedSubmissions.map((item, index) => <Link className="home-latest-post" href={workHref(item.id, item.title)} key={item.id}>
+            <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
+            <span className="home-latest-post-copy"><strong>{item.title}</strong><span className="home-latest-post-meta">{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
+            <span className="home-latest-post-index">0{index + 1}</span>
+          </Link>)}</div>
+        </section>}>
           <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
           <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
         </PageHero>
