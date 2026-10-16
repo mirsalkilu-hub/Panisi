@@ -3405,6 +3405,61 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   }
 }
 
+.contributor-submission-list { border-top: 1px solid #e2eaf2; gap: 0; margin-top: 20px; }
+.contributor-submission-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e2eaf2;
+  border-radius: 0;
+  display: grid;
+  gap: 8px 16px;
+  grid-template-areas:
+    "thumb detail status date"
+    "thumb detail action action"
+    "feedback feedback feedback feedback";
+  grid-template-columns: 104px minmax(0,1fr) auto auto;
+  min-width: 0;
+  padding: 15px 0;
+}
+.contributor-submission-item .submission-top,
+.contributor-submission-item .contributor-submission-summary { display: contents; }
+.contributor-submission-item .submission-top .status { grid-area: status; justify-self: start; }
+.contributor-submission-item .submission-top time { grid-area: date; justify-self: end; white-space: nowrap; }
+.contributor-submission-item .contributor-submission-thumbnail { grid-area: thumb; width: 100%; }
+.contributor-submission-item .contributor-submission-copy { grid-area: detail; }
+.contributor-submission-item .review-feedback { grid-area: feedback; margin: 2px 0 0; }
+.contributor-submission-item .review-actions,
+.contributor-submission-item > .submission-detail-link { grid-area: action; justify-self: end; margin: 0; }
+.contributor-submission-item .review-actions { flex-wrap: wrap; }
+.contributor-submission-item .edit-post-form { grid-column: 1 / -1; }
+.contributor-submission-item > .submission-list-thumbnail { grid-area: thumb; margin: 0; width: 100%; }
+
+@media (max-width: 760px) {
+  .contributor-submission-item {
+    gap: 9px 12px;
+    grid-template-areas:
+      "status date"
+      "thumb detail"
+      "feedback feedback"
+      "action action";
+    grid-template-columns: 88px minmax(0,1fr);
+    padding: 14px 0;
+  }
+  .contributor-submission-item .submission-top time { font-size: 9px; }
+  .contributor-submission-item .review-actions,
+  .contributor-submission-item > .submission-detail-link { justify-self: start; }
+}
+
+@media (max-width: 520px) {
+  .contributor-submission-item {
+    gap: 8px 10px;
+    grid-template-columns: 72px minmax(0,1fr);
+    padding: 13px 0;
+  }
+  .contributor-submission-item .contributor-submission-copy h4 { font-size: 13px; }
+}
+
 .site-header { display: grid; gap: 20px; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); justify-content: initial; }
 .site-header .brand { flex: 0 0 auto; justify-self: start; letter-spacing: -.04em; }
 .site-header .brand-logo { height: auto; width: 220px; }
