@@ -238,17 +238,48 @@ export async function PATCH(request: Request) {
   if (stringFields.some((field) => input[field] !== undefined && typeof input[field] !== "string")) {
     return responseError("Format data akun tidak valid.", 400);
   }
+  if (input.action !== undefined && typeof input.action !== "string") {
+    return responseError("Format data akun tidak valid.", 400);
+  }
 
   const id = typeof input.id === "string" ? input.id : "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    return responseError("ID akun tidak valid.", 400);
+  }
+  if (input.action === "password") {
+    if (typeof input.password !== "string" || typeof input.confirmation !== "string") {
+      return responseError("Kata sandi dan konfirmasinya wajib diisi.", 400);
+    }
+    if (input.password.length < 8 || input.password.length > 128) {
+      return responseError("Kata sandi harus terdiri dari 8 sampai 128 karakter.", 400);
+    }
+    if (input.password !== input.confirmation) {
+      return responseError("Konfirmasi kata sandi tidak cocok.", 400);
+    }
+
+    const { data: target, error: targetError } = await adminClient
+      .from("profiles")
+      .select("id")
+      .eq("id", id)
+      .in("role", ["kontributor", "verifikator"])
+      .maybeSingle();
+    if (targetError) return responseError(`Akun tidak dapat dimuat: ${targetError.message}`, 500);
+    if (!target) return responseError("Akun kontributor atau verifikator tidak ditemukan.", 404);
+
+    const { error: passwordError } = await adminClient.auth.admin.updateUserById(id, {
+      password: input.password,
+    });
+    if (passwordError) return responseError(`Kata sandi akun tidak dapat diperbarui: ${passwordError.message}`, 500);
+    return NextResponse.json({ passwordUpdated: true });
+  }
+  if (input.action !== undefined) return responseError("Aksi akun tidak valid.", 400);
+
   const fullName = typeof input.fullName === "string" ? input.fullName.trim() : "";
   const jobTitle = typeof input.jobTitle === "string" ? input.jobTitle.trim() : "";
   const role = typeof input.role === "string" ? input.role : "";
   const areaOfExpertise = typeof input.areaOfExpertise === "string" ? input.areaOfExpertise.trim() : "";
   const widyaiswaraExperience = typeof input.widyaiswaraExperience === "string" ? input.widyaiswaraExperience.trim() : "";
   const bio = typeof input.bio === "string" ? input.bio.trim() : "";
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
-    return responseError("ID akun tidak valid.", 400);
-  }
   if (!fullName || fullName.length > 100) return responseError("Nama harus berisi 1 sampai 100 karakter.", 400);
   if (!jobTitle || jobTitle.length > 120) return responseError("Jabatan wajib diisi dan maksimal 120 karakter.", 400);
   if (role !== "verifikator" && role !== "kontributor") {

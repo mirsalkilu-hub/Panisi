@@ -2085,6 +2085,23 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   border-color: #5891cc;
   box-shadow: 0 0 0 4px rgba(73, 137, 199, .13);
 }
+.login-password-field { position: relative; width: 100%; }
+.login-dialog .login-password-field input { padding-right: 96px; }
+.login-password-toggle {
+  background: transparent;
+  border: 0;
+  color: #3477b5;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  min-height: 40px;
+  padding: 0 10px;
+  position: absolute;
+  right: 4px;
+  top: 5px;
+}
+.login-password-toggle:hover { color: #214f7a; }
 .login-dialog .login-submit {
   border-radius: 12px;
   box-shadow: 0 10px 22px rgba(49, 113, 181, .2);
@@ -2797,7 +2814,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   border-radius: 0;
   display: grid;
   gap: 10px 16px;
-  grid-template-areas: "identity profile role date actions" "edit edit edit edit edit";
+  grid-template-areas: "identity profile role date actions" "edit edit edit edit edit" "password password password password password";
   grid-template-columns: minmax(220px,1.6fr) minmax(180px,1.2fr) auto minmax(100px,auto) auto;
   padding: 14px 0;
 }
@@ -2816,6 +2833,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-accounts-grid .managed-account-actions { align-items: center; grid-area: actions; justify-content: flex-end; }
 .admin-accounts-grid .managed-account-actions button { margin-top: 0; min-height: 34px; padding-inline: 11px; }
 .admin-accounts-grid .managed-account-edit-form { grid-area: edit; }
+.admin-accounts-grid .managed-account-password-form { grid-area: password; }
+.managed-account-password-form > strong { color: #294a6d; font-size: 12px; }
 .admin-post-toolbar { display: grid; gap: 13px; margin-top: 19px; }
 .admin-post-toolbar { align-items: center; grid-template-columns: minmax(0,1fr) auto; }
 .admin-post-search {
@@ -2958,7 +2977,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-posts-panel .submission-list-thumbnail { grid-row: 1 / 3; height: 48px; width: 48px; }
   .admin-posts-panel .submission-kind { grid-row: 3; justify-self: start; }
   .admin-accounts-grid .managed-account {
-    grid-template-areas: "identity role" "profile profile" "date date" "actions actions" "edit edit";
+    grid-template-areas: "identity role" "profile profile" "date date" "actions actions" "edit edit" "password password";
     grid-template-columns: minmax(0,1fr) auto;
   }
   .managed-account-table-head, .admin-post-table-head { display: none; }

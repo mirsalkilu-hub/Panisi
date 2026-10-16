@@ -273,6 +273,7 @@ async function getThumbnailValidationError(value: FormDataEntryValue | null, req
 function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (email: string, password: string) => Promise<void> }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -303,7 +304,10 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
           <label htmlFor="email">Alamat email</label>
           <input id="email" name="email" type="email" autoComplete="email" placeholder="nama@email.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <label htmlFor="password">Kata sandi</label>
-          <input id="password" name="password" type="password" autoComplete="current-password" placeholder="Masukkan kata sandi" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <div className="login-password-field">
+            <input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Masukkan kata sandi" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            <button type="button" className="login-password-toggle" aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? "Sembunyikan" : "Tampilkan"}</button>
+          </div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button-primary login-submit" disabled={!supabase || busy}>{busy ? "Memproses..." : "Masuk"} <Icon name="arrow" size={17} /></button>
         </form>
@@ -336,6 +340,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [managedAccountQuery, setManagedAccountQuery] = useState("");
   const [managedAccountRoleFilter, setManagedAccountRoleFilter] = useState<"all" | ManagedAccountRole>("all");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [passwordAccountId, setPasswordAccountId] = useState<string | null>(null);
   const [managedAccountEditRole, setManagedAccountEditRole] = useState<ManagedAccountRole | null>(null);
   const [managedAccountError, setManagedAccountError] = useState("");
   const [invitations, setInvitations] = useState<ManagedInvitation[]>([]);
@@ -940,6 +945,48 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       setMessage(`Profil ${updatedAccount.full_name} berhasil diperbarui.`);
     } catch (error) {
       setManagedAccountError(`Akun tidak dapat diperbarui: ${error instanceof Error ? error.message : "Terjadi kesalahan jaringan."}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updateManagedAccountPassword(event: FormEvent<HTMLFormElement>, accountId: string) {
+    event.preventDefault();
+    if (!session) {
+      setManagedAccountError("Sesi admin tidak tersedia. Silakan masuk kembali.");
+      return;
+    }
+    const values = new FormData(event.currentTarget);
+    const password = values.get("managed_new_password")?.toString() ?? "";
+    const confirmation = values.get("managed_confirm_password")?.toString() ?? "";
+    if (password.length < 8 || password.length > 128) {
+      setManagedAccountError("Kata sandi harus terdiri dari 8 sampai 128 karakter.");
+      return;
+    }
+    if (password !== confirmation) {
+      setManagedAccountError("Konfirmasi kata sandi tidak cocok.");
+      return;
+    }
+    setBusy(true);
+    setManagedAccountError("");
+    try {
+      const response = await fetch("/api/admin/accounts", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "password", id: accountId, password, confirmation }),
+      });
+      const result = await response.json() as { error?: string; passwordUpdated?: boolean };
+      if (!response.ok || !result.passwordUpdated) {
+        setManagedAccountError(result.error ?? "Kata sandi akun tidak berhasil diperbarui.");
+        return;
+      }
+      setPasswordAccountId(null);
+      setMessage("Kata sandi akun berhasil diperbarui.");
+    } catch (error) {
+      setManagedAccountError(`Kata sandi akun tidak dapat diperbarui: ${error instanceof Error ? error.message : "Terjadi kesalahan jaringan."}`);
     } finally {
       setBusy(false);
     }
@@ -1586,16 +1633,6 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {activePage !== "admin-postingan" && !submissionManagementView &&
           <div className={`workspace-panel${adminRole ? " admin-workspace-panel" : ""}`}>
             <div className="panel-title"><div><span className="eyebrow">{adminRole && activePage === "admin-akun" ? "PUSAT MANAJEMEN AKUN" : profile.role === "kontributor" ? "DATA PROFIL" : "PROFIL PROFESIONAL"}</span><h3>{adminRole && activePage === "admin-akun" ? "Akun kontributor & verifikator" : profile.role === "kontributor" ? "Informasi kontributor" : "Biodata dan keahlian"}</h3></div><span className="role-badge">{profile.role}</span></div>
-            {adminRole && activePage === "admin-akun" && <section className="password-settings" aria-labelledby="admin-password-title">
-              <div className="password-settings-heading"><span className="workspace-security-icon"><Icon name="check" size={18} /></span><div><span className="eyebrow">KEAMANAN AKUN ADMIN</span><h3 id="admin-password-title">Ganti kata sandi</h3></div></div>
-              <p>Gunakan kata sandi baru minimal 8 karakter untuk akun administrator Anda.</p>
-              <form onSubmit={updatePassword} className="bio-form password-form">
-                <label htmlFor="new_password">Kata sandi baru</label><input id="new_password" name="new_password" type="password" autoComplete="new-password" minLength={8} required />
-                <label htmlFor="confirm_password">Konfirmasi kata sandi baru</label><input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required />
-                <button className="button button-outline" disabled={busy}>{busy ? "Memperbarui..." : "Perbarui kata sandi"} <Icon name="arrow" size={16} /></button>
-              </form>
-              {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
-            </section>}
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
               <div className="account-form-field"><label htmlFor="account_full_name">Nama lengkap</label><input id="account_full_name" name="account_full_name" required maxLength={100} /></div>
               <div className="account-form-field"><label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Kontributor Ahli Madya" required maxLength={120} /></div>
@@ -1661,8 +1698,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                         <div className="managed-account-edit-actions"><button className="button button-primary" type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button className="button button-outline" type="button" onClick={() => { setEditingAccountId(null); setManagedAccountEditRole(null); setManagedAccountError(""); }}>Batal</button></div>
                       </form> : <>
                         <div className="managed-account-summary"><p><b>Bidang keahlian</b>{account.area_of_expertise || "Belum dilengkapi"}</p><details className="managed-account-details"><summary>Detail profil</summary><p><b>Pengalaman profesional</b>{account.widyaiswara_experience || "Belum dilengkapi"}</p>{account.bio && <p><b>Profil profesional</b>{account.bio}</p>}</details></div>
-                        <div className="managed-account-actions"><button type="button" className="managed-account-edit-button" onClick={() => { setManagedAccountError(""); setManagedAccountEditRole(account.role); setEditingAccountId(account.id); }}>Kelola akun</button><button type="button" className="managed-account-delete-button" onClick={() => void deleteManagedAccount(account)} disabled={busy}>Hapus akun</button></div>
+                        <div className="managed-account-actions"><button type="button" className="managed-account-edit-button" onClick={() => { setManagedAccountError(""); setManagedAccountEditRole(account.role); setEditingAccountId(account.id); }}>Kelola akun</button><button type="button" className="managed-account-edit-button" onClick={() => { setManagedAccountError(""); setPasswordAccountId(passwordAccountId === account.id ? null : account.id); }}>Ganti kata sandi</button><button type="button" className="managed-account-delete-button" onClick={() => void deleteManagedAccount(account)} disabled={busy}>Hapus akun</button></div>
                       </>}
+                      {passwordAccountId === account.id && <form className="managed-account-edit-form managed-account-password-form" onSubmit={(event) => void updateManagedAccountPassword(event, account.id)}>
+                        <strong>Ganti kata sandi {account.role} · {account.full_name}</strong>
+                        <label htmlFor={`managed_new_password_${account.id}`}>Kata sandi baru (8–128 karakter)</label><input id={`managed_new_password_${account.id}`} name="managed_new_password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required />
+                        <label htmlFor={`managed_confirm_password_${account.id}`}>Konfirmasi kata sandi baru</label><input id={`managed_confirm_password_${account.id}`} name="managed_confirm_password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required />
+                        <div className="managed-account-edit-actions"><button className="button button-primary" type="submit" disabled={busy}>{busy ? "Memperbarui..." : "Simpan kata sandi"}</button><button className="button button-outline" type="button" onClick={() => { setPasswordAccountId(null); setManagedAccountError(""); }}>Batal</button></div>
+                      </form>}
                     </article>)}</div>}
               </section>}
             {(!adminRole || activePage === "ruang-kerja") && <form onSubmit={updateBio} className="bio-form">
