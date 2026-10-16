@@ -640,11 +640,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       const previousPhotoPath = profile.profile_photo_path;
       setProfile({ ...profile, full_name: fullName, job_title: jobTitle, profile_photo_path: newPhotoPath ?? previousPhotoPath, area_of_expertise: areaOfExpertise, widyaiswara_experience: widyaiswaraExperience, bio });
       setBusy(false);
-      setMessage("Profil profesional berhasil diperbarui.");
+      let notificationMessage = "Perubahan data profil Anda berhasil disimpan.";
       if (newPhotoPath && previousPhotoPath) {
         const { error: cleanupError } = await supabase.storage.from("profile-photos").remove([previousPhotoPath]);
-        if (cleanupError) setMessage(`Profil profesional berhasil diperbarui, tetapi foto lama tidak dapat dibersihkan: ${cleanupError.message}`);
+        if (cleanupError) notificationMessage += ` Foto profil lama tidak dapat dibersihkan: ${cleanupError.message}`;
       }
+      setMessage(notificationMessage);
+      setToast({ title: "Profil berhasil diperbarui", message: notificationMessage, tone: "success" });
     }
   }
 
@@ -673,6 +675,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     }
     form.reset();
     setPasswordMessage("Kata sandi berhasil diperbarui.");
+    setToast({ title: "Kata sandi berhasil diperbarui", message: "Kata sandi akun Anda berhasil diganti.", tone: "success" });
   }
 
   async function submitContribution(event: FormEvent<HTMLFormElement>) {
