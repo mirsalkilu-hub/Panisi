@@ -25,6 +25,7 @@ function NavigationIcon({ name }: { name: string }) {
 
 export function WorkDetailHeader() {
   return (
+    <>
     <header className="site-header work-detail-header">
       <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi">
         <Image className="brand-logo" src="/panisi-logo.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} priority />
@@ -42,18 +43,19 @@ export function WorkDetailHeader() {
         ))}
       </nav>
       <Link className="button button-outline header-login" href="/koleksi">Kembali ke koleksi</Link>
-      <nav className="mobile-bottom-nav" aria-label="Navigasi utama seluler">
-          {navigation.map((item) => (
-            <Link
-              className={item.href === "/koleksi" ? "nav-active" : ""}
-              href={item.href}
-              key={item.href}
-              aria-current={item.href === "/koleksi" ? "page" : undefined}
-            >
-              <NavigationIcon name={item.icon} /><span>{item.label}</span>
-            </Link>
-          ))}
-      </nav>
     </header>
+    <nav className="mobile-bottom-nav" aria-label="Navigasi utama seluler">
+      {navigation.map((item) => (
+        <Link
+          className={item.href === "/koleksi" ? "nav-active" : ""}
+          href={item.href}
+          key={item.href}
+          aria-current={item.href === "/koleksi" ? "page" : undefined}
+        >
+          <NavigationIcon name={item.icon} /><span>{item.label}</span>
+        </Link>
+      ))}
+    </nav>
+    </>
   );
 }

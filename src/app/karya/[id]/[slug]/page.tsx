@@ -155,7 +155,17 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <WorkImpactPanel submissionId={work.id} />
         <Link className="work-detail-back" href="/koleksi">← Kembali ke semua karya</Link>
       </article>
-      <footer className="work-detail-footer"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>
+      <footer className="site-footer">
+        <div className="footer-top">
+          <div className="footer-brand-block">
+            <Link className="brand footer-brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi"><Image className="brand-logo" src="/panisi-logo-light.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} /></Link>
+            <p>Pusat ilmu, informasi, dan karya pembelajaran yang bertumbuh melalui kolaborasi.</p>
+          </div>
+          <div className="footer-message"><span className="eyebrow">PINISI</span><strong>Pusat Ilmu dan Informasi<br />Bersinergi.</strong><span>Berbagi karya, memperluas manfaat pengetahuan.</span></div>
+          <nav className="footer-links" aria-label="Menu utama footer"><span>MENU UTAMA</span><Link href="/">Beranda</Link><Link href="/koleksi">Koleksi</Link><Link href="/kontributor">Kontributor</Link><Link href="/ajukan">Unggah Karya</Link><Link href="/ruang-kerja">Ruang Kerja</Link></nav>
+        </div>
+        <div className="footer-bottom"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
+      </footer>
     </main>
   );
 }
