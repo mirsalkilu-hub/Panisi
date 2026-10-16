@@ -40,3 +40,13 @@ npm run dev
 npm run lint
 npm run build
 ```
+
+## Membuat APK Android
+
+APK Android membuka aplikasi yang dipublikasikan di `https://panisi.vercel.app` dan memerlukan koneksi internet. Pastikan URL tersebut sudah memiliki versi aplikasi terbaru sebelum membuat APK.
+
+1. Siapkan Node.js, Java JDK, dan Android SDK dengan Android SDK Platform serta Build Tools.
+2. Pasang dependensi proyek dengan `npm install`.
+3. Buat APK debug dengan `npm run android:apk`.
+
+APK hasil build tersedia di `android/app/build/outputs/apk/debug/app-debug.apk`. APK debug dapat dipasang untuk pengujian; distribusi produksi memerlukan APK release yang ditandatangani dengan keystore milik penerbit.
