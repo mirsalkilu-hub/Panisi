@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
 const navigation = [
   { label: "Beranda", href: "/", icon: "home" },
@@ -25,8 +24,6 @@ function NavigationIcon({ name }: { name: string }) {
 }
 
 export function WorkDetailHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <header className="site-header work-detail-header">
       <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi">
@@ -45,34 +42,18 @@ export function WorkDetailHeader() {
         ))}
       </nav>
       <Link className="button button-outline header-login" href="/koleksi">Kembali ke koleksi</Link>
-      <button
-        className="mobile-menu"
-        type="button"
-        aria-label={menuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
-        aria-expanded={menuOpen}
-        aria-controls="work-detail-mobile-navigation"
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-          {menuOpen ? <path d="m18 6-12 12M6 6l12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-        </svg>
-      </button>
-      {menuOpen && (
-        <nav className="mobile-nav" id="work-detail-mobile-navigation" aria-label="Navigasi seluler">
+      <nav className="mobile-bottom-nav" aria-label="Navigasi utama seluler">
           {navigation.map((item) => (
             <Link
               className={item.href === "/koleksi" ? "nav-active" : ""}
               href={item.href}
               key={item.href}
               aria-current={item.href === "/koleksi" ? "page" : undefined}
-              onClick={() => setMenuOpen(false)}
             >
-              <span><NavigationIcon name={item.icon} />{item.label}</span><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+              <NavigationIcon name={item.icon} /><span>{item.label}</span>
             </Link>
           ))}
-          <Link className="mobile-nav-auth" href="/koleksi" onClick={() => setMenuOpen(false)}>Kembali ke koleksi</Link>
-        </nav>
-      )}
+      </nav>
     </header>
   );
 }

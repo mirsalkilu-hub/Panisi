@@ -309,7 +309,6 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
 export function Home({ activePage = "beranda", selectedContributorId }: { activePage?: PageKey; selectedContributorId?: string }) {
   const [lessonQuery, setLessonQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<WorkCategorySlug | null>(null);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(() => Boolean(supabase));
@@ -1212,25 +1211,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           })}
         </nav>
         {session ? <button className="button button-outline header-login" onClick={signOut}><Icon name="user" size={16} /> Keluar</button> : <button className="button button-outline header-login" onClick={() => setLoginOpen(true)}><Icon name="user" size={16} /> Masuk</button>}
-        <button
-          className="mobile-menu"
-          type="button"
-          aria-label={mobileNavOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
-          aria-expanded={mobileNavOpen}
-          aria-controls="mobile-navigation"
-          onClick={() => setMobileNavOpen((open) => !open)}
-        >
-          <Icon name={mobileNavOpen ? "close" : "menu"} />
-        </button>
-        {mobileNavOpen && <nav className="mobile-nav" id="mobile-navigation" aria-label="Navigasi seluler">
+      </header>
+      <nav className="mobile-bottom-nav" aria-label="Navigasi utama seluler">
           {navItems.map(([label, href, icon]) => {
             const isCurrent = href === "/" ? activePage === "beranda" : (href === "/kontributor" && activePage === "widyaiswara") || (href === "/ruang-kerja" && (activePage === "ruang-kerja" || adminManagementPage)) || href.slice(1) === activePage;
-            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={icon} size={17} />{label}</span><Icon name="arrow" size={15} /></Link>;
+            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined}><Icon name={icon} size={19} /><span>{label}</span></Link>;
           })}
-          {session ? <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); void signOut(); }}><span><Icon name="user" size={17} />Keluar</span><Icon name="arrow" size={15} /></button>
-            : <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); setLoginOpen(true); }}><span><Icon name="user" size={17} />Masuk</span><Icon name="arrow" size={15} /></button>}
-        </nav>}
-      </header>
+      </nav>
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
