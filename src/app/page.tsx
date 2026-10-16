@@ -139,7 +139,6 @@ function PageHero({
   icon,
   caption,
   children,
-  feature,
   visual,
   className = "",
 }: {
@@ -149,7 +148,6 @@ function PageHero({
   icon: IconName;
   caption: string;
   children?: React.ReactNode;
-  feature?: React.ReactNode;
   visual?: React.ReactNode;
   className?: string;
 }) {
@@ -160,7 +158,6 @@ function PageHero({
       <p>{description}</p>
       {children && <div className="collection-page-actions">{children}</div>}
     </div>
-    {feature}
     <div className={`collection-page-visual${visual ? " custom-page-visual" : ""}`} aria-hidden={visual ? undefined : true}>
       {visual ?? <>
       <span className="collection-visual-orbit orbit-a" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />
@@ -1153,7 +1150,6 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
-  const latestVerifiedSubmissions = verifiedSubmissions.slice(0, 3);
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1205,14 +1201,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestVerifiedSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Tiga postingan terakhir yang terverifikasi">
-          <div className="home-latest-posts-heading"><span><Icon name="check" size={12} /> KARYA TERBARU</span><small>3 TERVERIFIKASI</small></div>
-          <div className="home-latest-posts-list">{latestVerifiedSubmissions.map((item, index) => <Link className="home-latest-post" href={workHref(item.id, item.title)} key={item.id}>
-            <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
-            <span className="home-latest-post-copy"><strong>{item.title}</strong><span className="home-latest-post-meta">{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
-            <span className="home-latest-post-index">0{index + 1}</span>
-          </Link>)}</div>
-        </section>}>
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner">
           <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
           <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
         </PageHero>
