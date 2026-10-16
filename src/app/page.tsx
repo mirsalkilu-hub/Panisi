@@ -11,6 +11,7 @@ import { SubmissionThumbnail } from "./submission-thumbnail";
 import { CategoryIcon } from "./category-icon";
 
 type Role = "admin" | "verifikator" | "kontributor";
+type ToastNotice = { title: string; message: string; tone: "success" | "info" };
 type Profile = {
   id: string;
   full_name: string;
@@ -329,6 +330,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [submissionStatusFilter, setSubmissionStatusFilter] = useState<"all" | Submission["status"]>("all");
   const [loginOpen, setLoginOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState<ToastNotice | null>(null);
   const [accountCreatedNotice, setAccountCreatedNotice] = useState("");
   const [accountCreateError, setAccountCreateError] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
@@ -341,6 +343,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const timeout = window.setTimeout(() => setAccountCreatedNotice(""), 6000);
     return () => window.clearTimeout(timeout);
   }, [accountCreatedNotice]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 5200);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
 
   const loadWorkspace = useCallback(async (activeSession: Session | null): Promise<Role | null> => {
     if (!supabase || !activeSession) {
@@ -543,6 +551,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     if (!supabase) throw new Error("Koneksi Supabase belum dikonfigurasi.");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    setToast({ title: "Selamat datang kembali", message: "Anda berhasil masuk ke PINISI.", tone: "success" });
   }
 
   async function updateBio(event: FormEvent<HTMLFormElement>) {
@@ -751,7 +760,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     }
     form.reset();
     setContributionCategory("video");
-    setMessage(`Karya kategori ${workCategories.find((category) => category.slug === categorySlug)?.name ?? "pilihan"} berhasil diajukan untuk diverifikasi.`);
+    const categoryName = workCategories.find((category) => category.slug === categorySlug)?.name ?? "pilihan";
+    setToast({
+      title: `Pengajuan ${categoryName} terkirim`,
+      message: "Karya Anda masuk ke antrean verifikasi. Pantau statusnya di bagian Karya Saya.",
+      tone: "success",
+    });
     await loadWorkspace(session);
   }
 
@@ -1075,7 +1089,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   async function signOut() {
     if (!supabase) return;
     const { error } = await supabase.auth.signOut();
-    if (error) setMessage(`Tidak dapat keluar: ${error.message}`);
+    if (error) {
+      setMessage(`Tidak dapat keluar: ${error.message}`);
+      return;
+    }
+    setToast({ title: "Anda sudah keluar", message: "Sesi PINISI telah ditutup dengan aman.", tone: "info" });
   }
 
   const adminRole = profile?.role === "admin";
@@ -1137,6 +1155,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
   return (
     <main>
+      {toast && <aside className={`toast-notice toast-${toast.tone}`} role="status" aria-live="polite">
+        <span className="toast-icon"><Icon name={toast.tone === "success" ? "check" : "user"} size={19} /></span>
+        <div className="toast-copy"><strong>{toast.title}</strong><p>{toast.message}</p></div>
+        <button type="button" onClick={() => setToast(null)} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button>
+        <span className="toast-progress" aria-hidden="true" />
+      </aside>}
       <header className="site-header">
         <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi"><Image className="brand-logo" src="/panisi-logo.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} priority /></Link>
         <nav className="desktop-nav" aria-label="Navigasi utama">
