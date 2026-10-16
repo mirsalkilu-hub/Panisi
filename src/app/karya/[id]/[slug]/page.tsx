@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const work = await getWork(id);
   return {
-    title: work ? `${work.title} | Karya Widyaiswara` : "Karya tidak ditemukan | Karya Widyaiswara",
+    title: work ? `${work.title} | PINISI` : "Karya tidak ditemukan | PINISI",
     description: work?.description,
   };
 }
@@ -67,7 +67,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   const category = workCategories.find((item) => item.slug === work.category_slug);
   const publishedDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(work.created_at));
   const publishedYear = new Intl.DateTimeFormat("id-ID", { year: "numeric" }).format(new Date(work.created_at));
-  const citation = `${work.full_name}. (${publishedYear}). ${work.title}. PANISI.`;
+  const citation = `${work.full_name}. (${publishedYear}). ${work.title}. PINISI.`;
   const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
 
   return (
@@ -115,7 +115,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         </div>
         <Link className="work-detail-back" href="/koleksi">← Kembali ke semua karya</Link>
       </article>
-      <footer className="work-detail-footer"><span>© 2026 PANISI · KARYA WIDYAISWARA</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>
+      <footer className="work-detail-footer"><span>© 2026 PINISI · KARYA WIDYAISWARA</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>
     </main>
   );
 }

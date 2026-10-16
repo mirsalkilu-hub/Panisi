@@ -3238,15 +3238,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .site-header { gap: 20px; }
 .site-header .brand { flex: 0 0 auto; letter-spacing: -.04em; }
+.site-header .brand-logo { height: auto; width: 220px; }
 .site-header .desktop-nav { flex: 1 1 auto; justify-content: center; margin-left: 0; }
 .site-header .desktop-nav a { white-space: nowrap; }
 .site-header .header-login { flex: 0 0 auto; white-space: nowrap; }
+.footer-brand .brand-logo { height: auto; width: 230px; }
 .work-detail-header .desktop-nav { margin-left: 0; }
 .work-detail-header .mobile-nav a > span { align-items: center; display: inline-flex; gap: 12px; }
 
 @media (max-width: 880px) {
   .site-header { gap: 12px; }
+  .site-header .brand-logo { width: 198px; }
 }
 @media (max-width: 760px) {
   .site-header.work-detail-header > .header-login { display: none; }
+}
+@media (max-width: 520px) {
+  .site-header .brand-logo { width: 176px; }
 }

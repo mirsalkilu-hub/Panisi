@@ -1,11 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 96" fill="none">
-  <rect x="2" y="2" width="92" height="92" rx="25" fill="#E9F2FF"/>
-  <path d="M20 48c10-4 20-3 29 3 9-6 19-7 29-3v26c-10-4-20-3-29 3-9-6-19-7-29-3V48Z" fill="#fff" stroke="#2763B8" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M49 51v26" stroke="#2763B8" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="m29 31 20-9 20 9-20 9-20-9Z" fill="#4285DF" stroke="#2763B8" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M64 34v9" stroke="#2763B8" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="64" cy="45" r="2.5" fill="#2763B8"/>
-  <text x="112" y="57" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="48" font-weight="700" letter-spacing="-2">panisi</text>
-  <circle cx="271" cy="52" r="4" fill="#7EB1FF"/>
-  <text x="114" y="79" fill="#CBD9EF" font-family="Arial,Helvetica,sans-serif" font-size="10" font-weight="600" letter-spacing="2">PLATFORM PEMBELAJARAN WIDYAISWARA</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 108" fill="none">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#F8E4A0"/>
+      <stop offset=".48" stop-color="#D7A73F"/>
+      <stop offset="1" stop-color="#A86D19"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="4" width="96" height="96" rx="18" fill="#123D72" stroke="#D7A73F" stroke-opacity=".55"/>
+  <path d="M49 13v59" stroke="url(#gold)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M52 15c14 14 24 30 27 48H52V15Z" fill="url(#gold)"/>
+  <path d="M46 29C36 39 27 51 21 64h25V29Z" fill="#E7BE62"/>
+  <path d="M15 68c22 8 46 8 68 0l-9 11c-17 6-34 6-51 0l-8-11Z" fill="url(#gold)"/>
+  <path d="M20 84c17 5 37 5 55 0" stroke="#D5E6F8" stroke-width="2" stroke-linecap="round"/>
+  <text x="114" y="62" fill="url(#gold)" font-family="Georgia,'Times New Roman',serif" font-size="52" font-weight="700" letter-spacing="1">PINISI</text>
+  <text x="116" y="88" fill="#E5EDF7" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="600">Pusat Ilmu dan Informasi Bersinergi</text>
 </svg>

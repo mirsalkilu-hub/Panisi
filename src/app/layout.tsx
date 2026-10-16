@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Karya Widyaiswara",
-  description: "Platform untuk menampilkan karya, materi ajar, dan kontribusi inspiratif para widyaiswara dalam satu ruang kolaborasi.",
+  title: "PINISI — Pusat Ilmu dan Informasi Bersinergi",
+  applicationName: "PINISI",
+  description: "Pusat Ilmu dan Informasi Bersinergi. Ruang berbagi karya pembelajaran, pengetahuan, dan praktik baik para widyaiswara.",
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",

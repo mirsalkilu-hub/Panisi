@@ -28,8 +28,8 @@ export function WorkDetailHeader() {
 
   return (
     <header className="site-header work-detail-header">
-      <Link className="brand" href="/" aria-label="PANISI — Karya Widyaiswara">
-        <Image className="brand-logo" src="/panisi-logo.svg" alt="PANISI — Karya Widyaiswara" width={190} height={48} priority />
+      <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi">
+        <Image className="brand-logo" src="/panisi-logo.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} priority />
       </Link>
       <nav className="desktop-nav" aria-label="Navigasi utama">
         {navigation.map((item) => (

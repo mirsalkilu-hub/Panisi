@@ -293,7 +293,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button-primary login-submit" disabled={!supabase || busy}>{busy ? "Memproses..." : "Masuk"} <Icon name="arrow" size={17} /></button>
         </form>
-        <span className="dialog-help">Akses kontributor dan verifikator dikelola administrator PANISI. Hubungi tim administrator untuk mendapatkan akun.</span>
+        <span className="dialog-help">Akses kontributor dan verifikator dikelola administrator PINISI. Hubungi tim administrator untuk mendapatkan akun.</span>
       </section>
     </div>
   );
@@ -1125,7 +1125,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   return (
     <main>
       <header className="site-header">
-        <Link className="brand" href="/" aria-label="PANISI — Karya Widyaiswara"><Image className="brand-logo" src="/panisi-logo.svg" alt="PANISI — Karya Widyaiswara" width={190} height={48} priority /></Link>
+        <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi"><Image className="brand-logo" src="/panisi-logo.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} priority /></Link>
         <nav className="desktop-nav" aria-label="Navigasi utama">
           {navItems.map(([label, href, icon]) => {
             const isContributorProfile = href === "/ruang-kerja" && profile?.role === "kontributor";
@@ -1157,7 +1157,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA WIDYAISWARA" title={<>Karya Widyaiswara.<br /><em>Ilmu dibagikan, inspirasi diteruskan.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
+        <PageHero eyebrow="KARYA WIDYAISWARA" title={<>PINISI.<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
           <SubmissionThumbnail id={latestHomeLesson.id} title={latestHomeLesson.title} contentType={latestHomeLesson.categorySlug === "video" ? "video" : "ebook"} categorySlug={latestHomeLesson.categorySlug} youtubeUrl={latestHomeLesson.youtube_url} thumbnailPath={latestHomeLesson.thumbnail_path} accessToken={session?.access_token} className="home-featured-thumbnail" />
           <span className="home-featured-badge"><Icon name="check" size={13} /> TERBARU · TERVERIFIKASI</span>
           <div className="home-featured-caption"><span>{latestHomeLesson.category}</span><strong>{latestHomeLesson.title}</strong><small>{latestHomeLesson.author} · {latestHomeLesson.format}</small></div>
@@ -1261,7 +1261,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "widyaiswara" && !selectedContributorId && <>
       <section className="collection-page content-wrap contributor-directory-page">
-        <PageHeading eyebrow="DIREKTORI WIDYAISWARA" icon="users" title="Widyaiswara PANISI." description="Temukan widyaiswara, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
+        <PageHeading eyebrow="DIREKTORI WIDYAISWARA" icon="users" title="Widyaiswara PINISI." description="Temukan widyaiswara, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
           <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{publicContributors.length} widyaiswara</span>
         </PageHeading>
           {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
@@ -1279,7 +1279,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
             <span className="directory-action">Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></span>
           </Link>)}</div>
-          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil widyaiswara segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PANISI.</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
+          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil widyaiswara segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI.</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
@@ -1481,13 +1481,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <footer className="site-footer">
         <div className="footer-top">
           <div className="footer-brand-block">
-            <Link className="brand footer-brand" href="/" aria-label="Karya Widyaiswara"><Image className="brand-logo" src="/panisi-logo-light.svg" alt="Karya Widyaiswara" width={190} height={48} /></Link>
-            <p>Temukan karya pembelajaran, profil widyaiswara, dan praktik baik yang dibagikan untuk memperkuat layanan pendidikan.</p>
+            <Link className="brand footer-brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi"><Image className="brand-logo" src="/panisi-logo-light.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} /></Link>
+            <p>Pusat ilmu, informasi, dan karya pembelajaran yang bertumbuh melalui kolaborasi.</p>
           </div>
-          <div className="footer-message"><span className="eyebrow">KARYA WIDYAISWARA</span><strong>Ilmu dibagikan.<br />Inspirasi diteruskan.</strong><span>Setiap karya adalah kontribusi untuk pendidikan Indonesia.</span></div>
+          <div className="footer-message"><span className="eyebrow">PINISI</span><strong>Pusat Ilmu dan Informasi<br />Bersinergi.</strong><span>Berbagi karya, memperluas manfaat pengetahuan.</span></div>
           <nav className="footer-links" aria-label="Tautan footer"><span>JELAJAHI</span><Link href="/#karya">Karya komunitas</Link><Link href="/koleksi">Koleksi karya</Link><Link href="/widyaiswara">Komunitas</Link><Link href="/ajukan">Bagikan karya</Link></nav>
         </div>
-        <div className="footer-bottom"><span>© 2026 PANISI · KARYA WIDYAISWARA</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
+        <div className="footer-bottom"><span>© 2026 PINISI · KARYA WIDYAISWARA</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
       </footer>
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} onLogin={login} />}
     </main>
