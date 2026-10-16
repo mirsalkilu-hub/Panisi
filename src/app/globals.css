@@ -2685,6 +2685,20 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-accounts-grid .account-form-field > textarea { width: 100%; }
 .admin-accounts-grid .account-box > .contribution-form > button { grid-column: 1 / -1; }
 .admin-accounts-grid .managed-account-list { gap: 0; grid-template-columns: 1fr; }
+.managed-account-table-head {
+  align-items: center;
+  border-bottom: 1px solid #dce6f0;
+  color: #71869b;
+  display: grid;
+  font-size: 9px;
+  font-weight: 750;
+  gap: 16px;
+  grid-template-columns: minmax(220px,1.6fr) minmax(180px,1.2fr) auto minmax(100px,auto) auto;
+  letter-spacing: .08em;
+  margin-top: 14px;
+  padding: 0 0 10px;
+  text-transform: uppercase;
+}
 .admin-accounts-grid .managed-account {
   align-items: center;
   background: transparent;
@@ -2693,16 +2707,22 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   border-radius: 0;
   display: grid;
   gap: 10px 16px;
-  grid-template-areas: "top top top" "expertise experience actions" "bio bio bio" "edit edit edit";
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto;
+  grid-template-areas: "identity profile role date actions" "edit edit edit edit edit";
+  grid-template-columns: minmax(220px,1.6fr) minmax(180px,1.2fr) auto minmax(100px,auto) auto;
   padding: 14px 0;
 }
-.admin-accounts-grid .managed-account-top { align-items: center; grid-area: top; }
+.admin-accounts-grid .managed-account-top { display: contents; }
+.admin-accounts-grid .managed-account-identity { grid-area: identity; }
+.admin-accounts-grid .managed-account-role { grid-area: role; justify-self: start; }
 .admin-accounts-grid .managed-account-created { color: #778ca0; flex: 0 0 auto; font-size: 10px; white-space: nowrap; }
-.admin-accounts-grid .managed-account > p:first-of-type { grid-area: expertise; }
-.admin-accounts-grid .managed-account > p:nth-of-type(2) { grid-area: experience; }
-.admin-accounts-grid .managed-account > p:nth-of-type(3) { grid-area: bio; }
-.admin-accounts-grid .managed-account p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.admin-accounts-grid .managed-account-created { grid-area: date; }
+.admin-accounts-grid .managed-account-summary { grid-area: profile; min-width: 0; }
+.admin-accounts-grid .managed-account-summary > p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+.admin-accounts-grid .managed-account-summary b { color: #426382; display: block; font-size: 8px; margin-bottom: 2px; }
+.admin-accounts-grid .managed-account-details { margin-top: 4px; }
+.admin-accounts-grid .managed-account-details summary { color: #3272ae; cursor: pointer; font-size: 9px; font-weight: 650; list-style-position: inside; }
+.admin-accounts-grid .managed-account-details p { color: #617b95; font-size: 10px; line-height: 1.5; margin: 5px 0 0; overflow-wrap: anywhere; }
+.admin-accounts-grid .managed-account-details[open] { background: #f7faff; border-radius: 8px; padding: 8px 10px; }
 .admin-accounts-grid .managed-account-actions { align-items: center; grid-area: actions; justify-content: flex-end; }
 .admin-accounts-grid .managed-account-actions button { margin-top: 0; min-height: 34px; padding-inline: 11px; }
 .admin-accounts-grid .managed-account-edit-form { grid-area: edit; }
@@ -2732,7 +2752,22 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   width: 100%;
 }
 .admin-post-search input::placeholder { color: #8b9fb4; }
-.admin-posts-panel .submission-list { display: grid; gap: 0; grid-template-columns: 1fr; margin-top: 18px; }
+.admin-post-table-head {
+  align-items: center;
+  border-bottom: 1px solid #dce6f0;
+  color: #71869b;
+  display: grid;
+  font-size: 9px;
+  font-weight: 750;
+  gap: 14px;
+  grid-template-columns: 54px minmax(0,1fr) minmax(130px,auto) minmax(105px,auto) minmax(95px,auto) minmax(180px,auto);
+  letter-spacing: .08em;
+  margin-top: 17px;
+  padding: 0 0 10px;
+  text-transform: uppercase;
+}
+.admin-post-table-head > span:first-child { grid-column: 1 / 3; }
+.admin-posts-panel .submission-list { display: grid; gap: 0; grid-template-columns: 1fr; margin-top: 0; }
 .admin-posts-panel .submission-item {
   align-items: center;
   background: transparent;
@@ -2741,14 +2776,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   border-radius: 0;
   display: grid;
   gap: 7px 14px;
-  grid-template-areas: "top top top top" "thumb title title kind" "thumb description description actions" "thumb byline byline actions" "video video video video" "document document document document" "feedback feedback feedback feedback" "edit edit edit edit";
-  grid-template-columns: 64px minmax(0,1fr) minmax(90px,auto) auto;
+  grid-template-areas: "thumb title kind status date actions" "thumb description kind status date actions" "thumb byline kind status date actions" "document document document document document document" "feedback feedback feedback feedback feedback feedback" "edit edit edit edit edit edit";
+  grid-template-columns: 54px minmax(0,1fr) minmax(130px,auto) minmax(105px,auto) minmax(95px,auto) minmax(180px,auto);
   min-width: 0;
   padding: 13px 0;
 }
-.admin-posts-panel .submission-top { grid-area: top; }
-.admin-posts-panel .submission-list-thumbnail { aspect-ratio: 1; grid-area: thumb; height: 56px; margin: 0; width: 56px; }
-.admin-posts-panel .submission-kind { grid-area: kind; justify-self: end; }
+.admin-posts-panel .submission-top { display: contents; }
+.admin-posts-panel .submission-top .status { align-self: center; grid-area: status; justify-self: start; }
+.admin-posts-panel .submission-top time { grid-area: date; justify-self: center; }
+.admin-posts-panel .submission-list-thumbnail { aspect-ratio: 1; grid-area: thumb; grid-row: 1 / 4; height: 52px; margin: 0; width: 52px; }
+.admin-posts-panel .submission-kind { align-self: center; grid-area: kind; grid-row: 1 / 4; justify-self: start; }
 .admin-posts-panel .submission-item h4 { color: #284766; font-size: 13px; grid-area: title; line-height: 1.45; margin: 0; }
 .admin-posts-panel .submission-description { color: #617b95; grid-area: description; line-height: 1.5; margin: 0; }
 .admin-posts-panel .submitted-by { grid-area: byline; }
@@ -2766,11 +2803,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-posts-panel .admin-document-link,
 .admin-posts-panel .admin-document-loading,
 .admin-posts-panel .admin-document-error { grid-area: document; }
-.admin-posts-panel .review-actions { grid-area: actions; justify-content: flex-end; margin: 0; padding: 0; }
+.admin-posts-panel .review-actions { align-self: center; border: 0; grid-area: actions; justify-content: flex-end; margin: 0; padding: 0; }
 .admin-posts-panel .edit-post-form { grid-area: edit; }
 .admin-posts-panel .review-actions { flex-wrap: wrap; }
 .admin-posts-panel .review-actions button { min-height: 36px; }
-.admin-posts-panel .review-actions { border-top: 1px solid #e6edf4; margin-top: 13px; padding-top: 12px; }
+.admin-posts-panel .review-actions { align-self: center; border: 0; grid-area: actions; justify-content: flex-end; margin: 0; padding: 0; }
 .admin-overview-links { display: grid; gap: 12px; grid-column: 1 / -1; grid-template-columns: repeat(2,minmax(0,1fr)); }
 .admin-overview-links > a {
   align-items: center;
@@ -2808,13 +2845,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-access-denied > a { align-items: center; color: #916a25; display: inline-flex; font-size: 10px; font-weight: 700; gap: 6px; text-decoration: none; }
 @media (max-width: 760px) {
   .admin-posts-panel .submission-item {
-    grid-template-areas: "top top top" "thumb title kind" "thumb description description" "byline byline byline" "actions actions actions" "video video video" "document document document" "feedback feedback feedback" "edit edit edit";
+    grid-template-areas: "thumb title status" "thumb description description" "kind date date" "byline byline byline" "actions actions actions" "document document document" "feedback feedback feedback" "edit edit edit";
     grid-template-columns: 56px minmax(0,1fr) auto;
   }
+  .admin-posts-panel .submission-list-thumbnail { grid-row: 1 / 3; height: 48px; width: 48px; }
+  .admin-posts-panel .submission-kind { grid-row: 3; justify-self: start; }
   .admin-accounts-grid .managed-account {
-    grid-template-areas: "top top" "expertise expertise" "experience experience" "bio bio" "actions actions" "edit edit";
+    grid-template-areas: "identity role" "profile profile" "date date" "actions actions" "edit edit";
     grid-template-columns: minmax(0,1fr) auto;
   }
+  .managed-account-table-head, .admin-post-table-head { display: none; }
   .admin-accounts-grid .managed-account-actions { justify-content: flex-start; }
   .admin-overview-links { grid-template-columns: 1fr; }
   .admin-overview { grid-template-columns: 1fr; }
