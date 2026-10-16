@@ -3394,9 +3394,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .contributor-back { font-size: 11px; margin-bottom: 20px; }
   .contributor-profile-hero { border-radius: 16px; gap: 17px; grid-template-columns: 1fr; padding: 22px 18px; }
   .contributor-profile-photo { flex-basis: 104px; height: 104px; justify-self: center; width: 104px; }
+  .contributor-profile-content { text-align: center; }
+  .contributor-profile-expertise strong { justify-content: center; }
   .contributor-profile-content h1 { font-size: 29px; margin: 12px 0; }
   .contributor-profile-bio, .contributor-profile-expertise p { font-size: 11px; }
-  .contributor-profile-work-count { margin-top: 14px; }
+  .contributor-profile-work-count { justify-content: center; margin-top: 14px; }
   .contributor-published-works { margin-top: 27px; }
   .contributor-published-heading { margin-bottom: 14px; }
   .contributor-published-heading h2 { font-size: 21px; }
