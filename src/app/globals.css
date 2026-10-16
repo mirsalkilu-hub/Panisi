@@ -4002,6 +4002,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .registration-brand { margin-bottom: 23px; }
   .registration-brand img { width: 165px; }
 }
+.site-footer > .footer-top,
+.site-footer > .footer-bottom {
+  margin-inline: auto;
+  max-width: 1240px;
+}
+.site-footer > .footer-bottom {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+}
+.site-footer > .footer-bottom > :nth-child(2) {
+  justify-self: center;
+  text-align: center;
+}
+.site-footer > .footer-bottom > :last-child {
+  justify-self: end;
+  text-align: right;
+}
+@media (max-width: 760px) {
+  .site-footer > .footer-bottom {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 .pdf-book-stage.is-single-page .pdf-book-spread-under,
 .pdf-book-stage.is-single-page .pdf-book-turn-sheet,
 .pdf-book-stage.is-single-page .pdf-book-spread-current > .pdf-book-leaf:last-child {
