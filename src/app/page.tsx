@@ -139,6 +139,7 @@ function PageHero({
   icon,
   caption,
   children,
+  feature,
   visual,
   className = "",
 }: {
@@ -148,6 +149,7 @@ function PageHero({
   icon: IconName;
   caption: string;
   children?: React.ReactNode;
+  feature?: React.ReactNode;
   visual?: React.ReactNode;
   className?: string;
 }) {
@@ -156,7 +158,7 @@ function PageHero({
       <span className="eyebrow">{eyebrow}</span>
       <h1>{title}</h1>
       <p>{description}</p>
-      {children && <div className="collection-page-actions">{children}</div>}
+      {(children || feature) && <div className="collection-page-actions">{children}{feature}</div>}
     </div>
     <div className={`collection-page-visual${visual ? " custom-page-visual" : ""}`} aria-hidden={visual ? undefined : true}>
       {visual ?? <>
@@ -406,8 +408,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       .from("submissions")
       .select("id, profile_id, title, description, content_type, category_slug, youtube_url, document_path, thumbnail_path, status, feedback, is_published, created_at, profiles(full_name)")
       .order("created_at", { ascending: false });
-    if (currentProfile.role === "verifikator") query = query.eq("status", "pending");
-    else if (currentProfile.role === "kontributor") query = query.eq("profile_id", activeSession.user.id);
+    if (currentProfile.role === "kontributor") query = query.eq("profile_id", activeSession.user.id);
     const { data, error } = await query;
     if (error) {
       setMessage(`Profil tidak dapat dimuat: ${error.message}`);
@@ -1105,6 +1106,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const adminRole = profile?.role === "admin";
   const verifierRole = profile?.role === "verifikator";
   const adminManagementPage = activePage === "admin-akun" || activePage === "admin-postingan";
+  const submissionManagementView = (adminRole && activePage === "admin-postingan")
+    || (verifierRole && (activePage === "ruang-kerja" || activePage === "admin-postingan"));
   const workspacePage = activePage === "ruang-kerja" || adminManagementPage;
   const filteredManagedAccounts = managedAccounts.filter((account) => {
     const matchesRole = managedAccountRoleFilter === "all" || account.role === managedAccountRoleFilter;
@@ -1150,6 +1153,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
+  const latestHomeSubmissions = verifiedSubmissions.slice(0, 2);
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1201,14 +1205,20 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner">
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Dua karya terbaru">
+          <div className="home-latest-posts-list">{latestHomeSubmissions.map((item) => <Link className="home-latest-post" href={workHref(item.id, item.title)} key={item.id}>
+            <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
+            <span className="home-latest-post-copy"><strong>{item.title}</strong><span>{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
+            <Icon name="arrow" size={15} />
+          </Link>)}</div>
+        </section>}>
           <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
           <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
         </PageHero>
       </section>
       <section className="learning-section home-published-section" id="karya">
         <div className="content-wrap">
-          <div className="section-heading"><div><span className="eyebrow">DARI KOMUNITAS UNTUK KOMUNITAS</span><h2>Gagasan baik tumbuh saat dibagikan.</h2><p className="work-category-description">Pilih kategori untuk menyaring semua pengajuan kontributor yang telah diverifikasi.</p></div><span className="lesson-total">{filteredLessons.length} KARYA</span></div>
+          <div className="section-heading"><div><span className="eyebrow">DARI KONTRIBUTOR</span><h2>Gagasan baik tumbuh saat dibagikan.</h2><p className="work-category-description">Pilih kategori untuk menyaring semua pengajuan kontributor yang telah diverifikasi.</p></div><span className="lesson-total">{filteredLessons.length} KARYA</span></div>
           <nav className="work-category-menu" aria-label="Filter kategori karya">
             {workCategories.map((category) => <button type="button" className={`work-category-link${selectedCategory === category.slug ? " category-active" : ""}`} onClick={() => setSelectedCategory((current) => current === category.slug ? null : category.slug)} key={category.slug} aria-pressed={selectedCategory === category.slug}>
               <span className={`work-category-icon category-icon-${category.slug}`}><CategoryIcon categorySlug={category.slug} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
@@ -1395,9 +1405,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="workspace-section content-wrap" id="ruang-kerja">
         <PageHeading
           className="workspace-page-heading"
-          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "PROFIL / KARYA KONTRIBUTOR"}
-          title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
-          description={activePage === "admin-akun" ? "Buat akun, atur peran, dan kelola profil tim dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
+          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : submissionManagementView ? `${adminRole ? "ADMINISTRATOR" : "VERIFIKATOR"} / MANAJEMEN POSTINGAN` : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "PROFIL / KARYA KONTRIBUTOR"}
+          title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : submissionManagementView ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
+          description={activePage === "admin-akun" ? "Buat akun, atur peran, dan kelola profil tim dari satu tempat." : submissionManagementView ? "Tinjau seluruh postingan kontributor, pantau status verifikasi, dan hapus karya bila diperlukan." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
         >
           <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
         </PageHeading>
@@ -1416,7 +1426,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button></div>}
         {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="user" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai administrator untuk mengelola akun dan postingan komunitas." : "Masuk untuk mengelola profil, mengajukan karya, atau meninjau kontribusi sesuai peran akun Anda."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
-        {session && profile && adminManagementPage && !adminRole && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/profil">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
+        {session && profile && adminManagementPage && !adminRole && !(verifierRole && activePage === "admin-postingan") && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/profil">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
         {session && profile && adminRole && activePage === "ruang-kerja" && <section className="admin-overview" aria-label="Ringkasan administrasi">
           <div className="admin-overview-copy"><span className="eyebrow">PANEL ADMINISTRATOR</span><h3>Kelola komunitas dan karya.</h3><p>Buat akun tim, pantau profil anggota, dan atur materi yang siap dipublikasikan.</p></div>
           <div className="admin-overview-session"><span><Icon name="check" size={13} /> ADMIN AKTIF</span><strong>{profile.full_name}</strong></div>
@@ -1430,8 +1440,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             <Link href="/profil/postingan"><span className="admin-overview-link-icon"><Icon name="file" size={20} /></span><span><strong>Kelola postingan</strong><small>Atur karya kontributor dan status penayangannya.</small></span><Icon name="arrow" size={17} /></Link>
           </div>
         </section>}
-        {session && profile && (!adminManagementPage || adminRole) && <div className={`workspace-grid${adminRole ? " admin-workspace-grid" : ""}${profile.role === "kontributor" ? " contributor-profile-grid" : ""}${adminManagementPage ? " admin-management-grid" : ""}${activePage === "admin-akun" ? " admin-accounts-grid" : ""}`}>
-          {activePage !== "admin-postingan" &&
+        {session && profile && (!adminManagementPage || adminRole || verifierRole && activePage === "admin-postingan") && <div className={`workspace-grid${adminRole || submissionManagementView ? " admin-workspace-grid" : ""}${profile.role === "kontributor" ? " contributor-profile-grid" : ""}${adminManagementPage || submissionManagementView ? " admin-management-grid" : ""}${activePage === "admin-akun" ? " admin-accounts-grid" : ""}`}>
+          {activePage !== "admin-postingan" && !submissionManagementView &&
           <div className={`workspace-panel${adminRole ? " admin-workspace-panel" : ""}`}>
             <div className="panel-title"><div><span className="eyebrow">{adminRole && activePage === "admin-akun" ? "PUSAT MANAJEMEN AKUN" : profile.role === "kontributor" ? "DATA PROFIL" : "PROFIL PROFESIONAL"}</span><h3>{adminRole && activePage === "admin-akun" ? "Akun kontributor & verifikator" : profile.role === "kontributor" ? "Informasi kontributor" : "Biodata dan keahlian"}</h3></div><span className="role-badge">{profile.role}</span></div>
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
@@ -1505,10 +1515,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
             </section>}
           </div>}
-          {(adminRole && activePage === "admin-postingan" || verifierRole && activePage === "ruang-kerja") && <div className={`workspace-panel submissions-panel${adminRole ? " admin-posts-panel" : ""}`}><div className="panel-title"><div><span className="eyebrow">{adminRole ? "SELURUH PENGAJUAN" : "ANTRIAN VERIFIKASI"}</span><h3>{adminRole ? "Kelola materi kontributor" : "Materi komunitas"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
-            {adminRole && <div className="admin-post-toolbar"><label className="admin-post-search"><Icon name="search" size={17} /><input type="search" value={submissionQuery} onChange={(event) => setSubmissionQuery(event.target.value)} placeholder="Cari judul, kontributor, atau kategori..." aria-label="Cari postingan kontributor" /></label><div className="managed-account-filters" role="group" aria-label="Filter status postingan">{([{ value: "all", label: "Semua" }, { value: "pending", label: "Menunggu" }, { value: "approved", label: "Terverifikasi" }, { value: "rejected", label: "Revisi" }] as const).map((filter) => <button type="button" key={filter.value} className={submissionStatusFilter === filter.value ? "active" : ""} aria-pressed={submissionStatusFilter === filter.value} onClick={() => setSubmissionStatusFilter(filter.value)}>{filter.label}<span>{filter.value === "all" ? submissions.length : submissions.filter((item) => item.status === filter.value).length}</span></button>)}</div></div>}
-            {adminRole && filteredSubmissions.length > 0 && <div className="admin-post-table-head" aria-hidden="true"><span>Detail karya</span><span>Format / kategori</span><span>Status</span><span>Tanggal</span><span>Aksi</span></div>}
-            {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : adminRole && filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>Tidak ada postingan yang cocok dengan pencarian atau filter.</p></div> : <div className="submission-list">{(adminRole ? filteredSubmissions : submissions).map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
+          {submissionManagementView && <div className="workspace-panel submissions-panel admin-posts-panel"><div className="panel-title"><div><span className="eyebrow">SELURUH PENGAJUAN</span><h3>Kelola materi kontributor</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
+            <div className="admin-post-toolbar"><label className="admin-post-search"><Icon name="search" size={17} /><input type="search" value={submissionQuery} onChange={(event) => setSubmissionQuery(event.target.value)} placeholder="Cari judul, kontributor, atau kategori..." aria-label="Cari postingan kontributor" /></label><div className="managed-account-filters" role="group" aria-label="Filter status postingan">{([{ value: "all", label: "Semua" }, { value: "pending", label: "Menunggu" }, { value: "approved", label: "Terverifikasi" }, { value: "rejected", label: "Revisi" }] as const).map((filter) => <button type="button" key={filter.value} className={submissionStatusFilter === filter.value ? "active" : ""} aria-pressed={submissionStatusFilter === filter.value} onClick={() => setSubmissionStatusFilter(filter.value)}>{filter.label}<span>{filter.value === "all" ? submissions.length : submissions.filter((item) => item.status === filter.value).length}</span></button>)}</div></div>
+            {filteredSubmissions.length > 0 && <div className="admin-post-table-head" aria-hidden="true"><span>Detail karya</span><span>Format / kategori</span><span>Status</span><span>Tanggal</span><span>Aksi</span></div>}
+            {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>Tidak ada postingan yang cocok dengan pencarian atau filter.</p></div> : <div className="submission-list">{filteredSubmissions.map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
               <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{[...workCategories, ...legacyWorkCategories.filter((category) => category.slug === item.category_slug)].filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
@@ -1516,7 +1526,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
               {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
-            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
+            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button></div>}{verifierRole && <div className="review-actions"><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
         </div>}
       </section>

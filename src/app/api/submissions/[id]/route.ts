@@ -46,12 +46,7 @@ export async function DELETE(
     .maybeSingle();
   if (submissionError) return responseError(`Postingan tidak dapat dimuat: ${submissionError.message}`, 500);
   if (!submission) return responseError("Postingan tidak ditemukan.", 404);
-  if (actor.role === "verifikator" && submission.status !== "pending") {
-    return responseError("Verifikator hanya dapat menghapus pengajuan yang masih menunggu verifikasi.", 403);
-  }
-
-  let deleteQuery = adminClient.from("submissions").delete().eq("id", id);
-  if (actor.role === "verifikator") deleteQuery = deleteQuery.eq("status", "pending");
+  const deleteQuery = adminClient.from("submissions").delete().eq("id", id);
   const { data: deleted, error: deleteError } = await deleteQuery.select("id");
   if (deleteError) return responseError(`Postingan tidak dapat dihapus: ${deleteError.message}`, 500);
   if (!deleted?.length) return responseError("Postingan tidak lagi tersedia untuk dihapus.", 409);
