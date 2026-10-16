@@ -302,6 +302,8 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
 export function Home({ activePage = "beranda", selectedContributorId }: { activePage?: PageKey; selectedContributorId?: string }) {
   const [lessonQuery, setLessonQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<WorkCategorySlug | null>(null);
+  const [collectionQuery, setCollectionQuery] = useState("");
+  const [collectionCategory, setCollectionCategory] = useState<WorkCategorySlug | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -1113,6 +1115,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const filteredLessons = categoryLessons.filter((lesson) =>
     `${lesson.title} ${lesson.category} ${lesson.author} ${lesson.description ?? ""}`.toLowerCase().includes(lessonQuery.trim().toLowerCase()),
   );
+  const filteredVerifiedSubmissions = verifiedSubmissions.filter((submission) => {
+    const category = workCategories.find((item) => item.slug === submission.category_slug);
+    const matchesCategory = collectionCategory === null || submission.category_slug === collectionCategory;
+    const searchText = `${submission.title} ${submission.description} ${submission.full_name} ${category?.name ?? ""}`.toLocaleLowerCase("id-ID");
+    return matchesCategory && searchText.includes(collectionQuery.trim().toLocaleLowerCase("id-ID"));
+  });
 
   return (
     <main>
@@ -1189,16 +1197,27 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a>
         </PageHeading>
         <div className="collection-list-section" id="koleksi-terverifikasi">
-          <div className="collection-list-heading"><div><span className="eyebrow">KARYA TERVERIFIKASI</span><h2>Koleksi komunitas</h2><p>Karya yang telah disetujui dan dibagikan oleh para kontributor.</p></div><span className="lesson-total">{verifiedSubmissions.length} KARYA</span></div>
+          <div className="collection-list-heading"><div><span className="eyebrow">KARYA TERVERIFIKASI</span><h2>Koleksi komunitas</h2><p>Telusuri karya berdasarkan kategori atau cari judul, topik, dan nama kontributor.</p></div><span className="lesson-total">{filteredVerifiedSubmissions.length} KARYA</span></div>
+          <nav className="work-category-menu" aria-label="Filter kategori koleksi">
+            <button type="button" className={`work-category-link${collectionCategory === null ? " category-active" : ""}`} onClick={() => setCollectionCategory(null)} aria-pressed={collectionCategory === null}><span className="work-category-icon"><Icon name="grid" size={21} /></span><span><strong>Semua Karya</strong><small>Jelajahi seluruh karya</small></span></button>
+            {workCategories.map((category) => <button type="button" className={`work-category-link${collectionCategory === category.slug ? " category-active" : ""}`} onClick={() => setCollectionCategory(category.slug)} key={category.slug} aria-pressed={collectionCategory === category.slug}>
+              <span className="work-category-icon"><CategoryIcon categorySlug={category.slug} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
+            </button>)}
+          </nav>
+          <div className="content-toolbar">
+            <label className="lesson-search"><Icon name="search" size={18} /><input type="search" value={collectionQuery} onChange={(event) => setCollectionQuery(event.target.value)} placeholder="Cari judul, topik, atau kontributor..." aria-label="Cari karya dalam koleksi" /></label>
+          </div>
           {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
-            : verifiedSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
-              {verifiedSubmissions.map((item) => <article className="lesson-card" key={item.id}>
+            : filteredVerifiedSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
+              {filteredVerifiedSubmissions.map((item) => <article className="lesson-card" key={item.id}>
                   <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /><span className="lesson-thumbnail-status">TERVERIFIKASI</span></Link>
                   <div className="lesson-meta"><CategoryLabel categorySlug={item.category_slug} /> <span>{item.content_type === "ebook" ? "PDF" : "VIDEO · DISETUJUI"}</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/widyaiswara/${item.profile_id}`}>{item.full_name}</Link></div><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
               </article>)}
             </div>
-            : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>}
+            : verifiedSubmissions.length === 0
+              ? <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>
+              : <div className="lesson-empty-state"><span className="lesson-empty-icon"><Icon name="search" size={20} /></span><div><strong>Tidak ada karya yang cocok dengan filter ini.</strong><p>Ubah kategori atau kata kunci untuk melihat karya lainnya.</p></div><button type="button" onClick={() => { setCollectionCategory(null); setCollectionQuery(""); }}>Atur ulang filter</button></div>}
         </div>
       </section>
       </>}
