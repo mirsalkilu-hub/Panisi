@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
 import { workHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
@@ -9,6 +10,7 @@ import { SubmissionThumbnail } from "../../../submission-thumbnail";
 import { WorkShareActions } from "../../../work-share-actions";
 import { WorkDetailHeader } from "../../../work-detail-header";
 import { CategoryIcon } from "../../../category-icon";
+import { WorkImpactPanel } from "../../../work-impact-panel";
 
 type WorkRecord = {
   id: string;
@@ -53,10 +55,49 @@ async function getWork(id: string) {
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }) {
   const { id } = await params;
   const work = await getWork(id);
+  if (!work) return { title: "Karya tidak ditemukan | PINISI" };
+
+  const baseUrl = await getPublicSiteBaseUrl();
+  const canonicalUrl = new URL(workHref(work.id, work.title), baseUrl);
+  const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
+  const thumbnailPath = work.thumbnail_path
+    ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
+    : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-logo.svg";
+  const thumbnailUrl = new URL(thumbnailPath, baseUrl).toString();
+
   return {
-    title: work ? `${work.title} | PINISI` : "Karya tidak ditemukan | PINISI",
-    description: work?.description,
+    title: `${work.title} | PINISI`,
+    description: work.description,
+    metadataBase: baseUrl,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "article",
+      siteName: "PINISI",
+      title: work.title,
+      description: work.description,
+      url: canonicalUrl,
+      images: [{ url: thumbnailUrl, alt: work.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: work.title,
+      description: work.description,
+      images: [thumbnailUrl],
+    },
   };
+}
+
+async function getPublicSiteBaseUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_URL;
+  if (configuredUrl) return new URL(/^https?:\/\//i.test(configuredUrl) ? configuredUrl : `https://${configuredUrl}`);
+
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host")?.split(",")[0].trim()
+    ?? requestHeaders.get("host")
+    ?? "localhost:3000";
+  const protocol = requestHeaders.get("x-forwarded-proto")?.split(",")[0].trim()
+    ?? (host.startsWith("localhost") ? "http" : "https");
+  return new URL(`${protocol}://${host}`);
 }
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
@@ -78,8 +119,8 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <header className="work-detail-heading">
           <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Kontributor"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
-          <p className="work-detail-byline">Dibagikan oleh <Link href={`/widyaiswara/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
-          <WorkShareActions title={work.title} citation={citation} />
+          <p className="work-detail-byline">Dibagikan oleh <Link href={`/kontributor/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
+          <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} />
         </header>
         <div className="work-detail-layout">
           <section className="work-detail-content" aria-label="Isi karya">
@@ -100,7 +141,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
                 ? <Image src={getSupabase().storage.from("profile-photos").getPublicUrl(work.profile_photo_path).data.publicUrl} alt={`Foto profil ${work.full_name}`} width={58} height={58} unoptimized />
                 : work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
               <h2>{work.full_name}</h2>
-              <Link className="button button-outline" href={`/widyaiswara/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
+              <Link className="button button-outline" href={`/kontributor/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
             </section>
             <section className="work-detail-sidebar-section work-detail-metadata">
               <span className="eyebrow">INFORMASI KARYA</span>
@@ -113,6 +154,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             </section>
           </aside>
         </div>
+        <WorkImpactPanel submissionId={work.id} />
         <Link className="work-detail-back" href="/koleksi">← Kembali ke semua karya</Link>
       </article>
       <footer className="work-detail-footer"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>

@@ -25,6 +25,7 @@ export function SubmissionThumbnail({
   className?: string;
 }) {
   const [signedImage, setSignedImage] = useState<{ key: string; url: string } | null>(null);
+  const [fallbackImageKey, setFallbackImageKey] = useState<string | null>(null);
   const category = allWorkCategories.find((item) => item.slug === categorySlug);
   const videoId = contentType === "video" && youtubeUrl ? getYoutubeId(youtubeUrl) : null;
   const thumbnailKey = `${id}:${thumbnailPath ?? ""}`;
@@ -37,16 +38,29 @@ export function SubmissionThumbnail({
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
-          console.error("Unable to create submission thumbnail URL:", error.message);
+          setFallbackImageKey(thumbnailKey);
+          if (!isMissingStorageObject(error.message, error.statusCode)) {
+            console.warn("Unable to create submission thumbnail URL:", error.message);
+          }
           return;
         }
         setSignedImage({ key: thumbnailKey, url: data.signedUrl });
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setFallbackImageKey(thumbnailKey);
+          console.warn("Unable to create submission thumbnail URL:", error);
+        }
       });
     return () => { cancelled = true; };
   }, [accessToken, thumbnailKey, thumbnailPath]);
 
   const imageUrl = thumbnailPath
-    ? accessToken ? signedImage?.key === thumbnailKey ? signedImage.url : null : `/api/submissions/${encodeURIComponent(id)}/thumbnail`
+    ? accessToken
+      ? signedImage?.key === thumbnailKey
+        ? signedImage.url
+        : fallbackImageKey === thumbnailKey ? `/api/submissions/${encodeURIComponent(id)}/thumbnail` : null
+      : `/api/submissions/${encodeURIComponent(id)}/thumbnail`
     : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
 
   return (
@@ -64,6 +78,10 @@ export function SubmissionThumbnail({
       <span className="submission-thumbnail-overlay" />
     </div>
   );
+}
+
+function isMissingStorageObject(message: string, statusCode?: string) {
+  return statusCode === "404" || /object not found/i.test(message);
 }
 
 function getYoutubeId(url: string) {

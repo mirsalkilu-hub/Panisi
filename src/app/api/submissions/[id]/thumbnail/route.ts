@@ -38,6 +38,9 @@ export async function GET(
     .from("submission-thumbnails")
     .createSignedUrl(submission.thumbnail_path, 300);
   if (signedUrlError) {
+    if (signedUrlError.statusCode === "404" || /object not found/i.test(signedUrlError.message)) {
+      return NextResponse.json({ error: "Thumbnail tidak ditemukan." }, { status: 404 });
+    }
     console.error("Unable to create approved submission thumbnail URL:", signedUrlError.message);
     return NextResponse.json({ error: "Thumbnail sementara tidak dapat dibuka." }, { status: 500 });
   }

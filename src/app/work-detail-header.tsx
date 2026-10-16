@@ -7,9 +7,9 @@ import { useState } from "react";
 const navigation = [
   { label: "Beranda", href: "/", icon: "home" },
   { label: "Koleksi", href: "/koleksi", icon: "grid" },
-  { label: "Kontributor", href: "/widyaiswara", icon: "users" },
+  { label: "Kontributor", href: "/kontributor", icon: "users" },
   { label: "Unggah Karya", href: "/ajukan", icon: "upload" },
-  { label: "Profil", href: "/ruang-kerja", icon: "user" },
+  { label: "Profil", href: "/profil", icon: "user" },
 ];
 
 function NavigationIcon({ name }: { name: string }) {
