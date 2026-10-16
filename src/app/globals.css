@@ -3072,7 +3072,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .lesson-search > svg { background: linear-gradient(140deg,#d8f1f3,#bce6e8); border: 1px solid #b6dfe2; border-radius: 8px; box-sizing: content-box; color: #087c89; flex: 0 0 18px; padding: 5px; }
 .collection-page.home-page-hero { padding-bottom: 0; padding-top: clamp(22px,3vw,34px); }
 .home-page-hero .collection-page-hero {
-  background: linear-gradient(90deg,rgba(5,22,39,.82) 0%,rgba(5,22,39,.56) 46%,rgba(5,22,39,.08) 100%),url("https://i.ytimg.com/vi/EC1dD27rNGM/maxresdefault.jpg") center / cover no-repeat,#173a62;
+  background: linear-gradient(90deg,rgba(5,22,39,.82) 0%,rgba(5,22,39,.56) 46%,rgba(5,22,39,.08) 100%),url("/panisi-home-banner.jpg") center / cover no-repeat,#173a62;
   border-color: rgba(221,237,250,.3);
   display: block;
   min-height: 0;
