@@ -3799,3 +3799,155 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .work-impact-action { padding: 13px 12px; }
   .work-impact-action h4 { align-items: flex-start; }
 }
+
+.login-register-link {
+  color: #2867a5;
+  display: block;
+  font-size: 11px;
+  font-weight: 650;
+  margin-top: 13px;
+  text-align: center;
+}
+.login-register-link:hover,
+.registration-footer a:hover { color: #174a7d; text-decoration: underline; }
+.invitation-manager {
+  border: 1px solid #dce7f1;
+  border-radius: 15px;
+  margin-top: 22px;
+  padding: 18px;
+}
+.invitation-manager-description {
+  color: #71849b;
+  font-size: 11px;
+  line-height: 1.65;
+  margin: 9px 0 14px;
+}
+.invitation-create-form {
+  align-items: end;
+  display: grid;
+  gap: 8px 11px;
+  grid-template-columns: minmax(0,1fr) auto;
+}
+.invitation-create-form label { grid-column: 1 / -1; }
+.invitation-create-form input {
+  background: #fff;
+  border: 1px solid #dbe5f1;
+  border-radius: 10px;
+  color: #274565;
+  min-height: 43px;
+  padding: 9px 12px;
+}
+.invitation-create-form .button { white-space: nowrap; }
+.invitation-created {
+  align-items: center;
+  background: #eff7f2;
+  border: 1px solid #d8eadf;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 12px;
+}
+.invitation-created > div { display: grid; gap: 5px; min-width: 0; }
+.invitation-created .eyebrow { color: #4f7a61; font-size: 8px; letter-spacing: .1em; }
+.invitation-created strong {
+  color: #284d37;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: .09em;
+  overflow-wrap: anywhere;
+}
+.invitation-created .button { flex: 0 0 auto; min-height: 38px; }
+.invitation-notice { color: #38704a; font-size: 11px; margin: 10px 0 0; }
+.invitation-list { display: grid; gap: 8px; margin-top: 14px; }
+.invitation-item {
+  align-items: center;
+  border-top: 1px solid #e8eef4;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0,1fr) auto auto;
+  padding-top: 10px;
+}
+.invitation-item > div { display: grid; gap: 3px; min-width: 0; }
+.invitation-item > div strong { color: #31516e; font-size: 11px; overflow-wrap: anywhere; }
+.invitation-item > div span { color: #8797a9; font-size: 9px; }
+.invitation-status {
+  background: #fcefed;
+  border-radius: 999px;
+  color: #a24c3e;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 5px 9px;
+}
+.invitation-status.active { background: #eaf5ed; color: #3f7852; }
+.invitation-toggle {
+  background: transparent;
+  border: 0;
+  color: #486e91;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 650;
+  padding: 7px 2px;
+}
+.invitation-toggle:disabled { cursor: wait; opacity: .55; }
+.registration-page {
+  align-items: center;
+  background: radial-gradient(ellipse at 12% 8%, rgba(208,228,249,.65), transparent 42%), #f3f7fb;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px 18px;
+}
+.registration-card {
+  background: #fff;
+  border: 1px solid #e0e9f2;
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(28,62,98,.1);
+  max-width: 560px;
+  padding: clamp(24px,5vw,42px);
+  width: 100%;
+}
+.registration-brand { display: inline-flex; margin-bottom: 30px; }
+.registration-brand img { height: auto; width: 188px; }
+.registration-card > .eyebrow { color: #3977b8; font-size: 9px; font-weight: 750; letter-spacing: .14em; }
+.registration-card h1 { color: #1d385b; font-size: clamp(27px,5vw,35px); letter-spacing: -.045em; line-height: 1.15; margin: 9px 0; }
+.registration-card > p { color: #6e8299; font-size: 12px; line-height: 1.7; margin: 0 0 20px; }
+.registration-form { display: grid; gap: 8px; }
+.registration-form label { color: #385674; font-size: 11px; font-weight: 650; margin-top: 4px; }
+.registration-form input,
+.registration-form textarea {
+  background: #fbfdff;
+  border: 1px solid #d8e4f1;
+  border-radius: 10px;
+  color: #203f61;
+  font: inherit;
+  font-size: 13px;
+  min-height: 45px;
+  outline: none;
+  padding: 10px 12px;
+  resize: vertical;
+  width: 100%;
+}
+.registration-form input:focus,
+.registration-form textarea:focus { background: #fff; border-color: #5891cc; box-shadow: 0 0 0 3px rgba(73,137,199,.12); }
+.registration-form input::placeholder { color: #9aabbd; }
+.registration-submit { justify-content: center; margin-top: 9px; min-height: 48px; width: 100%; }
+.registration-error { background: #fff3f1; border: 1px solid #f2d2cc; border-radius: 10px; color: #a45240; font-size: 11px; line-height: 1.6; margin: 2px 0; overflow-wrap: anywhere; padding: 10px 12px; }
+.registration-card .registration-footer { border-top: 1px solid #e8eef5; font-size: 10px; margin: 20px 0 0; padding-top: 14px; text-align: center; }
+.registration-footer a { color: #2867a5; font-weight: 650; }
+@media (max-width: 520px) {
+  .invitation-manager { padding: 14px 12px; }
+  .invitation-create-form { grid-template-columns: minmax(0,1fr); }
+  .invitation-create-form label { grid-column: auto; }
+  .invitation-create-form .button { justify-self: start; }
+  .invitation-created { align-items: stretch; flex-direction: column; }
+  .invitation-created .button { align-self: flex-start; }
+  .invitation-item { align-items: start; grid-template-columns: minmax(0,1fr) auto; }
+  .invitation-toggle { grid-column: 1 / -1; justify-self: start; }
+  .registration-page { align-items: flex-start; padding: 14px 10px; }
+  .registration-card { border-radius: 17px; padding: 23px 18px; }
+  .registration-brand { margin-bottom: 23px; }
+  .registration-brand img { width: 165px; }
+}

@@ -73,6 +73,12 @@ type ManagedAccount = {
   widyaiswara_experience: string;
   created_at: string;
 };
+type ManagedInvitation = {
+  id: string;
+  label: string;
+  is_active: boolean;
+  created_at: string;
+};
 export type PageKey = "beranda" | "koleksi" | "widyaiswara" | "ajukan" | "ruang-kerja" | "admin-akun" | "admin-postingan";
 type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "briefcase" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload";
 type HomeLesson = {
@@ -301,6 +307,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
           <button className="button button-primary login-submit" disabled={!supabase || busy}>{busy ? "Memproses..." : "Masuk"} <Icon name="arrow" size={17} /></button>
         </form>
         <span className="dialog-help">Akses kontributor dan verifikator dikelola administrator PINISI. Hubungi tim administrator untuk mendapatkan akun.</span>
+        <Link className="login-register-link" href="/daftar">Punya kode undangan? Daftar sebagai kontributor</Link>
       </section>
     </div>
   );
@@ -330,6 +337,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [managedAccountEditRole, setManagedAccountEditRole] = useState<ManagedAccountRole | null>(null);
   const [managedAccountError, setManagedAccountError] = useState("");
+  const [invitations, setInvitations] = useState<ManagedInvitation[]>([]);
+  const [invitationsLoading, setInvitationsLoading] = useState(true);
+  const [invitationLabel, setInvitationLabel] = useState("");
+  const [invitationCode, setInvitationCode] = useState("");
+  const [invitationError, setInvitationError] = useState("");
+  const [invitationNotice, setInvitationNotice] = useState("");
+  const [invitationBusy, setInvitationBusy] = useState(false);
   const [submissionQuery, setSubmissionQuery] = useState("");
   const [submissionStatusFilter, setSubmissionStatusFilter] = useState<"all" | Submission["status"]>(() =>
     activePage === "ruang-kerja" ? "pending" : "all",
@@ -1129,6 +1143,26 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
   const adminRole = profile?.role === "admin";
   const verifierRole = profile?.role === "verifikator";
+  useEffect(() => {
+    if (!adminRole || activePage !== "admin-akun" || !session) return;
+    let active = true;
+    fetch("/api/admin/invitations", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    }).then(async (response) => {
+      const result = await response.json() as { error?: string; invitations?: ManagedInvitation[] };
+      if (!response.ok) throw new Error(result.error ?? "Kode undangan tidak dapat dimuat.");
+      if (active) {
+        setInvitations(result.invitations ?? []);
+        setInvitationError("");
+      }
+    }).catch((reason: unknown) => {
+      if (active) setInvitationError(reason instanceof Error ? reason.message : "Kode undangan tidak dapat dimuat.");
+    }).finally(() => {
+      if (active) setInvitationsLoading(false);
+    });
+    return () => { active = false; };
+  }, [activePage, adminRole, session]);
+
   const adminManagementPage = activePage === "admin-akun" || activePage === "admin-postingan";
   const submissionManagementView = (adminRole && activePage === "admin-postingan")
     || (verifierRole && (activePage === "ruang-kerja" || activePage === "admin-postingan"));
@@ -1194,6 +1228,85 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const collectionSubmissions = profile
     ? verifiedSubmissions.filter((submission) => submission.profile_id === profile.id)
     : [];
+
+  async function createInvitation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session) {
+      setInvitationError("Sesi admin tidak tersedia. Silakan masuk kembali.");
+      return;
+    }
+    setInvitationBusy(true);
+    setInvitationError("");
+    setInvitationNotice("");
+    try {
+      const response = await fetch("/api/admin/invitations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ label: invitationLabel.trim() || undefined }),
+      });
+      const result = await response.json() as { error?: string; code?: string; invitation?: ManagedInvitation };
+      if (!response.ok || !result.code || !result.invitation) {
+        throw new Error(result.error ?? "Kode undangan tidak dapat dibuat.");
+      }
+      setInvitations((current) => [result.invitation!, ...current]);
+      setInvitationCode(result.code);
+      setInvitationLabel("");
+      setInvitationNotice("Kode berhasil dibuat. Salin dan bagikan kepada calon kontributor.");
+    } catch (reason) {
+      setInvitationError(reason instanceof Error ? reason.message : "Kode undangan tidak dapat dibuat.");
+    } finally {
+      setInvitationBusy(false);
+    }
+  }
+
+  async function toggleInvitation(invitation: ManagedInvitation) {
+    if (!session) {
+      setInvitationError("Sesi admin tidak tersedia. Silakan masuk kembali.");
+      return;
+    }
+    const nextIsActive = !invitation.is_active;
+    if (!nextIsActive && !window.confirm(`Cabut kode "${invitation.label}"? Kode ini tidak dapat digunakan untuk pendaftaran baru.`)) return;
+    setInvitationBusy(true);
+    setInvitationError("");
+    setInvitationNotice("");
+    try {
+      const response = await fetch("/api/admin/invitations", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: invitation.id, isActive: nextIsActive }),
+      });
+      const result = await response.json() as { error?: string; invitation?: ManagedInvitation };
+      if (!response.ok || !result.invitation) {
+        throw new Error(result.error ?? "Status kode undangan tidak dapat diperbarui.");
+      }
+      setInvitations((current) => current.map((item) => item.id === invitation.id ? result.invitation! : item));
+      if (invitationCode && !nextIsActive) setInvitationCode("");
+      setInvitationNotice(nextIsActive ? "Kode undangan diaktifkan kembali." : "Kode undangan berhasil dicabut.");
+    } catch (reason) {
+      setInvitationError(reason instanceof Error ? reason.message : "Status kode undangan tidak dapat diperbarui.");
+    } finally {
+      setInvitationBusy(false);
+    }
+  }
+
+  async function copyInvitationDetails() {
+    if (!invitationCode) return;
+    const url = new URL("/daftar", window.location.origin).toString();
+    const formattedCode = invitationCode.match(/.{1,4}/g)?.join("-") ?? invitationCode;
+    try {
+      await navigator.clipboard.writeText(`Daftar sebagai kontributor PINISI\nTautan: ${url}\nKode undangan: ${formattedCode}`);
+      setInvitationNotice("Tautan dan kode undangan berhasil disalin.");
+    } catch (reason) {
+      setInvitationError(reason instanceof Error ? `Tidak dapat menyalin undangan: ${reason.message}` : "Tidak dapat menyalin undangan dari browser ini.");
+    }
+  }
+
   return (
     <main>
       {toast && <aside className={`toast-notice toast-${toast.tone}`} role="status" aria-live="polite">
@@ -1485,6 +1598,32 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               </>}
               <button type="submit" className="button button-primary" disabled={busy}>{busy ? "Membuat akun..." : "Buat akun"} <Icon name="arrow" size={16} /></button>
             </form>{accountCreateError && <p className="account-create-error" role="alert" aria-live="assertive">{accountCreateError}</p>}<p className="account-help">Akun langsung aktif. Sampaikan email dan kata sandi sementara secara aman kepada pemilik akun.</p></div>}
+              {adminRole && activePage === "admin-akun" && <section className="invitation-manager" aria-labelledby="invitation-manager-title">
+                <div className="managed-account-heading"><div><span className="eyebrow">PENDAFTARAN KONTRIBUTOR</span><h4 id="invitation-manager-title">Kode undangan</h4></div><span className="managed-account-count">{invitations.filter((item) => item.is_active).length} aktif</span></div>
+                <p className="invitation-manager-description">Buat kode yang bisa digunakan berulang. Bagikan tautan pendaftaran beserta kodenya kepada calon kontributor. Kode dapat dicabut kapan saja.</p>
+                <form className="invitation-create-form" onSubmit={createInvitation}>
+                  <label htmlFor="invitation_label">Nama kode (opsional)</label>
+                  <input id="invitation_label" value={invitationLabel} onChange={(event) => setInvitationLabel(event.target.value)} maxLength={100} placeholder="Contoh: Undangan pelatihan 2026" />
+                  <button type="submit" className="button button-primary" disabled={invitationBusy}>{invitationBusy ? "Membuat kode..." : "Buat kode undangan"} <Icon name="plus" size={16} /></button>
+                </form>
+                {invitationCode && <div className="invitation-created" role="status">
+                  <div><span className="eyebrow">KODE BARU — SALIN SEKARANG</span><strong>{invitationCode.match(/.{1,4}/g)?.join("-") ?? invitationCode}</strong></div>
+                  <button type="button" className="button button-outline" onClick={copyInvitationDetails}>Salin tautan + kode</button>
+                </div>}
+                {invitationError && <p className="account-create-error" role="alert">{invitationError}</p>}
+                {invitationNotice && <p className="invitation-notice" role="status">{invitationNotice}</p>}
+                <div className="invitation-list">
+                  {invitationsLoading
+                    ? <p className="managed-account-empty" role="status">Memuat kode undangan...</p>
+                    : invitations.length === 0
+                      ? <p className="managed-account-empty">Belum ada kode undangan.</p>
+                      : invitations.map((invitation) => <article className="invitation-item" key={invitation.id}>
+                        <div><strong>{invitation.label}</strong><span>Dibuat {new Date(invitation.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                        <span className={`invitation-status${invitation.is_active ? " active" : ""}`}>{invitation.is_active ? "Aktif" : "Dicabut"}</span>
+                        <button type="button" className="invitation-toggle" disabled={invitationBusy} onClick={() => void toggleInvitation(invitation)}>{invitation.is_active ? "Cabut kode" : "Aktifkan kembali"}</button>
+                      </article>)}
+                </div>
+              </section>}
               {adminRole && activePage === "admin-akun" && <section className="managed-account-roster" aria-label="Manajemen akun kontributor dan verifikator">
                 <div className="managed-account-heading"><div><span className="eyebrow">MANAJEMEN PENGGUNA</span><h4>Daftar kontributor &amp; verifikator</h4></div><span className="managed-account-count" aria-label={`${filteredManagedAccounts.length} dari ${managedAccounts.length} akun ditampilkan`}>{filteredManagedAccounts.length}/{managedAccounts.length}</span></div>
                 <div className="managed-account-toolbar">
