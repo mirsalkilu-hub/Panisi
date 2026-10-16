@@ -2684,8 +2684,28 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-accounts-grid .account-form-field > select,
 .admin-accounts-grid .account-form-field > textarea { width: 100%; }
 .admin-accounts-grid .account-box > .contribution-form > button { grid-column: 1 / -1; }
-.admin-accounts-grid .managed-account-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
-.admin-accounts-grid .managed-account-edit-form { grid-column: 1 / -1; }
+.admin-accounts-grid .managed-account-list { gap: 0; grid-template-columns: 1fr; }
+.admin-accounts-grid .managed-account {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e3ebf3;
+  border-radius: 0;
+  display: grid;
+  gap: 10px 16px;
+  grid-template-areas: "top top top" "expertise experience actions" "bio bio bio" "edit edit edit";
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto;
+  padding: 14px 0;
+}
+.admin-accounts-grid .managed-account-top { align-items: center; grid-area: top; }
+.admin-accounts-grid .managed-account-created { color: #778ca0; flex: 0 0 auto; font-size: 10px; white-space: nowrap; }
+.admin-accounts-grid .managed-account > p:first-of-type { grid-area: expertise; }
+.admin-accounts-grid .managed-account > p:nth-of-type(2) { grid-area: experience; }
+.admin-accounts-grid .managed-account > p:nth-of-type(3) { grid-area: bio; }
+.admin-accounts-grid .managed-account p { display: -webkit-box; margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.admin-accounts-grid .managed-account-actions { align-items: center; grid-area: actions; justify-content: flex-end; }
+.admin-accounts-grid .managed-account-actions button { margin-top: 0; min-height: 34px; padding-inline: 11px; }
+.admin-accounts-grid .managed-account-edit-form { grid-area: edit; }
 .admin-post-toolbar { display: grid; gap: 13px; margin-top: 19px; }
 .admin-post-toolbar { align-items: center; grid-template-columns: minmax(0,1fr) auto; }
 .admin-post-search {
@@ -2712,17 +2732,26 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   width: 100%;
 }
 .admin-post-search input::placeholder { color: #8b9fb4; }
-.admin-posts-panel .submission-list { display: grid; gap: 15px; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 18px; }
+.admin-posts-panel .submission-list { display: grid; gap: 0; grid-template-columns: 1fr; margin-top: 18px; }
 .admin-posts-panel .submission-item {
-  background: linear-gradient(150deg,#fff,#f9fbfe);
-  border: 1px solid #e0e9f3;
-  border-radius: 15px;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e0e9f3;
+  border-radius: 0;
+  display: grid;
+  gap: 7px 14px;
+  grid-template-areas: "top top top top" "thumb title title kind" "thumb description description actions" "thumb byline byline actions" "video video video video" "document document document document" "feedback feedback feedback feedback" "edit edit edit edit";
+  grid-template-columns: 64px minmax(0,1fr) minmax(90px,auto) auto;
   min-width: 0;
-  padding: 16px;
+  padding: 13px 0;
 }
-.admin-posts-panel .submission-item h4 { color: #284766; font-size: 15px; line-height: 1.45; }
-.admin-posts-panel .submission-description { color: #617b95; line-height: 1.65; }
-.admin-posts-panel .submission-list-thumbnail { aspect-ratio: 16 / 9; margin: 14px 0; width: 100%; }
+.admin-posts-panel .submission-top { grid-area: top; }
+.admin-posts-panel .submission-list-thumbnail { aspect-ratio: 1; grid-area: thumb; height: 56px; margin: 0; width: 56px; }
+.admin-posts-panel .submission-kind { grid-area: kind; justify-self: end; }
+.admin-posts-panel .submission-item h4 { color: #284766; font-size: 13px; grid-area: title; line-height: 1.45; margin: 0; }
+.admin-posts-panel .submission-description { color: #617b95; grid-area: description; line-height: 1.5; margin: 0; }
+.admin-posts-panel .submitted-by { grid-area: byline; }
 .admin-posts-panel .submission-item h4,
 .admin-posts-panel .submission-description,
 .admin-posts-panel .review-feedback {
@@ -2730,11 +2759,15 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   overflow: hidden;
   -webkit-box-orient: vertical;
 }
-.admin-posts-panel .submission-item h4 { -webkit-line-clamp: 2; }
-.admin-posts-panel .submission-description { -webkit-line-clamp: 2; }
-.admin-posts-panel .review-feedback { -webkit-line-clamp: 2; }
-.admin-posts-panel .submission-video { border-radius: 11px; overflow: hidden; }
-.admin-posts-panel .submission-video { max-height: 180px; }
+.admin-posts-panel .submission-item h4 { -webkit-line-clamp: 1; }
+.admin-posts-panel .submission-description { -webkit-line-clamp: 1; }
+.admin-posts-panel .review-feedback { grid-area: feedback; -webkit-line-clamp: 1; }
+.admin-posts-panel .submission-video { display: none; }
+.admin-posts-panel .admin-document-link,
+.admin-posts-panel .admin-document-loading,
+.admin-posts-panel .admin-document-error { grid-area: document; }
+.admin-posts-panel .review-actions { grid-area: actions; justify-content: flex-end; margin: 0; padding: 0; }
+.admin-posts-panel .edit-post-form { grid-area: edit; }
 .admin-posts-panel .review-actions { flex-wrap: wrap; }
 .admin-posts-panel .review-actions button { min-height: 36px; }
 .admin-posts-panel .review-actions { border-top: 1px solid #e6edf4; margin-top: 13px; padding-top: 12px; }
@@ -2774,7 +2807,15 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-access-denied p { color: #927c52; font-size: 11px; line-height: 1.6; margin: 4px 0 0; }
 .admin-access-denied > a { align-items: center; color: #916a25; display: inline-flex; font-size: 10px; font-weight: 700; gap: 6px; text-decoration: none; }
 @media (max-width: 760px) {
-  .admin-posts-panel .submission-list { grid-template-columns: 1fr; }
+  .admin-posts-panel .submission-item {
+    grid-template-areas: "top top top" "thumb title kind" "thumb description description" "byline byline byline" "actions actions actions" "video video video" "document document document" "feedback feedback feedback" "edit edit edit";
+    grid-template-columns: 56px minmax(0,1fr) auto;
+  }
+  .admin-accounts-grid .managed-account {
+    grid-template-areas: "top top" "expertise expertise" "experience experience" "bio bio" "actions actions" "edit edit";
+    grid-template-columns: minmax(0,1fr) auto;
+  }
+  .admin-accounts-grid .managed-account-actions { justify-content: flex-start; }
   .admin-overview-links { grid-template-columns: 1fr; }
   .admin-overview { grid-template-columns: 1fr; }
   .admin-post-toolbar { grid-template-columns: 1fr; }
@@ -2787,6 +2828,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-accounts-grid .account-box > .contribution-form { grid-template-columns: 1fr; }
   .admin-accounts-grid .account-box > .contribution-form > button { grid-column: auto; }
   .admin-accounts-grid .managed-account-list { grid-template-columns: 1fr; }
+  .admin-accounts-grid .managed-account-top { align-items: flex-start; flex-wrap: wrap; }
+  .admin-accounts-grid .managed-account-identity { flex: 1 1 100%; }
+  .admin-accounts-grid .managed-account-created { margin-left: auto; }
+  .admin-posts-panel .submission-item { grid-template-columns: 48px minmax(0,1fr) auto; }
+  .admin-posts-panel .submission-list-thumbnail { height: 44px; width: 44px; }
+  .admin-posts-panel .submission-item h4 { font-size: 12px; }
+  .admin-posts-panel .submission-description { -webkit-line-clamp: 2; }
+  .admin-posts-panel .review-actions { justify-content: flex-start; }
   .managed-account-toolbar { grid-template-columns: 1fr; }
   .admin-posts-panel .managed-account-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .admin-access-denied { align-items: flex-start; flex-wrap: wrap; }
