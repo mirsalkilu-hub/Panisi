@@ -1390,8 +1390,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         <PageHeading
           className="workspace-page-heading"
           eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "PROFIL / KARYA KONTRIBUTOR"}
-          title={activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
-          description={activePage === "admin-akun" ? "Cari, tinjau, dan perbarui akun kontributor maupun verifikator dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
+          title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
+          description={activePage === "admin-akun" ? "Buat akun, atur peran, dan kelola profil tim dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
         >
           <div className="workspace-hero-actions">{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
         </PageHeading>
@@ -1400,6 +1400,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <Link className={activePage === "admin-akun" ? "active" : ""} href="/profil/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
           <Link className={activePage === "admin-postingan" ? "active" : ""} href="/profil/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
         </nav>}
+        {session && profile && adminRole && activePage === "admin-akun" && <section className="admin-account-overview" aria-label="Ringkasan akun komunitas">
+          <div className="admin-account-overview-heading"><span className="eyebrow">KONSOL MANAJEMEN</span><strong>Ringkasan akun</strong></div>
+          <div className="admin-account-stat"><span>SELURUH AKUN</span><strong>{managedAccounts.length}</strong><small>Kontributor dan verifikator</small></div>
+          <div className="admin-account-stat"><span>KONTRIBUTOR</span><strong>{managedAccounts.filter((account) => account.role === "kontributor").length}</strong><small>Pengelola karya komunitas</small></div>
+          <div className="admin-account-stat"><span>VERIFIKATOR</span><strong>{managedAccounts.filter((account) => account.role === "verifikator").length}</strong><small>Tim pemeriksa pengajuan</small></div>
+        </section>}
         {profile?.role === "kontributor" && <div className="workspace-profile-summary"><span className="workspace-profile-avatar">{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><div><strong>{profile.full_name}</strong><span>{profile.job_title || "Kontributor"} · Profil profesional publik</span></div><span className="role-badge">Kontributor</span></div>}
         {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button></div>}
         {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
@@ -1433,8 +1439,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 <div className="account-form-field"><label htmlFor="account_widyaiswara_experience">Pengalaman sebagai kontributor</label><textarea id="account_widyaiswara_experience" name="account_widyaiswara_experience" placeholder="Ceritakan pengalaman kerja, instansi, atau program yang pernah ditangani..." rows={3} maxLength={2000} required /></div>
               </>}
               <button type="submit" className="button button-primary" disabled={busy}>{busy ? "Membuat akun..." : "Buat akun"} <Icon name="arrow" size={16} /></button>
-            </form>{accountCreateError && <p className="account-create-error" role="alert" aria-live="assertive">{accountCreateError}</p>}<p className="account-help">Akun langsung aktif. Sampaikan email dan kata sandi sementara secara aman kepada pemilik akun.</p>
-              <section className="managed-account-roster" aria-label="Manajemen akun kontributor dan verifikator">
+            </form>{accountCreateError && <p className="account-create-error" role="alert" aria-live="assertive">{accountCreateError}</p>}<p className="account-help">Akun langsung aktif. Sampaikan email dan kata sandi sementara secara aman kepada pemilik akun.</p></div>}
+              {adminRole && activePage === "admin-akun" && <section className="managed-account-roster" aria-label="Manajemen akun kontributor dan verifikator">
                 <div className="managed-account-heading"><div><span className="eyebrow">MANAJEMEN PENGGUNA</span><h4>Daftar kontributor &amp; verifikator</h4></div><span className="managed-account-count" aria-label={`${filteredManagedAccounts.length} dari ${managedAccounts.length} akun ditampilkan`}>{filteredManagedAccounts.length}/{managedAccounts.length}</span></div>
                 <div className="managed-account-toolbar">
                   <label className="managed-account-search"><Icon name="search" size={17} /><input type="search" value={managedAccountQuery} onChange={(event) => setManagedAccountQuery(event.target.value)} placeholder="Cari nama, jabatan, atau keahlian..." aria-label="Cari akun kontributor atau verifikator" /></label>
@@ -1463,8 +1469,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                         <div className="managed-account-actions"><button type="button" className="managed-account-edit-button" onClick={() => { setManagedAccountError(""); setManagedAccountEditRole(account.role); setEditingAccountId(account.id); }}>Kelola akun</button><button type="button" className="managed-account-delete-button" onClick={() => void deleteManagedAccount(account)} disabled={busy}>Hapus akun</button></div>
                       </>}
                     </article>)}</div>}
-              </section>
-            </div>}
+              </section>}
             {(!adminRole || activePage === "ruang-kerja") && <form onSubmit={updateBio} className="bio-form">
               {profile.role === "kontributor" && <div className="profile-photo-field">
                 <div className="profile-photo-preview">{profile.profile_photo_path && supabase

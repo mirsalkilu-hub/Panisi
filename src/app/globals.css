@@ -2665,9 +2665,30 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-management-nav > a:hover,
 .admin-management-nav > a.active { background: #eff6ff; border-color: #d6e7f8; }
 .admin-management-nav > a.active strong { color: #2769a8; }
+.admin-account-overview {
+  align-items: center;
+  background: linear-gradient(115deg,#112d4d,#173f62);
+  border: 1px solid #245276;
+  border-radius: 16px;
+  color: #f5f8ff;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px,1.2fr) repeat(3,minmax(120px,1fr));
+  margin: 0 0 20px;
+  padding: 17px 20px;
+}
+.admin-account-overview-heading { display: grid; gap: 5px; }
+.admin-account-overview-heading .eyebrow { color: #86cff0; font-size: 8px; font-weight: 750; letter-spacing: .12em; }
+.admin-account-overview-heading > strong { color: #fff; font-size: 15px; }
+.admin-account-stat { border-left: 1px solid rgba(222,238,255,.2); display: grid; gap: 3px; padding-left: 15px; }
+.admin-account-stat > span { color: #b6cde2; font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+.admin-account-stat > strong { color: #fff; font-size: 21px; line-height: 1.1; }
+.admin-account-stat > small { color: #c0d2e5; font-size: 9px; }
 .admin-management-grid { grid-template-columns: minmax(0,1fr); }
-.admin-accounts-grid > .workspace-panel { padding: clamp(20px,3vw,32px); }
-.admin-accounts-grid .account-box { border-top: 0; margin-top: 21px; padding-top: 0; }
+.admin-accounts-grid > .workspace-panel { background: transparent; border: 0; box-shadow: none; display: grid; gap: 18px; padding: 0; }
+.admin-accounts-grid > .workspace-panel > .panel-title { display: none; }
+.admin-accounts-grid .account-box { background: #fff; border: 1px solid #dce6f0; border-radius: 15px; margin: 0; padding: 20px; }
+.admin-accounts-grid .managed-account-roster { background: #fff; border: 1px solid #dce6f0; border-radius: 15px; margin: 0; padding: 20px; }
 .admin-accounts-grid .account-box > .contribution-form {
   display: grid;
   gap: 10px 14px;
@@ -2858,6 +2879,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-accounts-grid .managed-account-actions { justify-content: flex-start; }
   .admin-overview-links { grid-template-columns: 1fr; }
   .admin-overview { grid-template-columns: 1fr; }
+  .admin-account-overview { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .admin-account-overview-heading { grid-column: 1 / -1; }
+  .admin-account-stat:first-of-type { border-left: 0; padding-left: 0; }
   .admin-post-toolbar { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
@@ -2867,6 +2891,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-management-nav > a small { font-size: 8px; }
   .admin-accounts-grid .account-box > .contribution-form { grid-template-columns: 1fr; }
   .admin-accounts-grid .account-box > .contribution-form > button { grid-column: auto; }
+  .admin-account-overview { gap: 10px 7px; padding: 14px; }
+  .admin-account-stat { padding-left: 8px; }
+  .admin-account-stat > strong { font-size: 18px; }
+  .admin-account-stat > small { font-size: 8px; }
+  .admin-accounts-grid .account-box, .admin-accounts-grid .managed-account-roster { padding: 15px; }
   .admin-accounts-grid .managed-account-list { grid-template-columns: 1fr; }
   .admin-accounts-grid .managed-account-top { align-items: flex-start; flex-wrap: wrap; }
   .admin-accounts-grid .managed-account-identity { flex: 1 1 100%; }
