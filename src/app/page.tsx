@@ -10,6 +10,7 @@ import { workHref } from "./work-links";
 import { SubmissionThumbnail } from "./submission-thumbnail";
 import { WorkSocialShare } from "./work-share-actions";
 import { CategoryIcon } from "./category-icon";
+import { ProfilePhotoCropInput } from "./profile-photo-crop-input";
 
 type Role = "admin" | "verifikator" | "kontributor";
 type ToastNotice = { title: string; message: string; tone: "success" | "info" };
@@ -1588,7 +1589,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
               <div className="account-form-field"><label htmlFor="account_full_name">Nama lengkap</label><input id="account_full_name" name="account_full_name" required maxLength={100} /></div>
               <div className="account-form-field"><label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Kontributor Ahli Madya" required maxLength={120} /></div>
-              <div className="account-form-field"><label htmlFor="account_profile_photo">Foto profil (JPG, PNG, atau WebP; maks. 500 KB)</label><input id="account_profile_photo" name="account_profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /></div>
+              <div className="account-form-field"><ProfilePhotoCropInput id="account_profile_photo" name="account_profile_photo" label="Foto profil (opsional)" disabled={busy} /></div>
               <div className="account-form-field"><label htmlFor="account_email">Alamat email</label><input id="account_email" name="account_email" type="email" autoComplete="off" required /></div>
               <div className="account-form-field"><label htmlFor="account_password">Kata sandi sementara (min. 8 karakter)</label><input id="account_password" name="account_password" type="password" autoComplete="new-password" minLength={8} required /></div>
               <div className="account-form-field"><label htmlFor="account_role">Peran</label><select id="account_role" name="account_role" value={newAccountRole} onChange={(event) => setNewAccountRole(event.target.value === "verifikator" ? "verifikator" : "kontributor")}><option value="kontributor">Kontributor</option><option value="verifikator">Verifikator</option></select></div>
@@ -1659,7 +1660,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 <div className="profile-photo-preview">{profile.profile_photo_path && supabase
                   ? <Image src={supabase.storage.from("profile-photos").getPublicUrl(profile.profile_photo_path).data.publicUrl} alt={`Foto profil ${profile.full_name}`} width={76} height={76} unoptimized />
                   : <span>{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}</div>
-                <div className="profile-photo-copy"><label htmlFor="profile_photo">Foto profil</label><input id="profile_photo" name="profile_photo" type="file" accept="image/jpeg,image/png,image/webp" /><small>JPG, PNG, atau WebP · maksimal 500 KB</small></div>
+                <div className="profile-photo-copy"><ProfilePhotoCropInput id="profile_photo" name="profile_photo" label="Foto profil" disabled={busy} /></div>
               </div>}
               <label htmlFor="full_name">Nama lengkap</label><input id="full_name" name="full_name" defaultValue={profile.full_name} required maxLength={100} />
               <label htmlFor="job_title">Jabatan</label><input id="job_title" name="job_title" defaultValue={profile.job_title} required maxLength={120} />
