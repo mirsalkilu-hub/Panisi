@@ -74,7 +74,7 @@ type ManagedAccount = {
   created_at: string;
 };
 export type PageKey = "beranda" | "koleksi" | "widyaiswara" | "ajukan" | "ruang-kerja" | "admin-akun" | "admin-postingan";
-type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload";
+type IconName = "leaf" | "video" | "science" | "star" | "insight" | "review" | "practice" | "search" | "arrow" | "play" | "plus" | "user" | "briefcase" | "menu" | "close" | "check" | "file" | "book" | "home" | "grid" | "users" | "upload";
 type HomeLesson = {
   id: string;
   category: string;
@@ -103,7 +103,7 @@ const navItems: [string, string, IconName][] = [
   ["Koleksi", "/koleksi", "grid"],
   ["Kontributor", "/kontributor", "users"],
   ["Unggah Karya", "/ajukan", "upload"],
-  ["Profil", "/profil", "user"],
+  ["Ruang Kerja", "/ruang-kerja", "briefcase"],
 ];
 
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
@@ -120,6 +120,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     play: <><path d="m9 6 10 6-10 6z" /></>,
     plus: <><path d="M12 5v14M5 12h14" /></>,
     user: <><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 14 0" /></>,
+    briefcase: <><rect x="3" y="7" width="18" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /></>,
     menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
     close: <><path d="m18 6-12 12M6 6l12 12" /></>,
     check: <><path d="m5 12 4 4L19 6" /></>,
@@ -1206,9 +1207,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         <Link className="brand" href="/" aria-label="PINISI — Pusat Ilmu dan Informasi Bersinergi"><Image className="brand-logo" src="/panisi-logo.svg" alt="PINISI — Pusat Ilmu dan Informasi Bersinergi" width={190} height={48} priority /></Link>
         <nav className="desktop-nav" aria-label="Navigasi utama">
           {navItems.map(([label, href, icon]) => {
-            const isContributorProfile = href === "/profil" && profile?.role === "kontributor";
-            const isCurrent = href === "/" ? activePage === "beranda" : (href === "/kontributor" && activePage === "widyaiswara") || (href === "/profil" && (activePage === "ruang-kerja" || adminManagementPage)) || href.slice(1) === activePage;
-            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined}><Icon name={isContributorProfile ? "user" : icon} size={15} />{isContributorProfile ? "Profil" : label}</Link>;
+            const isCurrent = href === "/" ? activePage === "beranda" : (href === "/kontributor" && activePage === "widyaiswara") || (href === "/ruang-kerja" && (activePage === "ruang-kerja" || adminManagementPage)) || href.slice(1) === activePage;
+            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined}><Icon name={icon} size={15} />{label}</Link>;
           })}
         </nav>
         {session ? <button className="button button-outline header-login" onClick={signOut}><Icon name="user" size={16} /> Keluar</button> : <button className="button button-outline header-login" onClick={() => setLoginOpen(true)}><Icon name="user" size={16} /> Masuk</button>}
@@ -1224,9 +1224,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         </button>
         {mobileNavOpen && <nav className="mobile-nav" id="mobile-navigation" aria-label="Navigasi seluler">
           {navItems.map(([label, href, icon]) => {
-            const isContributorProfile = href === "/profil" && profile?.role === "kontributor";
-            const isCurrent = href === "/" ? activePage === "beranda" : (href === "/kontributor" && activePage === "widyaiswara") || (href === "/profil" && (activePage === "ruang-kerja" || adminManagementPage)) || href.slice(1) === activePage;
-            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={isContributorProfile ? "user" : icon} size={17} />{isContributorProfile ? "Profil" : label}</span><Icon name="arrow" size={15} /></Link>;
+            const isCurrent = href === "/" ? activePage === "beranda" : (href === "/kontributor" && activePage === "widyaiswara") || (href === "/ruang-kerja" && (activePage === "ruang-kerja" || adminManagementPage)) || href.slice(1) === activePage;
+            return <Link className={isCurrent ? "nav-active" : ""} href={href} key={href} aria-current={isCurrent ? "page" : undefined} onClick={() => setMobileNavOpen(false)}><span><Icon name={icon} size={17} />{label}</span><Icon name="arrow" size={15} /></Link>;
           })}
           {session ? <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); void signOut(); }}><span><Icon name="user" size={17} />Keluar</span><Icon name="arrow" size={15} /></button>
             : <button className="mobile-nav-auth" type="button" onClick={() => { setMobileNavOpen(false); setLoginOpen(true); }}><span><Icon name="user" size={17} />Masuk</span><Icon name="arrow" size={15} /></button>}
@@ -1276,8 +1275,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         </PageHeading>
         {profileLoading ? <div className="upload-access-panel collection-access-panel" role="status"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Memeriksa akses kontributor</h3><p>Tunggu sebentar sementara peran akun Anda diverifikasi.</p></div>
           : !session ? <div className="upload-access-panel collection-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Koleksi khusus kontributor</h3><p>Masuk dengan akun kontributor untuk menelusuri karya yang telah lolos verifikasi.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div>
-            : !profile ? <div className="upload-access-panel collection-access-panel" role="alert"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Akses belum dapat diverifikasi</h3><p>Profil akun belum dapat dimuat. Coba buka Profil atau hubungi administrator.</p><Link className="button button-dark" href="/profil">Buka Profil <Icon name="arrow" size={16} /></Link></div>
-              : profile.role !== "kontributor" ? <div className="upload-access-panel collection-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Koleksi khusus kontributor</h3><p>Akun Anda memiliki peran {profile.role}. Daftar karya terverifikasi hanya dapat dilihat oleh kontributor.</p><Link className="button button-dark" href="/profil">Kembali ke Profil <Icon name="arrow" size={16} /></Link></div>
+            : !profile ? <div className="upload-access-panel collection-access-panel" role="alert"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Akses belum dapat diverifikasi</h3><p>Profil akun belum dapat dimuat. Coba buka Ruang Kerja atau hubungi administrator.</p><Link className="button button-dark" href="/ruang-kerja">Buka Ruang Kerja <Icon name="arrow" size={16} /></Link></div>
+              : profile.role !== "kontributor" ? <div className="upload-access-panel collection-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Koleksi khusus kontributor</h3><p>Akun Anda memiliki peran {profile.role}. Daftar karya terverifikasi hanya dapat dilihat oleh kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke Ruang Kerja <Icon name="arrow" size={16} /></Link></div>
                 : <div className="collection-list-section" id="koleksi-terverifikasi">
           <div className="collection-list-heading"><div><span className="eyebrow">KARYA TERVERIFIKASI</span><h2>Koleksi Saya</h2><p>Daftar karya Anda yang telah lolos verifikasi.</p></div><span className="lesson-total">{collectionSubmissions.length} KARYA</span></div>
           {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
@@ -1370,7 +1369,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
         <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" icon="upload" title="Bagikan karya pembelajaran Anda." description="Pilih kategori untuk memulai pengajuan. Video menggunakan tautan YouTube; E-Book, Review, Best Practice, Science, dan Insight menggunakan PDF. Gambar sampul dibatasi 500 KB." className="upload-page-heading">
-          {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/profil">Buka profil <Icon name="arrow" size={17} /></Link>}
+          {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka Ruang Kerja <Icon name="arrow" size={17} /></Link>}
         </PageHeading>
         {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         <div className="upload-steps">
@@ -1441,16 +1440,16 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="workspace-section content-wrap" id="ruang-kerja">
         <PageHeading
           className="workspace-page-heading"
-          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : submissionManagementView ? `${adminRole ? "ADMINISTRATOR" : "VERIFIKATOR"} / MANAJEMEN POSTINGAN` : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "PROFIL / KARYA KONTRIBUTOR"}
-          title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : submissionManagementView ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
+          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : submissionManagementView ? `${adminRole ? "ADMINISTRATOR" : "VERIFIKATOR"} / MANAJEMEN POSTINGAN` : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "RUANG KERJA"}
+          title={activePage === "admin-akun" ? "Kelola akun Kontributor dan Verifikator" : submissionManagementView ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Ruang kerja untuk profil dan karya."}
           description={activePage === "admin-akun" ? "Buat akun, atur peran, dan kelola profil tim dari satu tempat." : submissionManagementView ? "Tinjau seluruh postingan kontributor, pantau status verifikasi, dan hapus karya bila diperlukan." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
         >
-          <div className="workspace-hero-actions">{session && verifierRole && <a className="button button-outline workspace-public-link" href="#daftar-pengajuan"><Icon name="file" size={16} /> Tinjau pengajuan ({submissions.filter((item) => item.status === "pending").length})</a>}{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke profil <Icon name="arrow" size={16} /></button>}</div>
+          <div className="workspace-hero-actions">{session && verifierRole && <a className="button button-outline workspace-public-link" href="#daftar-pengajuan"><Icon name="file" size={16} /> Tinjau pengajuan ({submissions.filter((item) => item.status === "pending").length})</a>}{session && profile?.role === "kontributor" && <><Link className="button button-outline workspace-public-link" href={`/kontributor/${profile.id}`}><Icon name="user" size={16} /> Lihat profil publik</Link><Link className="button button-outline workspace-public-link" href="/ajukan"><Icon name="upload" size={16} /> Unggah karya</Link></>}{session ? <button className="button button-outline workspace-signout" onClick={signOut}>Keluar <Icon name="arrow" size={16} /></button> : <button className="button button-primary workspace-signout" onClick={() => setLoginOpen(true)}>Masuk ke Ruang Kerja <Icon name="arrow" size={16} /></button>}</div>
         </PageHeading>
         {session && profile && adminRole && <nav className="admin-management-nav" aria-label="Halaman administrasi">
-          <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/profil"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar profil</small></span></Link>
-          <Link className={activePage === "admin-akun" ? "active" : ""} href="/profil/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
-          <Link className={activePage === "admin-postingan" ? "active" : ""} href="/profil/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
+          <Link className={activePage === "ruang-kerja" ? "active" : ""} href="/ruang-kerja"><Icon name="grid" size={17} /><span><strong>Ringkasan</strong><small>Ikhtisar ruang kerja</small></span></Link>
+          <Link className={activePage === "admin-akun" ? "active" : ""} href="/ruang-kerja/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
+          <Link className={activePage === "admin-postingan" ? "active" : ""} href="/ruang-kerja/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
         </nav>}
         {session && profile && adminRole && activePage === "admin-akun" && <section className="admin-account-overview" aria-label="Ringkasan akun komunitas">
           <div className="admin-account-overview-heading"><span className="eyebrow">KONSOL MANAJEMEN</span><strong>Ringkasan akun</strong></div>
@@ -1462,7 +1461,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button></div>}
         {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="user" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai administrator untuk mengelola akun dan postingan komunitas." : "Masuk untuk mengelola profil, mengajukan karya, atau meninjau kontribusi sesuai peran akun Anda."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
-        {session && profile && adminManagementPage && !adminRole && !(verifierRole && activePage === "admin-postingan") && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/profil">Kembali ke profil <Icon name="arrow" size={15} /></Link></div>}
+        {session && profile && adminManagementPage && !adminRole && !(verifierRole && activePage === "admin-postingan") && <div className="admin-access-denied" role="alert"><Icon name="user" size={21} /><div><strong>Halaman khusus administrator</strong><p>Akun Anda tidak memiliki izin untuk membuka pengelolaan akun atau postingan.</p></div><Link href="/ruang-kerja">Kembali ke Ruang Kerja <Icon name="arrow" size={15} /></Link></div>}
         {session && profile && adminRole && activePage === "ruang-kerja" && <section className="admin-overview" aria-label="Ringkasan administrasi">
           <div className="admin-overview-copy"><span className="eyebrow">PANEL ADMINISTRATOR</span><h3>Kelola komunitas dan karya.</h3><p>Buat akun tim, pantau profil anggota, dan atur materi yang siap dipublikasikan.</p></div>
           <div className="admin-overview-session"><span><Icon name="check" size={13} /> ADMIN AKTIF</span><strong>{profile.full_name}</strong></div>
@@ -1472,8 +1471,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             <article><span className="admin-overview-stat-icon"><Icon name="check" size={17} /></span><div><span>MENUNGGU VERIFIKASI</span><strong>{submissions.filter((submission) => submission.status === "pending").length}</strong><small>Perlu ditinjau tim</small></div></article>
           </div>
           <div className="admin-overview-links">
-            <Link href="/profil/akun"><span className="admin-overview-link-icon"><Icon name="users" size={20} /></span><span><strong>Kelola akun</strong><small>Buat akun, cari anggota, dan perbarui peran atau profil.</small></span><Icon name="arrow" size={17} /></Link>
-            <Link href="/profil/postingan"><span className="admin-overview-link-icon"><Icon name="file" size={20} /></span><span><strong>Kelola postingan</strong><small>Atur karya kontributor dan status penayangannya.</small></span><Icon name="arrow" size={17} /></Link>
+            <Link href="/ruang-kerja/akun"><span className="admin-overview-link-icon"><Icon name="users" size={20} /></span><span><strong>Kelola akun</strong><small>Buat akun, cari anggota, dan perbarui peran atau profil.</small></span><Icon name="arrow" size={17} /></Link>
+            <Link href="/ruang-kerja/postingan"><span className="admin-overview-link-icon"><Icon name="file" size={20} /></span><span><strong>Kelola postingan</strong><small>Atur karya kontributor dan status penayangannya.</small></span><Icon name="arrow" size={17} /></Link>
           </div>
         </section>}
         {session && profile && (!adminManagementPage || adminRole || verifierRole && activePage === "admin-postingan") && <div className={`workspace-grid${adminRole || submissionManagementView ? " admin-workspace-grid" : ""}${profile.role === "kontributor" ? " contributor-profile-grid" : ""}${adminManagementPage || submissionManagementView ? " admin-management-grid" : ""}${activePage === "admin-akun" ? " admin-accounts-grid" : ""}`}>

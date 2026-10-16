@@ -155,7 +155,7 @@ export function WorkImpactPanel({ submissionId }: { submissionId: string }) {
       <div className="work-impact-contribute">
         <h3>Catat &amp; Berikan Kontribusi</h3>
         {viewer === "loading" ? <p className="impact-access-note" role="status">Memeriksa akses kontributor...</p>
-          : viewer === "anonymous" ? <p className="impact-access-note"><Link href="/profil">Masuk ke akun Anda</Link> untuk mencatat penggunaan materi atau memberikan feedback.</p>
+          : viewer === "anonymous" ? <p className="impact-access-note"><Link href="/ruang-kerja">Masuk ke akun Anda</Link> untuk mencatat penggunaan materi atau memberikan feedback.</p>
             : viewer === "other" ? <p className="impact-access-note">Fitur pencatatan dampak tersedia untuk akun kontributor.</p>
               : <div className="work-impact-actions">
                 <article className="work-impact-action">

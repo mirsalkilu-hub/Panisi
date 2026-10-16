@@ -1,5 +1,5 @@
-import { Home } from "../page";
+import { redirect } from "next/navigation";
 
 export default function ProfilePage() {
-  return <Home activePage="ruang-kerja" />;
+  redirect("/ruang-kerja");
 }
