@@ -97,8 +97,6 @@ type HomeLesson = {
 
 const maxSubmissionPdfSize = 2 * 1024 * 1024;
 const maxSubmissionImageSize = 500 * 1024;
-const pinisiSymbolVideoUrl = "https://youtu.be/EC1dD27rNGM?si=caHTrhei_Afdj5r3";
-
 const navItems: [string, string, IconName][] = [
   ["Beranda", "/", "home"],
   ["Koleksi", "/koleksi", "grid"],
@@ -141,6 +139,7 @@ function PageHero({
   icon,
   caption,
   children,
+  feature,
   visual,
   className = "",
 }: {
@@ -150,6 +149,7 @@ function PageHero({
   icon: IconName;
   caption: string;
   children?: React.ReactNode;
+  feature?: React.ReactNode;
   visual?: React.ReactNode;
   className?: string;
 }) {
@@ -160,6 +160,7 @@ function PageHero({
       <p>{description}</p>
       {children && <div className="collection-page-actions">{children}</div>}
     </div>
+    {feature}
     <div className={`collection-page-visual${visual ? " custom-page-visual" : ""}`} aria-hidden={visual ? undefined : true}>
       {visual ?? <>
       <span className="collection-visual-orbit orbit-a" /><span className="collection-visual-orbit orbit-b" /><span className="collection-visual-sun" />
@@ -1152,6 +1153,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
+  const latestVerifiedSubmission = verifiedSubmissions[0] ?? null;
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1203,13 +1205,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={<a className="home-featured-work" href={pinisiSymbolVideoUrl} target="_blank" rel="noreferrer" aria-label="Tonton video PINISI di YouTube">
-          <SubmissionThumbnail id="pinisi-symbol-video" title="PINISI" contentType="video" categorySlug="video" youtubeUrl={pinisiSymbolVideoUrl} className="home-featured-thumbnail" />
-          <span className="home-featured-badge"><Icon name="play" size={13} /> VIDEO PINISI</span>
-          <span className="home-video-play" aria-hidden="true"><Icon name="play" size={25} /></span>
-          <div className="home-featured-caption"><span>SIMBOL APLIKASI</span><strong>Pusat Ilmu dan Informasi Bersinergi</strong><small>Tonton video di YouTube</small></div>
-          <span className="home-featured-edge" aria-hidden="true"><Icon name="arrow" size={17} /></span>
-        </a>}>
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" className="home-main-banner" feature={latestVerifiedSubmission && <Link className="home-latest-post" href={workHref(latestVerifiedSubmission.id, latestVerifiedSubmission.title)}>
+          <SubmissionThumbnail id={latestVerifiedSubmission.id} title={latestVerifiedSubmission.title} contentType={latestVerifiedSubmission.content_type} categorySlug={latestVerifiedSubmission.category_slug} youtubeUrl={latestVerifiedSubmission.youtube_url} thumbnailPath={latestVerifiedSubmission.thumbnail_path} className="home-latest-thumbnail" />
+          <span className="home-latest-post-copy"><span className="home-latest-post-label"><Icon name="check" size={12} /> KARYA TERBARU TERVERIFIKASI</span><strong>{latestVerifiedSubmission.title}</strong><span className="home-latest-post-meta">{allWorkCategories.find((category) => category.slug === latestVerifiedSubmission.category_slug)?.name ?? "Karya"} · {latestVerifiedSubmission.full_name}</span></span>
+          <Icon name="arrow" size={17} />
+        </Link>}>
           <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
           <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
         </PageHero>
@@ -1219,7 +1219,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <div className="section-heading"><div><span className="eyebrow">DARI KOMUNITAS UNTUK KOMUNITAS</span><h2>Gagasan baik tumbuh saat dibagikan.</h2><p className="work-category-description">Pilih kategori untuk menyaring semua pengajuan kontributor yang telah diverifikasi.</p></div><span className="lesson-total">{filteredLessons.length} KARYA</span></div>
           <nav className="work-category-menu" aria-label="Filter kategori karya">
             {workCategories.map((category) => <button type="button" className={`work-category-link${selectedCategory === category.slug ? " category-active" : ""}`} onClick={() => setSelectedCategory((current) => current === category.slug ? null : category.slug)} key={category.slug} aria-pressed={selectedCategory === category.slug}>
-              <span className="work-category-icon"><CategoryIcon categorySlug={category.slug} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
+              <span className={`work-category-icon category-icon-${category.slug}`}><CategoryIcon categorySlug={category.slug} size={21} /></span><span><strong>{category.name}</strong><small>{category.description}</small></span>
             </button>)}
           </nav>
           <div className="content-toolbar">
