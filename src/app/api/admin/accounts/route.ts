@@ -117,10 +117,10 @@ export async function POST(request: Request) {
     return responseError("Bidang keahlian maksimal 500 karakter.", 400);
   }
   if (role === "kontributor" && !widyaiswaraExperience) {
-    return responseError("Pengalaman sebagai widyaiswara wajib diisi untuk akun kontributor.", 400);
+    return responseError("Pengalaman profesional wajib diisi untuk akun kontributor.", 400);
   }
   if (widyaiswaraExperience.length > 2000) {
-    return responseError("Pengalaman sebagai widyaiswara maksimal 2000 karakter.", 400);
+    return responseError("Pengalaman profesional maksimal 2000 karakter.", 400);
   }
 
   const { error: schemaError } = await adminClient
@@ -255,7 +255,7 @@ export async function PATCH(request: Request) {
     return responseError("Peran akun harus verifikator atau kontributor.", 400);
   }
   if (areaOfExpertise.length > 500) return responseError("Bidang keahlian maksimal 500 karakter.", 400);
-  if (widyaiswaraExperience.length > 2000) return responseError("Pengalaman widyaiswara maksimal 2000 karakter.", 400);
+  if (widyaiswaraExperience.length > 2000) return responseError("Pengalaman profesional maksimal 2000 karakter.", 400);
   if (bio.length > 1000) return responseError("Profil profesional maksimal 1000 karakter.", 400);
   if (role === "kontributor" && (!areaOfExpertise || !widyaiswaraExperience)) {
     return responseError("Bidang keahlian dan pengalaman wajib diisi untuk akun kontributor.", 400);

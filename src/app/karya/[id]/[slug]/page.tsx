@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { workCategories, type WorkCategorySlug } from "../../../work-categories";
+import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
 import { workHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
 import { SubmissionThumbnail } from "../../../submission-thumbnail";
@@ -64,7 +64,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   const work = await getWork(id);
   if (!work) notFound();
   if (slug !== workSlug(work.title)) redirect(workHref(work.id, work.title));
-  const category = workCategories.find((item) => item.slug === work.category_slug);
+  const category = allWorkCategories.find((item) => item.slug === work.category_slug);
   const publishedDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(work.created_at));
   const publishedYear = new Intl.DateTimeFormat("id-ID", { year: "numeric" }).format(new Date(work.created_at));
   const citation = `${work.full_name}. (${publishedYear}). ${work.title}. PINISI.`;
@@ -76,7 +76,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
       <article className="work-detail content-wrap">
         <nav className="work-detail-breadcrumb" aria-label="Breadcrumb"><Link href="/">Beranda</Link><span>/</span><Link href="/koleksi">Koleksi</Link><span>/</span><span>{category?.name ?? "Karya"}</span></nav>
         <header className="work-detail-heading">
-          <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Widyaiswara"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
+          <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Kontributor"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
           <p className="work-detail-byline">Dibagikan oleh <Link href={`/widyaiswara/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
           <WorkShareActions title={work.title} citation={citation} />
@@ -105,7 +105,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <section className="work-detail-sidebar-section work-detail-metadata">
               <span className="eyebrow">INFORMASI KARYA</span>
               <dl>
-                <div><dt>Kategori</dt><dd>{category?.name ?? "Karya Widyaiswara"}</dd></div>
+                <div><dt>Kategori</dt><dd>{category?.name ?? "Karya Kontributor"}</dd></div>
                 <div><dt>Format</dt><dd>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</dd></div>
                 <div><dt>Diterbitkan</dt><dd><time dateTime={work.created_at}>{publishedDate}</time></dd></div>
                 <div><dt>Status</dt><dd><span className="work-verified-status">Terverifikasi</span></dd></div>
@@ -115,7 +115,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         </div>
         <Link className="work-detail-back" href="/koleksi">← Kembali ke semua karya</Link>
       </article>
-      <footer className="work-detail-footer"><span>© 2026 PINISI · KARYA WIDYAISWARA</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>
+      <footer className="work-detail-footer"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><Link href="/ajukan">Bagikan karya Anda →</Link></footer>
     </main>
   );
 }

@@ -7,7 +7,7 @@ import { useState } from "react";
 const navigation = [
   { label: "Beranda", href: "/", icon: "home" },
   { label: "Koleksi", href: "/koleksi", icon: "grid" },
-  { label: "Widyaiswara", href: "/widyaiswara", icon: "users" },
+  { label: "Kontributor", href: "/widyaiswara", icon: "users" },
   { label: "Unggah Karya", href: "/ajukan", icon: "upload" },
   { label: "Profil", href: "/ruang-kerja", icon: "user" },
 ];

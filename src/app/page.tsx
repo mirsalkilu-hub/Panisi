@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { workCategories, type ContentType, type WorkCategorySlug } from "./work-categories";
+import { allWorkCategories, legacyWorkCategories, workCategories, type ContentType, type WorkCategorySlug } from "./work-categories";
 import { workHref } from "./work-links";
 import { SubmissionThumbnail } from "./submission-thumbnail";
 import { CategoryIcon } from "./category-icon";
@@ -100,7 +100,7 @@ const maxSubmissionImageSize = 500 * 1024;
 const navItems: [string, string, IconName][] = [
   ["Beranda", "/", "home"],
   ["Koleksi", "/koleksi", "grid"],
-  ["Widyaiswara", "/widyaiswara", "users"],
+  ["Kontributor", "/widyaiswara", "users"],
   ["Unggah Karya", "/ajukan", "upload"],
   ["Profil", "/ruang-kerja", "user"],
 ];
@@ -194,7 +194,7 @@ function PageHeading({
 }
 
 function CategoryLabel({ categorySlug, className = "" }: { categorySlug: WorkCategorySlug; className?: string }) {
-  const category = workCategories.find((item) => item.slug === categorySlug);
+  const category = allWorkCategories.find((item) => item.slug === categorySlug);
   if (!category) return null;
   return <span className={className}><CategoryIcon categorySlug={categorySlug} />{category.name}</span>;
 }
@@ -284,7 +284,7 @@ function LoginDialog({ onClose, onLogin }: { onClose: () => void; onLogin: (emai
         <Image className="dialog-mark" src="/panisi-mark.svg" alt="" width={52} height={52} />
         <span className="eyebrow">AKSES AKUN</span>
         <h2 id="login-title">Selamat datang kembali.</h2>
-        <p id="login-description">Masuk untuk menjelajah karya, mengelola konten, dan memantau kontribusi terbaik para widyaiswara.</p>
+        <p id="login-description">Masuk untuk menjelajah karya, mengelola konten, dan memantau kontribusi terbaik para kontributor.</p>
         {!supabase && <div className="notice">Supabase belum terhubung. Atur <code>NEXT_PUBLIC_SUPABASE_URL</code> dan <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> sebagai environment variables. Di Vercel, buka Project Settings → Environment Variables. Lihat README untuk panduan.</div>}
         <form onSubmit={handleSubmit}>
           <label htmlFor="email">Alamat email</label>
@@ -461,7 +461,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
   const loadPublicContributors = useCallback(async () => {
     if (!supabase) {
-      setContributorError("Koneksi belum tersedia untuk memuat daftar widyaiswara.");
+      setContributorError("Koneksi belum tersedia untuk memuat daftar kontributor.");
       return;
     }
     const { data, error } = await supabase
@@ -469,7 +469,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       .select("id, full_name, job_title, profile_photo_path, area_of_expertise, widyaiswara_experience")
       .order("full_name", { ascending: true });
     if (error) {
-      setContributorError(`Daftar widyaiswara tidak dapat dimuat: ${error.message}`);
+      setContributorError(`Daftar kontributor tidak dapat dimuat: ${error.message}`);
       return;
     }
     setContributorError("");
@@ -478,7 +478,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
   const loadContributorPage = useCallback(async (contributorId: string) => {
     if (!supabase) {
-      setContributorError("Koneksi belum tersedia untuk memuat profil widyaiswara.");
+      setContributorError("Koneksi belum tersedia untuk memuat profil kontributor.");
       return;
     }
     setContributorLoading(true);
@@ -489,14 +489,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       .eq("id", contributorId)
       .maybeSingle();
     if (contributorError) {
-      setContributorError(`Profil widyaiswara tidak dapat dimuat: ${contributorError.message}`);
+      setContributorError(`Profil kontributor tidak dapat dimuat: ${contributorError.message}`);
       setContributorLoading(false);
       return;
     }
     if (!contributor) {
       setSelectedContributor(null);
       setContributorWorks([]);
-      setContributorError("Profil widyaiswara tidak ditemukan.");
+      setContributorError("Profil kontributor tidak ditemukan.");
       setContributorLoading(false);
       return;
     }
@@ -578,7 +578,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       return;
     }
     if (profile.role === "kontributor" && (!areaOfExpertise || !widyaiswaraExperience)) {
-      setMessage("Bidang keahlian dan pengalaman sebagai widyaiswara wajib dilengkapi.");
+      setMessage("Bidang keahlian dan pengalaman sebagai kontributor wajib dilengkapi.");
       return;
     }
     if (photoFile instanceof File && photoFile.size > 0
@@ -956,13 +956,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const submission = submissions.find((item) => item.id === id);
     const categorySlug = requestedCategorySlug || submission?.category_slug || "";
     if (!title || title.length > 120 || !description || description.length > 2000
-      || !workCategories.some((category) => category.slug === categorySlug)
+      || (!workCategories.some((category) => category.slug === categorySlug)
+        && !(submission?.category_slug === categorySlug && legacyWorkCategories.some((category) => category.slug === categorySlug)))
       || (replacementDocument instanceof File && replacementDocument.size > 0
         && (replacementDocument.type !== "application/pdf" || replacementDocument.size > maxSubmissionPdfSize))
       || (submission?.content_type === "video" && !youtubeId(videoUrl))
       || (submission && categorySlug !== submission.category_slug
         && (submission.content_type === "video") !== (categorySlug === "video"))) {
-      setMessage("Lengkapi judul, deskripsi, dan kategori. Video memerlukan tautan YouTube; kategori lain menggunakan PDF maksimal 2 MB.");
+      setMessage("Lengkapi judul, deskripsi, dan kategori. Video memerlukan tautan YouTube; kategori lain menggunakan PDF.");
       return;
     }
     const thumbnailError = await getThumbnailValidationError(replacementThumbnail, false);
@@ -1115,18 +1116,18 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const filteredSubmissions = submissions.filter((submission) => {
     const matchesStatus = submissionStatusFilter === "all" || submission.status === submissionStatusFilter;
     const contributorName = submission.profiles?.[0]?.full_name ?? "";
-    const categoryName = workCategories.find((category) => category.slug === submission.category_slug)?.name ?? "";
+    const categoryName = allWorkCategories.find((category) => category.slug === submission.category_slug)?.name ?? "";
     const searchText = `${submission.title} ${submission.description} ${contributorName} ${categoryName}`.toLocaleLowerCase("id-ID");
     return matchesStatus && (!submissionQuery.trim() || searchText.includes(submissionQuery.trim().toLocaleLowerCase("id-ID")));
   });
   const homeLessons: HomeLesson[] = verifiedSubmissions.map((item, index) => ({
       id: item.id,
-      category: workCategories.find((category) => category.slug === item.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KARYA WIDYAISWARA",
+      category: allWorkCategories.find((category) => category.slug === item.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KARYA KONTRIBUTOR",
       categorySlug: item.category_slug,
       title: item.title,
       author: item.full_name,
       contributor_id: item.profile_id,
-      contentType: workCategories.find((category) => category.slug === item.category_slug)?.name ?? "Video",
+      contentType: allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Video",
       time: item.content_type === "ebook" ? "PDF" : "YOUTUBE",
       color: (["forest", "sun", "ocean"] as const)[index % 3],
       symbol: "↗",
@@ -1147,7 +1148,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     `${lesson.title} ${lesson.category} ${lesson.author} ${lesson.description ?? ""}`.toLowerCase().includes(lessonQuery.trim().toLowerCase()),
   );
   const filteredVerifiedSubmissions = verifiedSubmissions.filter((submission) => {
-    const category = workCategories.find((item) => item.slug === submission.category_slug);
+    const category = allWorkCategories.find((item) => item.slug === submission.category_slug);
     const matchesCategory = collectionCategory === null || submission.category_slug === collectionCategory;
     const searchText = `${submission.title} ${submission.description} ${submission.full_name} ${category?.name ?? ""}`.toLocaleLowerCase("id-ID");
     return matchesCategory && searchText.includes(collectionQuery.trim().toLocaleLowerCase("id-ID"));
@@ -1194,7 +1195,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA WIDYAISWARA" title={<>PINISI.<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para widyaiswara." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
+        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI.<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" visual={latestHomeLesson ? <div className="home-featured-work">
           <SubmissionThumbnail id={latestHomeLesson.id} title={latestHomeLesson.title} contentType={latestHomeLesson.categorySlug === "video" ? "video" : "ebook"} categorySlug={latestHomeLesson.categorySlug} youtubeUrl={latestHomeLesson.youtube_url} thumbnailPath={latestHomeLesson.thumbnail_path} accessToken={session?.access_token} className="home-featured-thumbnail" />
           <span className="home-featured-badge"><Icon name="check" size={13} /> TERBARU · TERVERIFIKASI</span>
           <div className="home-featured-caption"><span>{latestHomeLesson.category}</span><strong>{latestHomeLesson.title}</strong><small>{latestHomeLesson.author} · {latestHomeLesson.format}</small></div>
@@ -1214,7 +1215,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             </button>)}
           </nav>
           <div className="content-toolbar">
-            <label className="lesson-search"><Icon name="search" size={18} /><input type="search" value={lessonQuery} onChange={(event) => setLessonQuery(event.target.value)} placeholder="Cari judul, tema, atau pengajar..." aria-label="Cari karya widyaiswara" /></label>
+            <label className="lesson-search"><Icon name="search" size={18} /><input type="search" value={lessonQuery} onChange={(event) => setLessonQuery(event.target.value)} placeholder="Cari judul, tema, atau pengajar..." aria-label="Cari karya kontributor" /></label>
           </div>
           {contributorPhotoError && <p className="contributor-photo-warning" role="status">{contributorPhotoError}</p>}
           {verifiedSubmissionsError ? <p className="lesson-empty lesson-load-error" role="alert">{verifiedSubmissionsError}</p>
@@ -1230,7 +1231,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "koleksi" && <>
       <section className="collection-page content-wrap" id="koleksi">
-        <PageHeading eyebrow="KOLEKSI KARYA WIDYAISWARA" icon="grid" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi karya pembelajaran yang telah diverifikasi. Temukan pengalaman dan gagasan yang dapat diterapkan dalam kegiatan belajar.">
+        <PageHeading eyebrow="KOLEKSI KARYA KONTRIBUTOR" icon="grid" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi karya pembelajaran yang telah diverifikasi. Temukan pengalaman dan gagasan yang dapat diterapkan dalam kegiatan belajar.">
           {!profileLoading && session && profile?.role === "kontributor" ? <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a> : null}
         </PageHeading>
         {profileLoading ? <div className="upload-access-panel collection-access-panel" role="status"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Memeriksa akses kontributor</h3><p>Tunggu sebentar sementara peran akun Anda diverifikasi.</p></div>
@@ -1265,14 +1266,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "widyaiswara" && selectedContributorId && <>
       <section className="contributor-profile content-wrap">
-        <Link href="/widyaiswara" className="contributor-back"><Icon name="arrow" size={15} /> Semua widyaiswara</Link>
-        {contributorLoading ? <div className="contributor-state" role="status">Memuat profil widyaiswara...</div>
+        <Link href="/widyaiswara" className="contributor-back"><Icon name="arrow" size={15} /> Semua kontributor</Link>
+        {contributorLoading ? <div className="contributor-state" role="status">Memuat profil kontributor...</div>
           : contributorError ? <div className="contributor-state contributor-error" role="alert">{contributorError}</div>
           : selectedContributor && <>
             <article className="contributor-profile-hero">
               <ContributorPhoto name={selectedContributor.full_name} path={selectedContributor.profile_photo_path} className="contributor-profile-photo" width={142} height={142} loading="eager" />
               <div className="contributor-profile-content">
-                <span className="contributor-profile-badge"><Icon name="star" size={14} />{selectedContributor.job_title || "Widyaiswara"}</span>
+                <span className="contributor-profile-badge"><Icon name="star" size={14} />{selectedContributor.job_title || "Kontributor"}</span>
                 <h1>{selectedContributor.full_name}</h1>
                 <div className="contributor-profile-expertise">
                   <strong><Icon name="insight" size={15} />Bidang Keahlian:</strong>
@@ -1294,7 +1295,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                   <div className="contributor-work-footer"><span>Terverifikasi</span><span>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span></div>
                 </div>
               </article>)}
-            </div> : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={24} /></span><h3>Belum ada karya terbit</h3><p>Karya yang telah disetujui akan tampil di sini. Sementara itu, jelajahi koleksi dari widyaiswara lainnya.</p><Link className="text-link" href="/koleksi">Jelajahi koleksi <Icon name="arrow" size={16} /></Link></div>}
+            </div> : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={24} /></span><h3>Belum ada karya terbit</h3><p>Karya yang telah disetujui akan tampil di sini. Sementara itu, jelajahi koleksi dari kontributor lainnya.</p><Link className="text-link" href="/koleksi">Jelajahi koleksi <Icon name="arrow" size={16} /></Link></div>}
             </section>
           </>}
       </section>
@@ -1302,8 +1303,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "widyaiswara" && !selectedContributorId && <>
       <section className="collection-page content-wrap contributor-directory-page">
-        <PageHeading eyebrow="DIREKTORI WIDYAISWARA" icon="users" title="Widyaiswara PINISI." description="Temukan widyaiswara, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
-          <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{publicContributors.length} widyaiswara</span>
+        <PageHeading eyebrow="DIREKTORI KONTRIBUTOR" icon="users" title="Kontributor PINISI." description="Temukan kontributor, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
+          <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{publicContributors.length} kontributor</span>
         </PageHeading>
           {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
           : publicContributors.length > 0 ? <div className="contributor-directory-grid">{publicContributors.map((contributor) => <Link className="contributor-directory-card" href={`/widyaiswara/${contributor.id}`} key={contributor.id}>
@@ -1320,19 +1321,19 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
             <span className="directory-action">Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></span>
           </Link>)}</div>
-          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil widyaiswara segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI.</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
+          : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil kontributor segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI.</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
       </section>
       </>}
 
       {activePage === "ajukan" && <>
       <section className="collection-page content-wrap upload-page" id="ajukan">
-        <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" icon="upload" title="Bagikan karya pembelajaran Anda." description="Pilih kategori untuk memulai pengajuan. Video menggunakan tautan YouTube; E-Book, Populer, Review, Best Practice, Science, dan Insight menggunakan PDF maksimal 2 MB. Gambar sampul dibatasi 500 KB." className="upload-page-heading">
+        <PageHeading eyebrow="UNGGAH KARYA PEMBELAJARAN" icon="upload" title="Bagikan karya pembelajaran Anda." description="Pilih kategori untuk memulai pengajuan. Video menggunakan tautan YouTube; E-Book, Review, Best Practice, Science, dan Insight menggunakan PDF. Gambar sampul dibatasi 500 KB." className="upload-page-heading">
           {session && profile?.role === "kontributor" ? <><a className="button" href="#formulir-pengajuan">Mulai mengunggah <Icon name="arrow" size={17} /></a><a className="button button-hero-secondary" href="#kontribusiku">Karya saya <Icon name="arrow" size={17} /></a></> : !session ? <button className="button" onClick={() => setLoginOpen(true)}>Masuk untuk mengunggah <Icon name="arrow" size={17} /></button> : <Link className="button" href="/ruang-kerja">Buka profil <Icon name="arrow" size={17} /></Link>}
         </PageHeading>
         {message && <div className={`workspace-message${message.includes("berhasil") ? " success" : ""}`} role="status">{message}<button type="button" onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         <div className="upload-steps">
           <article><span>01</span><Icon name="user" size={19} /><strong>Lengkapi profil</strong><p>Pastikan bidang keahlian dan pengalaman Anda sudah tercantum.</p></article>
-          <article><span>02</span><Icon name="grid" size={19} /><strong>Pilih kategori karya</strong><p>Video memakai tautan YouTube; enam kategori lainnya memakai PDF maksimal 2 MB.</p></article>
+          <article><span>02</span><Icon name="grid" size={19} /><strong>Pilih kategori karya</strong><p>Video memakai tautan YouTube; lima kategori lainnya memakai PDF.</p></article>
           <article><span>03</span><Icon name="check" size={19} /><strong>Kirim untuk verifikasi</strong><p>Pantau status dan perbarui pengajuan dari halaman ini.</p></article>
         </div>
         {session && profile?.role === "kontributor" ? <>
@@ -1347,7 +1348,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                     const category = workCategories.find((item) => item.slug === event.target.value);
                     if (category) setContributionCategory(category.slug);
                   }} required>{workCategories.map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
-                  <small className="contribution-category-hint">Kategori Video menampilkan kolom tautan embed YouTube. Enam kategori lainnya menampilkan unggahan PDF maksimal 2 MB.</small>
+                  <small className="contribution-category-hint">Kategori Video menampilkan kolom tautan embed YouTube. Lima kategori lainnya menampilkan unggahan PDF.</small>
                 </div>
               </div>
               <label htmlFor="title">Judul materi</label><input id="title" name="title" placeholder="Contoh: Teknik fasilitasi kelas interaktif" required maxLength={120} />
@@ -1355,11 +1356,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Gunakan orientasi landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.</small>
               {contributionType === "video"
                 ? <><label htmlFor="youtube_url">Tautan video YouTube</label><input id="youtube_url" name="youtube_url" type="url" placeholder="https://www.youtube.com/watch?v=..." required /><small className="upload-hint">Kolom ini hanya tampil untuk kategori Video.</small></>
-                : <><label htmlFor="document">Berkas karya (PDF, maks. 2 MB)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Kolom PDF tampil untuk semua kategori selain Video.</small></>}
+                : <><label htmlFor="document">Berkas karya (PDF)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Kolom PDF tampil untuk semua kategori selain Video.</small></>}
               <button className="button button-primary" disabled={busy}>{busy ? "Mengirim..." : "Ajukan untuk verifikasi"} <Icon name="arrow" size={16} /></button>
             </form>
           </div>
-          <aside className="workspace-panel upload-info-panel"><span className="upload-info-icon"><Icon name={contributionType === "video" ? "video" : "book"} size={24} /></span><span className="eyebrow">SEBELUM MENGIRIM</span><h3>Pastikan karya siap dibagikan.</h3><p>{contributionType === "video" ? "Kategori Video menggunakan tautan YouTube. Pastikan tautan dapat dibuka dan mengarah ke materi yang ingin dibagikan." : "Kategori ini menggunakan PDF yang jelas dan terbaca dengan ukuran maksimal 2 MB."}</p><ul><li><Icon name="check" size={15} /> Gambar sampul maksimal 500 KB</li><li><Icon name="check" size={15} /> Materi mendukung pembelajaran</li><li><Icon name="check" size={15} /> Status dapat dipantau di halaman ini</li></ul></aside>
+          <aside className="workspace-panel upload-info-panel"><span className="upload-info-icon"><Icon name={contributionType === "video" ? "video" : "book"} size={24} /></span><span className="eyebrow">SEBELUM MENGIRIM</span><h3>Pastikan karya siap dibagikan.</h3><p>{contributionType === "video" ? "Kategori Video menggunakan tautan YouTube. Pastikan tautan dapat dibuka dan mengarah ke materi yang ingin dibagikan." : "Kategori ini menggunakan dokumen PDF yang jelas dan terbaca."}</p><ul><li><Icon name="check" size={15} /> Gambar sampul maksimal 500 KB</li><li><Icon name="check" size={15} /> Materi mendukung pembelajaran</li><li><Icon name="check" size={15} /> Status dapat dipantau di halaman ini</li></ul></aside>
         </div>
         <section className="workspace-panel submissions-panel contributor-submissions-panel" id="kontribusiku">
           <div className="panel-title"><div><span className="eyebrow">KARYA SAYA</span><h3>Riwayat kiriman</h3><p className="workspace-intro">Pantau karya yang pernah Anda kirim dan tindak lanjut status verifikasinya.</p></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
@@ -1368,11 +1369,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {editingId === item.id ? <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
-              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
+              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{[...workCategories, ...legacyWorkCategories.filter((category) => category.slug === item.category_slug)].filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name} — {category.description}</option>)}</select>
               <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" /><small className="upload-hint">Kosongkan jika gambar saat ini tetap digunakan.</small>
               {item.content_type === "video"
                 ? <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan video YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>
-                : <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 2 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
+                : <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>Simpan perubahan</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
             </form></> : <>
               <div className="contributor-submission-summary">
@@ -1398,7 +1399,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="workspace-section content-wrap" id="ruang-kerja">
         <PageHeading
           className="workspace-page-heading"
-          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL WIDYAISWARA" : "PROFIL / KARYA WIDYAISWARA"}
+          eyebrow={activePage === "admin-akun" ? "ADMINISTRATOR / MANAJEMEN AKUN" : activePage === "admin-postingan" ? "ADMINISTRATOR / MANAJEMEN POSTINGAN" : profile?.role === "kontributor" ? "PROFIL KONTRIBUTOR" : "PROFIL / KARYA KONTRIBUTOR"}
           title={activePage === "admin-akun" ? "Kelola akun komunitas." : activePage === "admin-postingan" ? "Kelola postingan karya." : profile?.role === "kontributor" ? "Profil profesional." : profile ? `Selamat datang, ${profile.full_name}.` : "Profil untuk karya dan kolaborasi."}
           description={activePage === "admin-akun" ? "Cari, tinjau, dan perbarui akun kontributor maupun verifikator dari satu tempat." : activePage === "admin-postingan" ? "Tinjau status publikasi, perbarui karya, atau hapus postingan kontributor dengan mudah." : profile?.role === "kontributor" ? "Kelola data diri dan informasi profesional yang ditampilkan pada profil publik Anda." : profile ? "Kelola komunitas, tinjau pengajuan, dan terbitkan karya yang menginspirasi." : "Satu tempat untuk mengelola profil serta meninjau kontribusi komunitas."}
         >
@@ -1409,7 +1410,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <Link className={activePage === "admin-akun" ? "active" : ""} href="/ruang-kerja/akun"><Icon name="users" size={17} /><span><strong>Kelola akun</strong><small>{managedAccounts.length} akun</small></span></Link>
           <Link className={activePage === "admin-postingan" ? "active" : ""} href="/ruang-kerja/postingan"><Icon name="file" size={17} /><span><strong>Kelola postingan</strong><small>{submissions.length} postingan</small></span></Link>
         </nav>}
-        {profile?.role === "kontributor" && <div className="workspace-profile-summary"><span className="workspace-profile-avatar">{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><div><strong>{profile.full_name}</strong><span>{profile.job_title || "Widyaiswara"} · Profil profesional publik</span></div><span className="role-badge">Kontributor</span></div>}
+        {profile?.role === "kontributor" && <div className="workspace-profile-summary"><span className="workspace-profile-avatar">{profile.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span><div><strong>{profile.full_name}</strong><span>{profile.job_title || "Kontributor"} · Profil profesional publik</span></div><span className="role-badge">Kontributor</span></div>}
         {accountCreatedNotice && <div className="account-created-notice" role="status"><span className="account-created-check"><Icon name="check" size={17} /></span><span>{accountCreatedNotice}</span><button type="button" onClick={() => setAccountCreatedNotice("")} aria-label="Tutup notifikasi"><Icon name="close" size={15} /></button></div>}
         {message && <div className={message.includes("berhasil") ? "workspace-message success" : "workspace-message"} role="status">{message}<button onClick={() => setMessage("")} aria-label="Tutup pesan"><Icon name="close" size={15} /></button></div>}
         {!session && <div className="workspace-empty"><span className="feature-icon"><Icon name="user" size={21} /></span><p>{adminManagementPage ? "Masuk sebagai administrator untuk mengelola akun dan postingan komunitas." : "Masuk untuk mengelola profil, mengajukan karya, atau meninjau kontribusi sesuai peran akun Anda."}</p><span className="role-list">ADMIN <i /> VERIFIKATOR <i /> KONTRIBUTOR</span></div>}
@@ -1429,17 +1430,17 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
         {session && profile && (!adminManagementPage || adminRole) && <div className={`workspace-grid${adminRole ? " admin-workspace-grid" : ""}${profile.role === "kontributor" ? " contributor-profile-grid" : ""}${adminManagementPage ? " admin-management-grid" : ""}${activePage === "admin-akun" ? " admin-accounts-grid" : ""}`}>
           {activePage !== "admin-postingan" &&
           <div className={`workspace-panel${adminRole ? " admin-workspace-panel" : ""}`}>
-            <div className="panel-title"><div><span className="eyebrow">{adminRole && activePage === "admin-akun" ? "PUSAT MANAJEMEN AKUN" : profile.role === "kontributor" ? "DATA PROFIL" : "PROFIL PROFESIONAL"}</span><h3>{adminRole && activePage === "admin-akun" ? "Akun kontributor & verifikator" : profile.role === "kontributor" ? "Informasi widyaiswara" : "Biodata dan keahlian"}</h3></div><span className="role-badge">{profile.role}</span></div>
+            <div className="panel-title"><div><span className="eyebrow">{adminRole && activePage === "admin-akun" ? "PUSAT MANAJEMEN AKUN" : profile.role === "kontributor" ? "DATA PROFIL" : "PROFIL PROFESIONAL"}</span><h3>{adminRole && activePage === "admin-akun" ? "Akun kontributor & verifikator" : profile.role === "kontributor" ? "Informasi kontributor" : "Biodata dan keahlian"}</h3></div><span className="role-badge">{profile.role}</span></div>
             {adminRole && activePage === "admin-akun" && <div className="submit-box account-box"><div className="account-create-heading"><span className="account-create-icon"><Icon name="users" size={19} /></span><div><span className="eyebrow">MANAJEMEN AKUN</span><h3>Buat akun tim</h3></div></div><p className="account-create-description">Tambahkan verifikator untuk membantu proses peninjauan atau kontributor untuk berbagi karya.</p><form onSubmit={createAccount} onChange={() => setAccountCreateError("")} className="contribution-form">
               <label htmlFor="account_full_name">Nama lengkap</label><input id="account_full_name" name="account_full_name" required maxLength={100} />
-              <label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Widyaiswara Ahli Madya" required maxLength={120} />
+              <label htmlFor="account_job_title">Jabatan</label><input id="account_job_title" name="account_job_title" placeholder="Contoh: Kontributor Ahli Madya" required maxLength={120} />
               <label htmlFor="account_profile_photo">Foto profil (JPG, PNG, atau WebP; maks. 5 MB)</label><input id="account_profile_photo" name="account_profile_photo" type="file" accept="image/jpeg,image/png,image/webp" />
               <label htmlFor="account_email">Alamat email</label><input id="account_email" name="account_email" type="email" autoComplete="off" required />
               <label htmlFor="account_password">Kata sandi sementara (min. 8 karakter)</label><input id="account_password" name="account_password" type="password" autoComplete="new-password" minLength={8} required />
               <label htmlFor="account_role">Peran</label><select id="account_role" name="account_role" value={newAccountRole} onChange={(event) => setNewAccountRole(event.target.value === "verifikator" ? "verifikator" : "kontributor")}><option value="kontributor">Kontributor</option><option value="verifikator">Verifikator</option></select>
               {newAccountRole === "kontributor" && <>
                 <label htmlFor="account_area_of_expertise">Bidang keahlian</label><textarea id="account_area_of_expertise" name="account_area_of_expertise" placeholder="Contoh: desain pembelajaran, kepemimpinan, atau evaluasi program" rows={2} maxLength={500} required />
-                <label htmlFor="account_widyaiswara_experience">Pengalaman sebagai widyaiswara</label><textarea id="account_widyaiswara_experience" name="account_widyaiswara_experience" placeholder="Ceritakan pengalaman kerja, instansi, atau program yang pernah ditangani..." rows={3} maxLength={2000} required />
+                <label htmlFor="account_widyaiswara_experience">Pengalaman sebagai kontributor</label><textarea id="account_widyaiswara_experience" name="account_widyaiswara_experience" placeholder="Ceritakan pengalaman kerja, instansi, atau program yang pernah ditangani..." rows={3} maxLength={2000} required />
               </>}
               <button type="submit" className="button button-primary" disabled={busy}>{busy ? "Membuat akun..." : "Buat akun"} <Icon name="arrow" size={16} /></button>
             </form>{accountCreateError && <p className="account-create-error" role="alert" aria-live="assertive">{accountCreateError}</p>}<p className="account-help">Akun langsung aktif. Sampaikan email dan kata sandi sementara secara aman kepada pemilik akun.</p>
@@ -1463,12 +1464,12 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                         <label htmlFor={`managed_job_title_${account.id}`}>Jabatan</label><input id={`managed_job_title_${account.id}`} name="managed_job_title" defaultValue={account.job_title} required maxLength={120} />
                         <label htmlFor={`managed_role_${account.id}`}>Peran akun</label><select id={`managed_role_${account.id}`} name="managed_role" value={managedAccountEditRole ?? account.role} onChange={(event) => setManagedAccountEditRole(event.target.value as ManagedAccountRole)}><option value="kontributor">Kontributor</option><option value="verifikator">Verifikator</option></select>
                         <label htmlFor={`managed_area_of_expertise_${account.id}`}>Bidang keahlian</label><textarea id={`managed_area_of_expertise_${account.id}`} name="managed_area_of_expertise" defaultValue={account.area_of_expertise} rows={2} maxLength={500} required={managedAccountEditRole === "kontributor"} />
-                        <label htmlFor={`managed_widyaiswara_experience_${account.id}`}>Pengalaman widyaiswara</label><textarea id={`managed_widyaiswara_experience_${account.id}`} name="managed_widyaiswara_experience" defaultValue={account.widyaiswara_experience} rows={3} maxLength={2000} required={managedAccountEditRole === "kontributor"} />
+                        <label htmlFor={`managed_widyaiswara_experience_${account.id}`}>Pengalaman profesional</label><textarea id={`managed_widyaiswara_experience_${account.id}`} name="managed_widyaiswara_experience" defaultValue={account.widyaiswara_experience} rows={3} maxLength={2000} required={managedAccountEditRole === "kontributor"} />
                         <label htmlFor={`managed_bio_${account.id}`}>Profil profesional</label><textarea id={`managed_bio_${account.id}`} name="managed_bio" defaultValue={account.bio ?? ""} rows={3} maxLength={1000} />
                         <div className="managed-account-edit-actions"><button className="button button-primary" type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button className="button button-outline" type="button" onClick={() => { setEditingAccountId(null); setManagedAccountEditRole(null); setManagedAccountError(""); }}>Batal</button></div>
                       </form> : <>
                         <p><b>Bidang keahlian</b>{account.area_of_expertise || "Belum dilengkapi"}</p>
-                        <p><b>Pengalaman widyaiswara</b>{account.widyaiswara_experience || "Belum dilengkapi"}</p>
+                        <p><b>Pengalaman profesional</b>{account.widyaiswara_experience || "Belum dilengkapi"}</p>
                         {account.bio && <p><b>Profil profesional</b>{account.bio}</p>}
                         <div className="managed-account-actions"><button type="button" className="managed-account-edit-button" onClick={() => { setManagedAccountError(""); setManagedAccountEditRole(account.role); setEditingAccountId(account.id); }}>Kelola akun</button><button type="button" className="managed-account-delete-button" onClick={() => void deleteManagedAccount(account)} disabled={busy}>Hapus akun</button></div>
                       </>}
@@ -1486,7 +1487,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               <label htmlFor="job_title">Jabatan</label><input id="job_title" name="job_title" defaultValue={profile.job_title} required maxLength={120} />
               {profile.role === "kontributor" && <>
                 <label htmlFor="area_of_expertise">Bidang keahlian</label><textarea id="area_of_expertise" name="area_of_expertise" defaultValue={profile.area_of_expertise} placeholder="Tuliskan bidang keahlian utama Anda..." rows={2} maxLength={500} required />
-                <label htmlFor="widyaiswara_experience">Pengalaman bekerja sebagai widyaiswara</label><textarea id="widyaiswara_experience" name="widyaiswara_experience" defaultValue={profile.widyaiswara_experience} placeholder="Ceritakan pengalaman, instansi, program, dan kontribusi Anda sebagai widyaiswara..." rows={4} maxLength={2000} required />
+                <label htmlFor="widyaiswara_experience">Pengalaman profesional sebagai kontributor</label><textarea id="widyaiswara_experience" name="widyaiswara_experience" defaultValue={profile.widyaiswara_experience} placeholder="Ceritakan pengalaman, instansi, program, dan kontribusi Anda sebagai kontributor..." rows={4} maxLength={2000} required />
                 <label htmlFor="bio">Profil profesional lainnya (opsional)</label><textarea id="bio" name="bio" defaultValue={profile.bio ?? ""} placeholder="Tambahkan informasi profesional lain yang ingin dibagikan..." rows={3} maxLength={1000} />
               </>}
               {profile.role !== "kontributor" && <><label htmlFor="bio">Profil profesional dan keahlian mengajar</label><textarea id="bio" name="bio" defaultValue={profile.bio ?? ""} placeholder="Ceritakan bidang keahlian dan pengalaman mengajarmu..." rows={4} maxLength={1000} /></>}
@@ -1508,10 +1509,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>Belum ada materi di sini.</p></div> : adminRole && filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>Tidak ada postingan yang cocok dengan pencarian atau filter.</p></div> : <div className="submission-list">{(adminRole ? filteredSubmissions : submissions).map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
-              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{workCategories.filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
+              <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{[...workCategories, ...legacyWorkCategories.filter((category) => category.slug === item.category_slug)].filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
               <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" />
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
-              {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional, maks. 2 MB)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
+              {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
             </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by">oleh {item.profiles?.[0]?.full_name ?? "Kontributor"}</span>}{item.content_type === "video" && item.youtube_url && <div className="submission-video"><iframe src={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} title={`Video: ${item.title}`} loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && item.status === "pending" && <div className="review-actions"><button onClick={() => reviewSubmission(item.id, "approved")}><Icon name="check" size={15} /> Setujui</button><button onClick={() => reviewSubmission(item.id, "rejected")}>Minta revisi</button><button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
@@ -1528,7 +1529,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           <div className="footer-message"><span className="eyebrow">PINISI</span><strong>Pusat Ilmu dan Informasi<br />Bersinergi.</strong><span>Berbagi karya, memperluas manfaat pengetahuan.</span></div>
           <nav className="footer-links" aria-label="Tautan footer"><span>JELAJAHI</span><Link href="/#karya">Karya komunitas</Link><Link href="/koleksi">Koleksi karya</Link><Link href="/widyaiswara">Komunitas</Link><Link href="/ajukan">Bagikan karya</Link></nav>
         </div>
-        <div className="footer-bottom"><span>© 2026 PINISI · KARYA WIDYAISWARA</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
+        <div className="footer-bottom"><span>© 2026 PINISI · KARYA KONTRIBUTOR</span><span>BERBAGI PENGETAHUAN, MENGUATKAN PEMBELAJARAN</span><Link className="footer-top-link" href="/">Kembali ke atas ↑</Link></div>
       </footer>
       {loginOpen && <LoginDialog onClose={() => setLoginOpen(false)} onLogin={login} />}
     </main>

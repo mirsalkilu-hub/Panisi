@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
-import { workCategories, type WorkCategorySlug } from "./work-categories";
+import { allWorkCategories, type WorkCategorySlug } from "./work-categories";
 
 export function SubmissionThumbnail({
   id,
@@ -25,7 +25,7 @@ export function SubmissionThumbnail({
   className?: string;
 }) {
   const [signedImage, setSignedImage] = useState<{ key: string; url: string } | null>(null);
-  const category = workCategories.find((item) => item.slug === categorySlug);
+  const category = allWorkCategories.find((item) => item.slug === categorySlug);
   const videoId = contentType === "video" && youtubeUrl ? getYoutubeId(youtubeUrl) : null;
   const thumbnailKey = `${id}:${thumbnailPath ?? ""}`;
 
@@ -53,7 +53,7 @@ export function SubmissionThumbnail({
     <div className={`submission-thumbnail category-${categorySlug} ${className}`.trim()} aria-label={`Thumbnail ${title}`}>
       <span className="submission-thumbnail-orbit" />
       <span className="submission-thumbnail-copy">
-        <span>{category?.name ?? "Karya Widyaiswara"}</span>
+        <span>{category?.name ?? "Karya Kontributor"}</span>
         <strong>{title}</strong>
         <small>{contentType === "ebook" ? "DOKUMEN PDF" : "VIDEO PEMBELAJARAN"}</small>
       </span>
