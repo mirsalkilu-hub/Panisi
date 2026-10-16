@@ -1346,13 +1346,19 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 {contributor.profile_photo_path && supabase
                   ? <Image className="contributor-avatar" src={supabase.storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl} alt="" width={62} height={62} unoptimized />
                   : <span className="contributor-avatar">{contributor.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</span>}
-                <h2>{contributor.full_name}</h2>
+                <div className="contributor-directory-identity">
+                  <h2>{contributor.full_name}</h2>
+                  <span>{contributor.job_title || "Kontributor PINISI"}</span>
+                </div>
               </div>
               <div className="directory-expertise-block">
                 <span className="directory-expertise-label"><Icon name="insight" size={15} />Fokus Keahlian:</span>
                 <p className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</p>
               </div>
-              <p className="directory-bio">{contributor.widyaiswara_experience || contributor.job_title}</p>
+              {contributor.widyaiswara_experience.trim()
+                && contributor.widyaiswara_experience.trim() !== contributor.area_of_expertise.trim()
+                && contributor.widyaiswara_experience.trim() !== contributor.job_title.trim()
+                && <p className="directory-bio">{contributor.widyaiswara_experience}</p>}
             </Link>
             <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} compact /></div>
           </article>)}</div>
