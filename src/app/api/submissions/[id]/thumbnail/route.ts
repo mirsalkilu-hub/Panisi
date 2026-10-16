@@ -34,18 +34,28 @@ export async function GET(
     return NextResponse.json({ error: "Thumbnail tidak ditemukan atau karya belum disetujui." }, { status: 404 });
   }
 
-  const { data, error: signedUrlError } = await supabase.storage
+  const { data: image, error: downloadError } = await supabase.storage
     .from("submission-thumbnails")
-    .createSignedUrl(submission.thumbnail_path, 300);
-  if (signedUrlError) {
-    if (signedUrlError.statusCode === "404" || /object not found/i.test(signedUrlError.message)) {
+    .download(submission.thumbnail_path);
+  if (downloadError) {
+    if (downloadError.statusCode === "404" || /object not found/i.test(downloadError.message)) {
       return NextResponse.json({ error: "Thumbnail tidak ditemukan." }, { status: 404 });
     }
-    console.error("Unable to create approved submission thumbnail URL:", signedUrlError.message);
+    console.error("Unable to download approved submission thumbnail:", downloadError.message);
     return NextResponse.json({ error: "Thumbnail sementara tidak dapat dibuka." }, { status: 500 });
   }
+  if (!image) return NextResponse.json({ error: "Thumbnail tidak ditemukan." }, { status: 404 });
 
-  const response = NextResponse.redirect(data.signedUrl);
-  response.headers.set("Cache-Control", "private, no-store");
-  return response;
+  const extension = submission.thumbnail_path.split(".").pop()?.toLowerCase();
+  const fallbackContentType = extension === "png" ? "image/png" : extension === "webp" ? "image/webp" : "image/jpeg";
+  const contentType = image.type.startsWith("image/") ? image.type : fallbackContentType;
+
+  return new NextResponse(image, {
+    headers: {
+      "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
+      "Content-Length": image.size.toString(),
+      "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
