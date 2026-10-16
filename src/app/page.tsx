@@ -307,6 +307,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(() => Boolean(supabase));
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [verifiedSubmissions, setVerifiedSubmissions] = useState<PublishedSubmission[]>([]);
   const [verifiedSubmissionsError, setVerifiedSubmissionsError] = useState("");
@@ -341,23 +342,28 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     return () => window.clearTimeout(timeout);
   }, [accountCreatedNotice]);
 
-  const loadWorkspace = useCallback(async (activeSession: Session | null) => {
+  const loadWorkspace = useCallback(async (activeSession: Session | null): Promise<Role | null> => {
     if (!supabase || !activeSession) {
       setProfile(null);
       setSubmissions([]);
       setManagedAccounts([]);
-      return;
+      setProfileLoading(false);
+      return null;
     }
+    setProfileLoading(true);
     const { data: currentProfile, error: profileError } = await supabase
       .from("profiles")
       .select("id, full_name, role, bio, job_title, profile_photo_path, area_of_expertise, widyaiswara_experience")
       .eq("id", activeSession.user.id)
       .single();
-    if (profileError) {
-      setMessage(`Profil tidak dapat dimuat: ${profileError.message}`);
-      return;
+    if (profileError || !currentProfile) {
+      setProfile(null);
+      setProfileLoading(false);
+      setMessage(profileError ? `Profil tidak dapat dimuat: ${profileError.message}` : "Profil tidak ditemukan.");
+      return null;
     }
     setProfile(currentProfile as Profile);
+    setProfileLoading(false);
     if (currentProfile.role === "admin") {
       const pageSize = 500;
       const allAccounts: ManagedAccount[] = [];
@@ -398,9 +404,10 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     const { data, error } = await query;
     if (error) {
       setMessage(`Profil tidak dapat dimuat: ${error.message}`);
-      return;
+      return currentProfile.role;
     }
     setSubmissions((data ?? []) as Submission[]);
+    return currentProfile.role;
   }, []);
 
   const loadVerifiedSubmissions = useCallback(async () => {
@@ -501,23 +508,29 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   }, []);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      return;
+    }
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       setSession(data.session);
-      void loadWorkspace(data.session);
-      void loadVerifiedSubmissions();
+      void loadWorkspace(data.session).then((role) => {
+        if (activePage === "koleksi" && role === "kontributor") void loadVerifiedSubmissions();
+      });
+      if (activePage !== "koleksi") void loadVerifiedSubmissions();
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      void loadWorkspace(nextSession);
+      void loadWorkspace(nextSession).then((role) => {
+        if (activePage === "koleksi" && role === "kontributor") void loadVerifiedSubmissions();
+      });
     });
     return () => {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [loadPublicContributors, loadVerifiedSubmissions, loadWorkspace]);
+  }, [activePage, loadPublicContributors, loadVerifiedSubmissions, loadWorkspace]);
 
   useEffect(() => {
     if (activePage !== "widyaiswara") return;
@@ -1194,9 +1207,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       {activePage === "koleksi" && <>
       <section className="collection-page content-wrap" id="koleksi">
         <PageHeading eyebrow="KOLEKSI KARYA WIDYAISWARA" icon="grid" title="Pengetahuan teruji, siap menginspirasi." description="Jelajahi karya pembelajaran yang telah diverifikasi. Temukan pengalaman dan gagasan yang dapat diterapkan dalam kegiatan belajar.">
-          <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a>
+          {!profileLoading && session && profile?.role === "kontributor" ? <a className="button button-primary" href="#koleksi-terverifikasi">Jelajahi koleksi <Icon name="arrow" size={17} /></a> : null}
         </PageHeading>
-        <div className="collection-list-section" id="koleksi-terverifikasi">
+        {profileLoading ? <div className="upload-access-panel collection-access-panel" role="status"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Memeriksa akses kontributor</h3><p>Tunggu sebentar sementara peran akun Anda diverifikasi.</p></div>
+          : !session ? <div className="upload-access-panel collection-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Koleksi khusus kontributor</h3><p>Masuk dengan akun kontributor untuk menelusuri karya yang telah lolos verifikasi.</p><button type="button" className="button button-dark" onClick={() => setLoginOpen(true)}>Masuk sebagai kontributor <Icon name="arrow" size={16} /></button></div>
+            : !profile ? <div className="upload-access-panel collection-access-panel" role="alert"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Akses belum dapat diverifikasi</h3><p>Profil akun belum dapat dimuat. Coba buka ruang kerja atau hubungi administrator.</p><Link className="button button-dark" href="/ruang-kerja">Buka ruang kerja <Icon name="arrow" size={16} /></Link></div>
+              : profile.role !== "kontributor" ? <div className="upload-access-panel collection-access-panel"><span className="collection-empty-icon"><Icon name="user" size={23} /></span><h3>Koleksi khusus kontributor</h3><p>Akun Anda memiliki peran {profile.role}. Daftar karya terverifikasi hanya dapat dilihat oleh kontributor.</p><Link className="button button-dark" href="/ruang-kerja">Kembali ke ruang kerja <Icon name="arrow" size={16} /></Link></div>
+                : <div className="collection-list-section" id="koleksi-terverifikasi">
           <div className="collection-list-heading"><div><span className="eyebrow">KARYA TERVERIFIKASI</span><h2>Koleksi komunitas</h2><p>Telusuri karya berdasarkan kategori atau cari judul, topik, dan nama kontributor.</p></div><span className="lesson-total">{filteredVerifiedSubmissions.length} KARYA</span></div>
           <nav className="work-category-menu" aria-label="Filter kategori koleksi">
             <button type="button" className={`work-category-link${collectionCategory === null ? " category-active" : ""}`} onClick={() => setCollectionCategory(null)} aria-pressed={collectionCategory === null}><span className="work-category-icon"><Icon name="grid" size={21} /></span><span><strong>Semua Karya</strong><small>Jelajahi seluruh karya</small></span></button>
@@ -1218,7 +1235,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             : verifiedSubmissions.length === 0
               ? <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Koleksi akan tampil di sini setelah verifikator menyetujui pengajuan dari para kontributor.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>
               : <div className="lesson-empty-state"><span className="lesson-empty-icon"><Icon name="search" size={20} /></span><div><strong>Tidak ada karya yang cocok dengan filter ini.</strong><p>Ubah kategori atau kata kunci untuk melihat karya lainnya.</p></div><button type="button" onClick={() => { setCollectionCategory(null); setCollectionQuery(""); }}>Atur ulang filter</button></div>}
-        </div>
+        </div>}
       </section>
       </>}
 
