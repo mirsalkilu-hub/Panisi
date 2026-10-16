@@ -2432,7 +2432,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 }
 
 .managed-account-toolbar {
+  align-items: center;
   display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
   gap: 13px;
   margin-top: 18px;
 }
@@ -2672,15 +2674,20 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   grid-template-columns: repeat(2,minmax(0,1fr));
   max-width: 900px;
 }
-.admin-accounts-grid .account-box > .contribution-form > label { align-self: end; }
-.admin-accounts-grid .account-box > .contribution-form > input,
-.admin-accounts-grid .account-box > .contribution-form > select,
-.admin-accounts-grid .account-box > .contribution-form > textarea,
+.admin-accounts-grid .account-form-field { display: grid; gap: 6px; min-width: 0; }
+.admin-accounts-grid .account-form-field > label { color: #4f6986; font-size: 10px; font-weight: 650; line-height: 1.45; }
+.admin-accounts-grid .account-form-field > input,
+.admin-accounts-grid .account-form-field > select,
+.admin-accounts-grid .account-form-field > textarea,
 .admin-accounts-grid .account-box > .contribution-form > button { min-width: 0; }
+.admin-accounts-grid .account-form-field > input,
+.admin-accounts-grid .account-form-field > select,
+.admin-accounts-grid .account-form-field > textarea { width: 100%; }
 .admin-accounts-grid .account-box > .contribution-form > button { grid-column: 1 / -1; }
 .admin-accounts-grid .managed-account-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .admin-accounts-grid .managed-account-edit-form { grid-column: 1 / -1; }
 .admin-post-toolbar { display: grid; gap: 13px; margin-top: 19px; }
+.admin-post-toolbar { align-items: center; grid-template-columns: minmax(0,1fr) auto; }
 .admin-post-search {
   align-items: center;
   background: #fff;
@@ -2716,7 +2723,18 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .admin-posts-panel .submission-item h4 { color: #284766; font-size: 15px; line-height: 1.45; }
 .admin-posts-panel .submission-description { color: #617b95; line-height: 1.65; }
 .admin-posts-panel .submission-list-thumbnail { aspect-ratio: 16 / 9; margin: 14px 0; width: 100%; }
+.admin-posts-panel .submission-item h4,
+.admin-posts-panel .submission-description,
+.admin-posts-panel .review-feedback {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+.admin-posts-panel .submission-item h4 { -webkit-line-clamp: 2; }
+.admin-posts-panel .submission-description { -webkit-line-clamp: 2; }
+.admin-posts-panel .review-feedback { -webkit-line-clamp: 2; }
 .admin-posts-panel .submission-video { border-radius: 11px; overflow: hidden; }
+.admin-posts-panel .submission-video { max-height: 180px; }
 .admin-posts-panel .review-actions { flex-wrap: wrap; }
 .admin-posts-panel .review-actions button { min-height: 36px; }
 .admin-posts-panel .review-actions { border-top: 1px solid #e6edf4; margin-top: 13px; padding-top: 12px; }
@@ -2759,6 +2777,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-posts-panel .submission-list { grid-template-columns: 1fr; }
   .admin-overview-links { grid-template-columns: 1fr; }
   .admin-overview { grid-template-columns: 1fr; }
+  .admin-post-toolbar { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
   .admin-management-nav { border-radius: 13px; gap: 4px; grid-template-columns: repeat(3,minmax(0,1fr)); padding: 6px; }
@@ -2768,6 +2787,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
   .admin-accounts-grid .account-box > .contribution-form { grid-template-columns: 1fr; }
   .admin-accounts-grid .account-box > .contribution-form > button { grid-column: auto; }
   .admin-accounts-grid .managed-account-list { grid-template-columns: 1fr; }
+  .managed-account-toolbar { grid-template-columns: 1fr; }
   .admin-posts-panel .managed-account-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .admin-access-denied { align-items: flex-start; flex-wrap: wrap; }
   .admin-access-denied > a { margin-left: 35px; }
