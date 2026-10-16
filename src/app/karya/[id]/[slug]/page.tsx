@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
 import { workHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
-import { SubmissionThumbnail } from "../../../submission-thumbnail";
 import { WorkShareActions } from "../../../work-share-actions";
 import { WorkDetailHeader } from "../../../work-detail-header";
 import { CategoryIcon } from "../../../category-icon";
@@ -125,7 +124,6 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <div className="work-detail-layout">
           <section className="work-detail-content" aria-label="Isi karya">
             {work.content_type === "video" ? <>
-              <SubmissionThumbnail id={work.id} title={work.title} contentType={work.content_type} categorySlug={work.category_slug} youtubeUrl={work.youtube_url} thumbnailPath={work.thumbnail_path} className="work-detail-thumbnail" />
               {videoId ? <div className="work-detail-video">
                 <iframe src={`https://www.youtube-nocookie.com/embed/${videoId}`} title={work.title} referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
               </div> : <p className="lesson-empty" role="alert">Video YouTube untuk karya ini tidak tersedia.</p>}
