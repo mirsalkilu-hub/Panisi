@@ -169,9 +169,11 @@ function PageHero({
   statusBadge?: React.ReactNode;
 }) {
   return <header className={`collection-page-hero ${className}`} style={style}>
-    {statusBadge && <div className="page-hero-status-badge">{statusBadge}</div>}
     <div className="collection-page-copy">
-      <span className="eyebrow">{eyebrow}</span>
+      <div className="page-hero-topline">
+        <span className="eyebrow">{eyebrow}</span>
+        {statusBadge && <div className="page-hero-status-badge">{statusBadge}</div>}
+      </div>
       <h1>{title}</h1>
       <p>{description}</p>
       {(children || feature) && <div className="collection-page-actions">{children}{feature}</div>}
