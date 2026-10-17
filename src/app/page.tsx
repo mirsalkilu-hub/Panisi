@@ -152,8 +152,8 @@ function PageHero({
   visual,
   hideVisual = false,
   className = "",
-  style,
   statusBadge,
+  bannerImage,
 }: {
   eyebrow: React.ReactNode;
   title: React.ReactNode;
@@ -165,10 +165,13 @@ function PageHero({
   visual?: React.ReactNode;
   hideVisual?: boolean;
   className?: string;
-  style?: React.CSSProperties;
   statusBadge?: React.ReactNode;
+  bannerImage?: string;
 }) {
-  return <header className={`collection-page-hero ${className}`} style={style}>
+  return <header className={`collection-page-hero ${className}`}>
+    {bannerImage && <div className="page-hero-background-image" aria-hidden="true">
+      <Image src={bannerImage} alt="" fill sizes="(max-width: 760px) 100vw, 1200px" unoptimized />
+    </div>}
     <div className="collection-page-copy">
       <div className="page-hero-topline">
         <span className="eyebrow">{eyebrow}</span>
@@ -1283,9 +1286,6 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
     : selectedHomeThumbnailId
       ? `https://i.ytimg.com/vi/${selectedHomeThumbnailId}/hqdefault.jpg`
       : null;
-  const homeBannerStyle = homeBannerImageUrl
-    ? { backgroundImage: `linear-gradient(90deg,rgba(5,22,39,.9) 0%,rgba(5,22,39,.72) 48%,rgba(5,22,39,.3) 100%), url(${JSON.stringify(homeBannerImageUrl)})` }
-    : undefined;
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1411,8 +1411,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           icon="book"
           caption="BERBAGI • BELAJAR • BERTUMBUH"
           hideVisual
-          className="home-main-banner"
-          style={homeBannerStyle}
+          className={`home-main-banner${homeBannerImageUrl ? " has-banner-image" : ""}`}
+          bannerImage={homeBannerImageUrl ?? undefined}
           statusBadge={<><span className="home-cdn-status-dot" />PINISI CDN Online</>}
           feature={featuredHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Pilih karya unggulan">
             <span className="home-latest-posts-label">PILIHAN TERBARU</span>
