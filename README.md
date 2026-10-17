@@ -12,6 +12,19 @@ npm run dev
 
 Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` di `.env.local` dari **Supabase Project Settings → API** sebelum menggunakan fitur autentikasi dan Profil. Isi juga `SUPABASE_SERVICE_ROLE_KEY` untuk endpoint pembuatan akun admin serta pemberian akses aman ke e-book dan thumbnail karya yang telah diverifikasi. Kunci ini hanya digunakan di server dan jangan pernah menaruhnya di variabel `NEXT_PUBLIC_*` atau mengirimkannya ke browser.
 
+## Asisten AI
+
+Chatbot **Asisten PINISI** tersedia melalui tombol **Tanya AI** di sudut halaman dan membantu menjawab pertanyaan umum tentang penggunaan aplikasi. Untuk mengaktifkannya, buat API key Gemini di [Google AI Studio](https://aistudio.google.com/apikey), lalu tambahkan ke `.env.local`:
+
+```env
+GEMINI_API_KEY=masukkan_api_key_dari_google_ai_studio
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+Jangan gunakan awalan `NEXT_PUBLIC_` untuk key. `GEMINI_MODEL` opsional (default `gemini-2.5-flash`). Setelah mengganti environment variable, restart server lokal atau deploy ulang aplikasi. Tanpa API key, chatbot tetap tampil tetapi akan memberi tahu bahwa layanan belum dikonfigurasi.
+
+Chatbot hanya memiliki panduan umum aplikasi; ia tidak dapat melihat akun, status pengajuan, maupun konten privat. Pertanyaan dikirim ke Google Gemini untuk menghasilkan jawaban, jadi hindari mengirim data pribadi atau kata sandi. Kuota gratis dan batas permintaan Gemini dapat berubah; periksa [ketentuan harga dan kuota Gemini API](https://ai.google.dev/gemini-api/docs/pricing). Data yang dikirim pada tingkat gratis dapat digunakan Google sesuai ketentuan layanan mereka.
+
 ## Menyiapkan Supabase
 
 1. Buat proyek Supabase, lalu jalankan semua berkas di `supabase/migrations/` secara berurutan melalui Supabase CLI atau SQL Editor, termasuk migrasi `submission_categories` untuk kategori karya, `contributor_pending_edits` untuk pengeditan pengajuan, `contributor_profile_photos` dan `profile_photo_storage_policies` untuk bucket dan hak unggah foto profil, `submission_thumbnails` untuk thumbnail karya, `admin_verifier_submission_deletion` untuk hak penghapusan postingan, dan `contributor_invitation_codes` untuk kode undangan pendaftaran kontributor.
