@@ -153,8 +153,9 @@ function PageHero({
   hideVisual = false,
   className = "",
   style,
+  statusBadge,
 }: {
-  eyebrow: string;
+  eyebrow: React.ReactNode;
   title: React.ReactNode;
   description: string;
   icon: IconName;
@@ -165,8 +166,10 @@ function PageHero({
   hideVisual?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  statusBadge?: React.ReactNode;
 }) {
   return <header className={`collection-page-hero ${className}`} style={style}>
+    {statusBadge && <div className="page-hero-status-badge">{statusBadge}</div>}
     <div className="collection-page-copy">
       <span className="eyebrow">{eyebrow}</span>
       <h1>{title}</h1>
@@ -1399,8 +1402,8 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="collection-page content-wrap home-page-hero" id="beranda">
         <PageHero
           eyebrow={selectedHomeSubmission
-            ? `KARYA TERBARU · ${allWorkCategories.find((category) => category.slug === selectedHomeSubmission.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KONTRIBUTOR"}`
-            : "KARYA KONTRIBUTOR"}
+            ? <span className="home-featured-eyebrow"><svg className="home-featured-spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 14.5 9.5 21.5 12l-7 2.5-2.5 7-2.5-7L2.5 12l7-2.5L12 2.5Z" /><path d="m19 2 .9 2.1L22 5l-2.1.9L19 8l-.9-2.1L16 5l2.1-.9L19 2Z" /></svg><span>KARYA TERBARU · {allWorkCategories.find((category) => category.slug === selectedHomeSubmission.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KONTRIBUTOR"}</span></span>
+            : <span className="home-featured-eyebrow"><svg className="home-featured-spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 14.5 9.5 21.5 12l-7 2.5-2.5 7-2.5-7L2.5 12l7-2.5L12 2.5Z" /><path d="m19 2 .9 2.1L22 5l-2.1.9L19 8l-.9-2.1L16 5l2.1-.9L19 2Z" /></svg><span>KARYA KONTRIBUTOR</span></span>}
           title={selectedHomeSubmission?.title ?? <>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>}
           description={selectedHomeSubmission?.description || "Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor."}
           icon="book"
@@ -1408,6 +1411,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           hideVisual
           className="home-main-banner"
           style={homeBannerStyle}
+          statusBadge={<><span className="home-cdn-status-dot" />PINISI CDN Online</>}
           feature={featuredHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Pilih karya unggulan">
             <span className="home-latest-posts-label">PILIHAN TERBARU</span>
             <div className="home-latest-posts-list">{featuredHomeSubmissions.map((item) => <button
