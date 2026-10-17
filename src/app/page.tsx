@@ -1530,7 +1530,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           {contributorQuery && <button type="button" className="contributor-directory-clear" onClick={() => setContributorQuery("")}>Hapus pencarian</button>}
         </div>
           {contributorError ? <p className="contributor-state contributor-error" role="alert">{contributorError}</p>
-          : filteredPublicContributors.length > 0 ? <div className="contributor-directory-grid">{filteredPublicContributors.map((contributor) => <article className="contributor-directory-card" key={contributor.id}>
+          : filteredPublicContributors.length > 0 ? <div className="contributor-directory-grid">{filteredPublicContributors.map((contributor) => {
+            const experience = contributor.widyaiswara_experience.trim();
+            const hasAdditionalExperience = experience
+              && !/^[\s\-–—]+$/.test(experience)
+              && experience !== contributor.area_of_expertise.trim()
+              && experience !== contributor.job_title.trim();
+            return <article className="contributor-directory-card" key={contributor.id}>
             <Link className="contributor-directory-profile-link" href={`/kontributor/${contributor.id}`}>
               <div className="contributor-directory-card-heading">
                 {contributor.profile_photo_path && supabase
@@ -1545,13 +1551,11 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 <span className="directory-expertise-label"><Icon name="insight" size={15} />Fokus Keahlian:</span>
                 <p className="directory-expertise">{contributor.area_of_expertise || "Bidang keahlian belum dilengkapi."}</p>
               </div>
-              {contributor.widyaiswara_experience.trim()
-                && contributor.widyaiswara_experience.trim() !== contributor.area_of_expertise.trim()
-                && contributor.widyaiswara_experience.trim() !== contributor.job_title.trim()
-                && <p className="directory-bio">{contributor.widyaiswara_experience}</p>}
+              {hasAdditionalExperience && <p className="directory-bio">{experience}</p>}
             </Link>
             <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} compact /></div>
-          </article>)}</div>
+          </article>;
+          })}</div>
           : publicContributors.length > 0 ? <div className="contributor-search-empty"><Icon name="search" size={21} /><p>Tidak ada kontributor yang cocok dengan pencarian.</p><button type="button" onClick={() => setContributorQuery("")}>Hapus pencarian</button></div>
             : <div className="collection-empty directory-empty"><span className="collection-empty-icon"><Icon name="users" size={25} /></span><h3>Profil kontributor segera hadir</h3><p>Direktori ini akan menampilkan profil, bidang keahlian, dan karya para kontributor PINISI</p><Link className="text-link" href="/koleksi">Jelajahi karya komunitas <Icon name="arrow" size={16} /></Link></div>}
       </section>
