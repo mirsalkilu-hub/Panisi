@@ -3352,8 +3352,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 520px) {
   .home-page-hero { padding-top: 16px; }
   .home-page-hero .collection-page-hero { border-radius: 17px; min-height: 0; padding: 18px 16px 16px; }
-  .home-page-hero .page-hero-topline { gap: 8px; margin-bottom: 12px; }
-  .home-page-hero .page-hero-status-badge { font-size: 8px; gap: 6px; padding: 6px 8px; }
+  .home-page-hero .page-hero-topline { align-items: center; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) auto; margin-bottom: 12px; }
+  .home-page-hero .page-hero-status-badge { align-self: center; font-size: 8px; gap: 6px; inset: auto !important; margin: 0; padding: 6px 8px; position: static !important; transform: none !important; }
   .home-page-hero .home-cdn-status-dot { height: 7px; width: 7px; }
   .home-page-hero .collection-page-copy { padding: 0; text-align: left; }
   .home-page-hero .collection-page-copy .eyebrow { display: block; font-size: 7px; letter-spacing: .08em; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
