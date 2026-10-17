@@ -152,6 +152,7 @@ function PageHero({
   visual,
   hideVisual = false,
   className = "",
+  style,
 }: {
   eyebrow: string;
   title: React.ReactNode;
@@ -163,8 +164,9 @@ function PageHero({
   visual?: React.ReactNode;
   hideVisual?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
-  return <header className={`collection-page-hero ${className}`}>
+  return <header className={`collection-page-hero ${className}`} style={style}>
     <div className="collection-page-copy">
       <span className="eyebrow">{eyebrow}</span>
       <h1>{title}</h1>
@@ -1265,7 +1267,20 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       document_path: item.document_path,
       thumbnail_path: item.thumbnail_path,
     }));
-  const latestHomeSubmissions = verifiedSubmissions.slice(0, 2);
+  const [selectedHomeFeatureId, setSelectedHomeFeatureId] = useState<string | null>(null);
+  const featuredHomeSubmissions = verifiedSubmissions.slice(0, 2);
+  const selectedHomeSubmission = featuredHomeSubmissions.find((item) => item.id === selectedHomeFeatureId)
+    ?? featuredHomeSubmissions[0]
+    ?? null;
+  const selectedHomeThumbnailId = selectedHomeSubmission?.youtube_url ? youtubeId(selectedHomeSubmission.youtube_url) : null;
+  const homeBannerImageUrl = selectedHomeSubmission?.thumbnail_path
+    ? `/api/submissions/${encodeURIComponent(selectedHomeSubmission.id)}/thumbnail`
+    : selectedHomeThumbnailId
+      ? `https://i.ytimg.com/vi/${selectedHomeThumbnailId}/hqdefault.jpg`
+      : null;
+  const homeBannerStyle = homeBannerImageUrl
+    ? { backgroundImage: `linear-gradient(90deg,rgba(5,22,39,.9) 0%,rgba(5,22,39,.72) 48%,rgba(5,22,39,.3) 100%), url(${JSON.stringify(homeBannerImageUrl)})` }
+    : undefined;
   const currentWorkCategory = workCategories.find((category) => category.slug === selectedCategory) ?? null;
   const categoryLessons = currentWorkCategory
     ? homeLessons.filter((lesson) => lesson.categorySlug === currentWorkCategory.slug)
@@ -1382,15 +1397,37 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "beranda" && <>
       <section className="collection-page content-wrap home-page-hero" id="beranda">
-        <PageHero eyebrow="KARYA KONTRIBUTOR" title={<>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>} description="Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor." icon="book" caption="BERBAGI • BELAJAR • BERTUMBUH" hideVisual className="home-main-banner" feature={latestHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Dua karya terbaru">
-          <div className="home-latest-posts-list">{latestHomeSubmissions.map((item) => <Link className="home-latest-post" href={workHref(item.id, item.title)} key={item.id}>
-            <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
-            <span className="home-latest-post-copy"><strong>{item.title}</strong><span>{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
-            <Icon name="arrow" size={15} />
-          </Link>)}</div>
-        </section>}>
-          <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>
-          <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
+        <PageHero
+          eyebrow={selectedHomeSubmission
+            ? `KARYA TERBARU · ${allWorkCategories.find((category) => category.slug === selectedHomeSubmission.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KONTRIBUTOR"} · TERVERIFIKASI`
+            : "KARYA KONTRIBUTOR"}
+          title={selectedHomeSubmission?.title ?? <>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>}
+          description={selectedHomeSubmission?.description || "Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor."}
+          icon="book"
+          caption="BERBAGI • BELAJAR • BERTUMBUH"
+          hideVisual
+          className="home-main-banner"
+          style={homeBannerStyle}
+          feature={featuredHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Pilih karya unggulan">
+            <span className="home-latest-posts-label">PILIHAN TERBARU</span>
+            <div className="home-latest-posts-list">{featuredHomeSubmissions.map((item) => <button
+              className={`home-latest-post${item.id === selectedHomeSubmission?.id ? " home-latest-post-active" : ""}`}
+              type="button"
+              aria-pressed={item.id === selectedHomeSubmission?.id}
+              onClick={() => setSelectedHomeFeatureId(item.id)}
+              key={item.id}
+            >
+              <SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} className="home-latest-thumbnail" />
+              <span className="home-latest-post-copy"><strong>{item.title}</strong><span>{allWorkCategories.find((category) => category.slug === item.category_slug)?.name ?? "Karya"} · {item.full_name}</span></span>
+            </button>)}</div>
+          </section>}
+        >
+          <div className="home-feature-actions">
+            {selectedHomeSubmission
+              ? <Link href={workHref(selectedHomeSubmission.id, selectedHomeSubmission.title)} className="button">Lihat karya <Icon name="arrow" size={17} /></Link>
+              : <Link href="/#karya" className="button">Jelajahi karya <Icon name="arrow" size={17} /></Link>}
+            <Link href="/ajukan" className="button button-hero-secondary"><Icon name="upload" size={16} /> Bagikan karya ajar</Link>
+          </div>
         </PageHero>
       </section>
       <section className="learning-section home-published-section" id="karya">
