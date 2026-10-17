@@ -273,7 +273,7 @@ async function getThumbnailValidationError(value: FormDataEntryValue | null, req
     const image = await createImageBitmap(value);
     const isLandscape = image.width >= image.height * 1.4 && image.width <= image.height * 2.5;
     image.close();
-    if (!isLandscape) return "Thumbnail harus berorientasi landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.";
+    if (!isLandscape) return "Gambar sampul portrait atau persegi ditolak. Unggah gambar landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.";
   } catch {
     return "Thumbnail tidak dapat dibaca. Pilih file gambar yang valid.";
   }
@@ -1522,7 +1522,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
 
       {activePage === "widyaiswara" && !selectedContributorId && <>
       <section className="collection-page content-wrap contributor-directory-page">
-        <PageHeading eyebrow="DIREKTORI KONTRIBUTOR" icon="users" title="Kontributor PINISI" description="Temukan kontributor, bidang keahlian, dan karya pembelajaran yang telah mereka bagikan.">
+        <PageHeading eyebrow="DIREKTORI KONTRIBUTOR" icon="users" title="Kontributor PINISI" description="Kenali para kontributor PINISI, jelajahi keahlian dan pengalaman mereka, lalu temukan karya pembelajaran yang dapat menginspirasi praktik Anda. Gunakan pencarian untuk menemukan profil berdasarkan nama, jabatan, atau bidang keahlian.">
           <span className="widyaiswara-directory-count"><Icon name="users" size={15} />{filteredPublicContributors.length}{contributorQuery.trim() ? ` / ${publicContributors.length}` : ""} kontributor</span>
         </PageHeading>
         <div className="contributor-directory-toolbar">
@@ -1585,7 +1585,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               </div>
               <label htmlFor="title">Judul materi</label><input id="title" name="title" placeholder="Contoh: Teknik fasilitasi kelas interaktif" required maxLength={120} />
               <label htmlFor="description">Deskripsi</label><textarea id="description" name="description" placeholder="Jelaskan tujuan dan isi materi ajar..." rows={4} required maxLength={2000} />
-              <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Gunakan orientasi landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.</small>
+              <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Wajib landscape (rasio lebar sekitar 1,4–2,5 kali tinggi); gambar portrait atau persegi akan ditolak.</small>
               {contributionType === "video"
                 ? <><label htmlFor="youtube_url">Tautan video YouTube</label><input id="youtube_url" name="youtube_url" type="url" placeholder="https://www.youtube.com/watch?v=..." required /><small className="upload-hint">Kolom ini hanya tampil untuk kategori Video.</small></>
                 : <><label htmlFor="document">Berkas karya (PDF)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Kolom PDF tampil untuk semua kategori selain Video.</small></>}
