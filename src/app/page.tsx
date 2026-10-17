@@ -1399,7 +1399,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       <section className="collection-page content-wrap home-page-hero" id="beranda">
         <PageHero
           eyebrow={selectedHomeSubmission
-            ? `KARYA TERBARU · ${allWorkCategories.find((category) => category.slug === selectedHomeSubmission.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KONTRIBUTOR"} · TERVERIFIKASI`
+            ? `KARYA TERBARU · ${allWorkCategories.find((category) => category.slug === selectedHomeSubmission.category_slug)?.name.toLocaleUpperCase("id-ID") ?? "KONTRIBUTOR"}`
             : "KARYA KONTRIBUTOR"}
           title={selectedHomeSubmission?.title ?? <>PINISI<br /><em>Pusat Ilmu dan Informasi Bersinergi.</em></>}
           description={selectedHomeSubmission?.description || "Ruang kolaborasi untuk merayakan gagasan, membagikan praktik pembelajaran, dan memperluas dampak karya para kontributor."}
