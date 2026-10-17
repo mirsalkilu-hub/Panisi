@@ -18,10 +18,10 @@ Chatbot **Asisten PINISI** tersedia melalui tombol **Tanya AI** di sudut halaman
 
 ```env
 GEMINI_API_KEY=masukkan_api_key_dari_google_ai_studio
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-Jangan gunakan awalan `NEXT_PUBLIC_` untuk key. `GEMINI_MODEL` opsional (default `gemini-2.5-flash`). Setelah mengganti environment variable, restart server lokal atau deploy ulang aplikasi. Tanpa API key, chatbot tetap tampil tetapi akan memberi tahu bahwa layanan belum dikonfigurasi.
+Jangan gunakan awalan `NEXT_PUBLIC_` untuk key. `GEMINI_MODEL` opsional (default `gemini-3.5-flash-lite`). Setelah mengganti environment variable, restart server lokal atau deploy ulang aplikasi. Tanpa API key, chatbot tetap tampil tetapi akan memberi tahu bahwa layanan belum dikonfigurasi.
 
 Chatbot hanya memiliki panduan umum aplikasi; ia tidak dapat melihat akun, status pengajuan, maupun konten privat. Pertanyaan dikirim ke Google Gemini untuk menghasilkan jawaban, jadi hindari mengirim data pribadi atau kata sandi. Kuota gratis dan batas permintaan Gemini dapat berubah; periksa [ketentuan harga dan kuota Gemini API](https://ai.google.dev/gemini-api/docs/pricing). Data yang dikirim pada tingkat gratis dapat digunakan Google sesuai ketentuan layanan mereka.
 

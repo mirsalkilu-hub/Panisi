@@ -9,7 +9,7 @@ type GeminiResponse = {
 export const maxDuration = 60;
 
 const maxRequestBytes = 32_000;
-const maxMessages = 10;
+const maxMessages = 9;
 const maxMessageLength = 1000;
 
 const systemPrompt = `Anda adalah Asisten PINISI, chatbot yang membantu pengguna memahami aplikasi PINISI (Pusat Ilmu dan Informasi Bersinergi). Jawab dalam bahasa Indonesia yang ramah, singkat, dan berdasarkan informasi berikut.
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return responseError("Asisten AI belum dikonfigurasi. Silakan hubungi pengelola aplikasi.", 503);
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   if (!/^[a-zA-Z0-9._-]+$/.test(model)) {
     return responseError("Konfigurasi model Gemini tidak valid. Periksa GEMINI_MODEL di environment server.", 500);
   }
@@ -67,6 +67,9 @@ export async function POST(request: Request) {
   if (!Array.isArray(messages) || messages.length < 1 || messages.length > maxMessages || !messages.every(isChatMessage)) {
     return responseError("Percakapan tidak valid. Mulai pesan baru dan coba lagi.", 400);
   }
+  if (messages.some((message, index) => message.role !== (index % 2 === 0 ? "user" : "assistant"))) {
+    return responseError("Urutan pesan percakapan tidak valid. Kirim pertanyaan baru lalu coba lagi.", 400);
+  }
   if (messages[messages.length - 1].role !== "user") {
     return responseError("Kirim pertanyaan terlebih dahulu.", 400);
   }
@@ -85,7 +88,7 @@ export async function POST(request: Request) {
           role: message.role === "assistant" ? "model" : "user",
           parts: [{ text: message.content }],
         })),
-        generationConfig: { maxOutputTokens: 500, temperature: 0.4 },
+        generationConfig: { maxOutputTokens: 300, temperature: 0.4 },
       }),
       signal: AbortSignal.timeout(50_000),
     });
@@ -108,12 +111,9 @@ export async function POST(request: Request) {
     const errorCode = providerError.error?.code;
     const errorStatus = providerError.error?.status;
     const errorMessage = providerError.error?.message;
-    console.error("PINISI Gemini error:", {
-      status: providerResponse.status,
-      code: typeof errorCode === "number" ? errorCode : undefined,
-      providerStatus: typeof errorStatus === "string" ? errorStatus : undefined,
-      message: typeof errorMessage === "string" ? errorMessage.slice(0, 300) : undefined,
-    });
+    console.error(
+      `PINISI Gemini error HTTP ${providerResponse.status}; code=${typeof errorCode === "number" ? errorCode : "unknown"}; status=${typeof errorStatus === "string" ? errorStatus : "unknown"}; message=${typeof errorMessage === "string" ? errorMessage.slice(0, 300) : "unknown"}`,
+    );
 
     if (providerResponse.status === 400 && errorStatus === "INVALID_ARGUMENT") {
       return responseError("API key Gemini tidak valid, atau permintaan ditolak. Periksa GEMINI_API_KEY serta pembatasan key di Google AI Studio.", 502);
@@ -126,6 +126,9 @@ export async function POST(request: Request) {
     }
     if (providerResponse.status === 404) {
       return responseError(`Google AI Studio tidak menemukan model "${model}" untuk API key ini. Model bawaan aplikasi sudah sesuai; periksa apakah key dibuat di proyek Google AI Studio yang benar dan Generative Language API tersedia untuk proyek tersebut. Coba buat API key baru di proyek yang sama, lalu restart server.`, 502);
+    }
+    if (providerResponse.status >= 500) {
+      return responseError(`Google Gemini sedang mengalami gangguan sementara (HTTP ${providerResponse.status}). Tunggu sebentar, lalu kirim pertanyaan lagi.`, 502);
     }
     return responseError("Layanan Gemini sedang bermasalah. Periksa konfigurasi API lalu coba lagi.", 502);
   }

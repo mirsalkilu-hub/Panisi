@@ -28,6 +28,15 @@ export function Chatbot() {
     const content = draft.trim();
     if (!content || isLoading) return;
 
+    let lastAssistantIndex = -1;
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].role === "assistant") {
+        lastAssistantIndex = index;
+        break;
+      }
+    }
+    const history = lastAssistantIndex < 0 ? [] : messages.slice(0, lastAssistantIndex + 1).slice(-8);
+    const requestMessages = [...history, { role: "user" as const, content }];
     const nextMessages = [...messages, { role: "user" as const, content }];
     setMessages(nextMessages);
     setDraft("");
@@ -38,7 +47,7 @@ export function Chatbot() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages.slice(-10) }),
+        body: JSON.stringify({ messages: requestMessages }),
       });
       let result: { reply?: string; error?: string };
       try {
