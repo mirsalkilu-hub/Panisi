@@ -63,6 +63,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
     : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-home-banner.jpg";
   const thumbnailUrl = new URL(thumbnailPath, baseUrl).toString();
+  const thumbnailType = work.thumbnail_path
+    ? getThumbnailMimeType(work.thumbnail_path)
+    : "image/jpeg";
 
   return {
     title: `${work.title} | PINISI`,
@@ -75,7 +78,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: work.title,
       description: work.description,
       url: canonicalUrl,
-      images: [{ url: thumbnailUrl, alt: work.title }],
+      images: [{ url: thumbnailUrl, alt: work.title, type: thumbnailType }],
     },
     twitter: {
       card: "summary_large_image",
@@ -84,6 +87,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       images: [thumbnailUrl],
     },
   };
+}
+
+function getThumbnailMimeType(path: string) {
+  const extension = path.split(".").pop()?.toLowerCase();
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
 }
 
 async function getPublicSiteBaseUrl() {

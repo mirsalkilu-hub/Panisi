@@ -54,7 +54,10 @@ export async function GET(
     headers: {
       "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
       "Content-Length": image.size.toString(),
+      "Content-Disposition": "inline",
       "Content-Type": contentType,
+      "Access-Control-Allow-Origin": "*",
+      "Cross-Origin-Resource-Policy": "cross-origin",
       "X-Content-Type-Options": "nosniff",
     },
   });
