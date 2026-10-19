@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
   const thumbnailPath = work.thumbnail_path
     ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
-    : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-logo.svg";
+    : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-home-banner.jpg";
   const thumbnailUrl = new URL(thumbnailPath, baseUrl).toString();
 
   return {

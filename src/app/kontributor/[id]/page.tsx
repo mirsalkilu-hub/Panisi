@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: ContributorPageProps): Promis
   const imageUrl = contributor.profile_photo_path
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
       .storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl
-    : new URL("/panisi-logo.svg", baseUrl).toString();
+    : new URL("/panisi-home-banner.jpg", baseUrl).toString();
   const description = [contributor.job_title, contributor.area_of_expertise].filter(Boolean).join(" · ")
     || "Lihat profil dan karya kontributor PINISI.";
 
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: ContributorPageProps): Promis
       images: [{ url: imageUrl, alt: `Foto profil ${contributor.full_name}` }],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: contributor.full_name,
       description,
       images: [imageUrl],

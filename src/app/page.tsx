@@ -251,6 +251,18 @@ function youtubeId(url: string) {
   }
 }
 
+function submissionShareImageUrl(submission: { id: string; thumbnail_path?: string | null; youtube_url?: string | null }) {
+  if (submission.thumbnail_path) return `/api/submissions/${encodeURIComponent(submission.id)}/thumbnail`;
+  const videoId = submission.youtube_url ? youtubeId(submission.youtube_url) : null;
+  return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-home-banner.jpg";
+}
+
+function profileShareImageUrl(path: string | null | undefined) {
+  return path && supabase
+    ? supabase.storage.from("profile-photos").getPublicUrl(path).data.publicUrl
+    : "/panisi-home-banner.jpg";
+}
+
 function hasValidImageSignature(type: string, bytes: Uint8Array) {
   if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
   if (type === "image/png") return [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((byte, index) => bytes[index] === byte);
@@ -1452,7 +1464,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           : filteredLessons.length > 0 ? <div className="lesson-grid">
             {filteredLessons.map((lesson) => <article className="lesson-card" key={lesson.id ?? lesson.title}>
               <Link className="lesson-thumbnail-link" href={workHref(lesson.id, lesson.title)} aria-label={`Buka halaman ${lesson.title}`}><SubmissionThumbnail id={lesson.id} title={lesson.title} contentType={lesson.categorySlug === "video" ? "video" : "ebook"} categorySlug={lesson.categorySlug} youtubeUrl={lesson.youtube_url} thumbnailPath={lesson.thumbnail_path} accessToken={session?.access_token} /></Link>
-              <div className="lesson-meta"><CategoryLabel categorySlug={lesson.categorySlug} /> <span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={lesson.author} path={lesson.profile_photo_path} />{lesson.contributor_id ? <Link href={`/kontributor/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}</div><div className="lesson-author-actions"><span className="lesson-duration">{lesson.time}</span><WorkSocialShare title={lesson.title} href={workHref(lesson.id, lesson.title)} compact /></div></div>
+              <div className="lesson-meta"><CategoryLabel categorySlug={lesson.categorySlug} /> <span>{lesson.level}</span></div><h3><Link className="work-title-link" href={workHref(lesson.id, lesson.title)}>{lesson.title}</Link></h3>{lesson.description && <WorkDescription description={lesson.description} href={workHref(lesson.id, lesson.title)} title={lesson.title} />}<div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={lesson.author} path={lesson.profile_photo_path} />{lesson.contributor_id ? <Link href={`/kontributor/${lesson.contributor_id}`}>{lesson.author}</Link> : <span>{lesson.author}</span>}</div><div className="lesson-author-actions"><span className="lesson-duration">{lesson.time}</span><WorkSocialShare title={lesson.title} href={workHref(lesson.id, lesson.title)} imageUrl={submissionShareImageUrl(lesson)} compact /></div></div>
             </article>)}
           </div> : <div className="lesson-empty-state"><span className="lesson-empty-icon"><Icon name={lessonQuery.trim() ? "search" : "book"} size={20} /></span><div><strong>{lessonQuery.trim() ? `Tidak ada karya yang cocok dengan “${lessonQuery}”.` : `Belum ada karya terverifikasi dalam kategori ${currentWorkCategory?.name ?? "ini"}.`}</strong><p>{lessonQuery.trim() ? "Coba kata kunci lain atau hapus pencarian untuk melihat semua karya." : "Jelajahi kategori lain atau kirim karya agar dapat dibagikan kepada komunitas."}</p></div>{lessonQuery.trim() ? <button type="button" onClick={() => setLessonQuery("")}>Hapus pencarian</button> : <Link href="/ajukan">Ajukan karya <Icon name="arrow" size={14} /></Link>}</div>}
         </div>
@@ -1475,7 +1487,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
             : collectionSubmissions.length > 0 ? <div className="lesson-grid collection-works-grid">
               {collectionSubmissions.map((item) => <article className="lesson-card" key={item.id}>
                   <Link className="lesson-thumbnail-link" href={workHref(item.id, item.title)} aria-label={`Buka halaman ${item.title}`}><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} /></Link>
-                  <div className="lesson-meta"><CategoryLabel categorySlug={item.category_slug} /> <span>{item.content_type === "ebook" ? "PDF" : "VIDEO · DISETUJUI"}</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/kontributor/${item.profile_id}`}>{item.full_name}</Link></div><div className="lesson-author-actions"><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span><WorkSocialShare title={item.title} href={workHref(item.id, item.title)} compact /></div></div>
+                  <div className="lesson-meta"><CategoryLabel categorySlug={item.category_slug} /> <span>{item.content_type === "ebook" ? "PDF" : "VIDEO · DISETUJUI"}</span></div><h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3><WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} /><div className="lesson-author"><div className="lesson-contributor"><ContributorPhoto name={item.full_name} path={item.profile_photo_path} /><Link href={`/kontributor/${item.profile_id}`}>{item.full_name}</Link></div><div className="lesson-author-actions"><span className="lesson-duration">{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span><WorkSocialShare title={item.title} href={workHref(item.id, item.title)} imageUrl={submissionShareImageUrl(item)} compact /></div></div>
               </article>)}
             </div>
             : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={26} /></span><h3>Belum ada karya terverifikasi</h3><p>Karya Anda yang disetujui verifikator akan tampil di sini.</p><Link className="text-link" href="/ajukan">Bagikan karya pertama <Icon name="arrow" size={16} /></Link></div>}
@@ -1500,6 +1512,9 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 </div>
                 <p className="contributor-profile-bio">{selectedContributor.widyaiswara_experience || "Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna."}</p>
                 <div className="contributor-profile-work-count"><Icon name="book" size={17} /><span><strong>{contributorWorks.length}</strong> Karya Terbit</span></div>
+                <div className="contributor-profile-share">
+                  <WorkSocialShare title={`Profil ${selectedContributor.full_name} | PINISI`} href={`/kontributor/${selectedContributor.id}`} imageUrl={profileShareImageUrl(selectedContributor.profile_photo_path)} />
+                </div>
               </div>
             </article>
             <section className="contributor-published-works">
@@ -1511,7 +1526,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                   <CategoryLabel className="contributor-work-category" categorySlug={item.category_slug} />
                   <h3><Link className="work-title-link" href={workHref(item.id, item.title)}>{item.title}</Link></h3>
                   <WorkDescription description={item.description} href={workHref(item.id, item.title)} title={item.title} />
-                  <div className="contributor-work-footer"><span>Terverifikasi</span><div className="contributor-work-footer-actions"><span>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span><WorkSocialShare title={item.title} href={workHref(item.id, item.title)} compact /></div></div>
+                  <div className="contributor-work-footer"><span>Terverifikasi</span><div className="contributor-work-footer-actions"><span>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span><WorkSocialShare title={item.title} href={workHref(item.id, item.title)} imageUrl={submissionShareImageUrl(item)} compact /></div></div>
                 </div>
               </article>)}
             </div> : <div className="collection-empty"><span className="collection-empty-icon"><Icon name="book" size={24} /></span><h3>Belum ada karya terbit</h3><p>Karya yang telah disetujui akan tampil di sini. Sementara itu, jelajahi koleksi dari kontributor lainnya.</p><Link className="text-link" href="/koleksi">Jelajahi koleksi <Icon name="arrow" size={16} /></Link></div>}
@@ -1553,7 +1568,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               </div>
               {hasAdditionalExperience && <p className="directory-bio">{experience}</p>}
             </Link>
-            <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} compact /></div>
+            <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} imageUrl={profileShareImageUrl(contributor.profile_photo_path)} compact /></div>
           </article>;
           })}</div>
           : publicContributors.length > 0 ? <div className="contributor-search-empty"><Icon name="search" size={21} /><p>Tidak ada kontributor yang cocok dengan pencarian.</p><button type="button" onClick={() => setContributorQuery("")}>Hapus pencarian</button></div>
