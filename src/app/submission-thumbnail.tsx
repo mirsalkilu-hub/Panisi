@@ -26,6 +26,7 @@ export function SubmissionThumbnail({
 }) {
   const [signedImage, setSignedImage] = useState<{ key: string; url: string } | null>(null);
   const [fallbackImageKey, setFallbackImageKey] = useState<string | null>(null);
+  const [fallbackImage, setFallbackImage] = useState<{ key: string; url: string } | null>(null);
   const category = allWorkCategories.find((item) => item.slug === categorySlug);
   const videoId = contentType === "video" && youtubeUrl ? getYoutubeId(youtubeUrl) : null;
   const thumbnailKey = `${id}:${thumbnailPath ?? ""}`;
@@ -39,9 +40,7 @@ export function SubmissionThumbnail({
         if (cancelled) return;
         if (error) {
           setFallbackImageKey(thumbnailKey);
-          if (!isMissingStorageObject(error.message, error.statusCode)) {
-            console.warn("Unable to create submission thumbnail URL:", error.message);
-          }
+          if (!isMissingStorageObject(error.message, error.statusCode)) console.warn("Unable to create submission thumbnail URL:", error.message);
           return;
         }
         setSignedImage({ key: thumbnailKey, url: data.signedUrl });
@@ -55,11 +54,43 @@ export function SubmissionThumbnail({
     return () => { cancelled = true; };
   }, [accessToken, thumbnailKey, thumbnailPath]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    if (!accessToken || fallbackImageKey !== thumbnailKey) return;
+
+    void fetch(`/api/submissions/${encodeURIComponent(id)}/thumbnail/fallback`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Thumbnail tidak dapat dimuat (${response.status}).`);
+        const image = await response.blob();
+        if (!image.type.startsWith("image/")) throw new Error("Pratinjau bukan berkas gambar.");
+        return URL.createObjectURL(image);
+      })
+      .then((url) => {
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        objectUrl = url;
+        setFallbackImage({ key: thumbnailKey, url });
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) console.warn("Unable to load submission thumbnail fallback:", error);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [accessToken, fallbackImageKey, id, thumbnailKey]);
+
   const imageUrl = thumbnailPath
     ? accessToken
       ? signedImage?.key === thumbnailKey
         ? signedImage.url
-        : fallbackImageKey === thumbnailKey ? `/api/submissions/${encodeURIComponent(id)}/thumbnail` : null
+        : fallbackImage?.key === thumbnailKey ? fallbackImage.url : null
       : `/api/submissions/${encodeURIComponent(id)}/thumbnail`
     : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
 
@@ -74,7 +105,10 @@ export function SubmissionThumbnail({
       <span className="submission-thumbnail-mark" aria-hidden="true">{contentType === "ebook"
         ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" /><path d="M4 5.5v16M8 7h8M8 11h7" /></svg>
         : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.8a1 1 0 0 1 1.5-.86l10 6.2a1 1 0 0 1 0 1.72l-10 6.2A1 1 0 0 1 8 18.2V5.8Z" /></svg>}</span>
-      {imageUrl && <Image className="submission-thumbnail-image" src={imageUrl} alt="" fill sizes="(max-width: 700px) 100vw, 520px" unoptimized onError={(event) => { event.currentTarget.style.display = "none"; }} />}
+      {imageUrl && <Image className="submission-thumbnail-image" src={imageUrl} alt="" fill sizes="(max-width: 700px) 100vw, 520px" unoptimized onError={(event) => {
+        if (accessToken && signedImage?.key === thumbnailKey) setFallbackImageKey(thumbnailKey);
+        else event.currentTarget.style.display = "none";
+      }} />}
       <span className="submission-thumbnail-overlay" />
     </div>
   );
