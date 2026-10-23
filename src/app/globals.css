@@ -3200,33 +3200,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   margin-bottom: 15px;
   min-width: 0;
 }
-.home-page-hero .page-hero-status-badge {
-  align-items: center;
-  backdrop-filter: blur(12px);
-  background: rgba(6,20,34,.7);
-  border: 1px solid rgba(194,226,238,.2);
-  border-radius: 999px;
-  color: #e2edf3;
-  display: inline-flex;
-  font-size: 11px;
-  font-weight: 650;
-  gap: 9px;
-  line-height: 1;
-  padding: 9px 13px;
-  flex: 0 0 auto;
-}
-.home-cdn-status-dot {
-  animation: home-cdn-status-pulse 1.8s ease-in-out infinite;
-  background: #22c58b;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(34,197,139,.6);
-  height: 9px;
-  width: 9px;
-}
-@keyframes home-cdn-status-pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(34,197,139,.5); opacity: 1; }
-  50% { box-shadow: 0 0 0 5px rgba(34,197,139,0); opacity: .72; }
-}
 .home-page-hero .collection-page-visual { display: none; }
 .home-page-hero .collection-page-copy { max-width: none; padding: 0; position: relative; z-index: 2; }
 .home-page-hero .collection-page-copy h1 { display: -webkit-box; font-size: clamp(36px,4.5vw,54px); line-height: 1.08; margin: 0 0 12px; max-width: 54%; overflow: hidden; overflow-wrap: anywhere; text-shadow: 0 2px 24px rgba(3,18,35,.42); -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
@@ -3274,8 +3247,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .home-latest-post-copy > strong { color: #fff; display: -webkit-box; font-size: 11px; line-height: 1.45; overflow: hidden; text-shadow: 0 1px 5px rgba(0,0,0,.38); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .home-latest-post-copy > span { color: #c9dfe9; font-size: 9px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
-  .home-featured-spark,
-  .home-cdn-status-dot { animation: none; }
+  .home-featured-spark { animation: none; }
 }
 .home-published-section { padding-top: 24px; }
 .home-published-section .section-heading { margin-bottom: 18px; }
@@ -3417,9 +3389,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .home-page-hero .collection-page-hero { border-radius: 17px; min-height: 0; padding: 18px 16px 16px; }
   .home-page-hero .collection-page-hero:not(.has-banner-image) { padding-top: 18px; }
   .home-page-hero .page-hero-background-image { aspect-ratio: 1.65; margin-bottom: 16px; padding: 8px; width: 100%; }
-  .home-page-hero .page-hero-topline { align-self: stretch; align-items: center; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) auto; margin-bottom: 12px; width: 100%; }
-  .home-page-hero .page-hero-status-badge { align-self: center; font-size: 8px; gap: 6px; inset: auto !important; margin: 0; padding: 6px 8px; position: static !important; transform: none !important; }
-  .home-page-hero .home-cdn-status-dot { height: 7px; width: 7px; }
+  .home-page-hero .page-hero-topline { align-self: stretch; margin-bottom: 12px; width: 100%; }
   .home-page-hero .collection-page-copy { padding: 0; text-align: left; }
   .home-page-hero .collection-page-copy .eyebrow { display: block; font-size: 7px; letter-spacing: .08em; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-page-hero .collection-page-copy .eyebrow.home-featured-eyebrow { align-items: center; display: inline-flex; gap: 5px; min-width: 0; }

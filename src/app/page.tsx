@@ -152,7 +152,6 @@ function PageHero({
   visual,
   hideVisual = false,
   className = "",
-  statusBadge,
   bannerImage,
 }: {
   eyebrow: React.ReactNode;
@@ -165,7 +164,6 @@ function PageHero({
   visual?: React.ReactNode;
   hideVisual?: boolean;
   className?: string;
-  statusBadge?: React.ReactNode;
   bannerImage?: string;
 }) {
   return <header className={`collection-page-hero ${className}`}>
@@ -175,7 +173,6 @@ function PageHero({
     <div className="collection-page-copy">
       <div className="page-hero-topline">
         <span className="eyebrow">{eyebrow}</span>
-        {statusBadge && <div className="page-hero-status-badge">{statusBadge}</div>}
       </div>
       <h1>{title}</h1>
       <p>{description}</p>
@@ -1436,7 +1433,6 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
           hideVisual
           className={`home-main-banner${homeBannerImageUrl ? " has-banner-image" : ""}`}
           bannerImage={homeBannerImageUrl ?? undefined}
-          statusBadge={<><span className="home-cdn-status-dot" />PINISI CDN Online</>}
           feature={featuredHomeSubmissions.length > 0 && <section className="home-latest-posts" aria-label="Pilih karya unggulan">
             <span className="home-latest-posts-label">PILIHAN TERBARU</span>
             <div className="home-latest-posts-list">{featuredHomeSubmissions.map((item) => <button
