@@ -42,7 +42,7 @@ export function WorkDetailHeader() {
           </Link>
         ))}
       </nav>
-      <Link className="button button-outline header-login" href="/koleksi">Kembali ke koleksi</Link>
+      <Link className="button button-outline header-login" href="/ruang-kerja"><NavigationIcon name="user" />Masuk</Link>
     </header>
     <nav className="mobile-bottom-nav" aria-label="Navigasi utama seluler">
       {navigation.map((item) => (
