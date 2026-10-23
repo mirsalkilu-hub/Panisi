@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
@@ -51,7 +52,7 @@ async function getWork(id: string) {
   return { ...data, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
   const { id } = await params;
   const work = await getWork(id);
   if (!work) return { title: "Karya tidak ditemukan | PINISI" };
@@ -62,7 +63,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const thumbnailPath = work.thumbnail_path
     ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
     : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-home-banner.jpg";
-  const thumbnailUrl = new URL(thumbnailPath, baseUrl).toString();
+  const thumbnailUrl = new URL(thumbnailPath, baseUrl);
+  if (work.thumbnail_path) {
+    thumbnailUrl.searchParams.set("v", work.thumbnail_path);
+  }
+  const shareImageUrl = thumbnailUrl.toString();
   const thumbnailType = work.thumbnail_path
     ? getThumbnailMimeType(work.thumbnail_path)
     : "image/jpeg";
@@ -78,13 +83,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: work.title,
       description: work.description,
       url: canonicalUrl,
-      images: [{ url: thumbnailUrl, alt: work.title, type: thumbnailType }],
+      images: [{ url: shareImageUrl, alt: work.title, type: thumbnailType }],
     },
     twitter: {
       card: "summary_large_image",
       title: work.title,
       description: work.description,
-      images: [thumbnailUrl],
+      images: [shareImageUrl],
     },
   };
 }
