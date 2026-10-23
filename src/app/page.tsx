@@ -283,9 +283,9 @@ async function getThumbnailValidationError(value: FormDataEntryValue | null, req
   }
   try {
     const image = await createImageBitmap(value);
-    const isLandscape = image.width >= image.height * 1.4 && image.width <= image.height * 2.5;
+    const isLandscape = image.width > image.height;
     image.close();
-    if (!isLandscape) return "Gambar sampul portrait atau persegi ditolak. Unggah gambar landscape dengan rasio lebar sekitar 1,4–2,5 kali tinggi.";
+    if (!isLandscape) return "Gambar sampul harus berorientasi landscape (lebar lebih besar dari tinggi).";
   } catch {
     return "Thumbnail tidak dapat dibaca. Pilih file gambar yang valid.";
   }
@@ -1080,7 +1080,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       setMessage("Lengkapi judul, deskripsi, dan kategori. Video memerlukan tautan YouTube; kategori lain menggunakan PDF.");
       return;
     }
-    const thumbnailError = await getThumbnailValidationError(replacementThumbnail, false);
+    const thumbnailError = await getThumbnailValidationError(replacementThumbnail, !submission?.thumbnail_path);
     if (thumbnailError) {
       setMessage(thumbnailError);
       return;
@@ -1604,7 +1604,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               </div>
               <label htmlFor="title">Judul materi</label><input id="title" name="title" placeholder="Contoh: Teknik fasilitasi kelas interaktif" required maxLength={120} />
               <label htmlFor="description">Deskripsi</label><textarea id="description" name="description" placeholder="Jelaskan tujuan dan isi materi ajar..." rows={4} required maxLength={2000} />
-              <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Wajib landscape (rasio lebar sekitar 1,4–2,5 kali tinggi); gambar portrait atau persegi akan ditolak.</small>
+              <label htmlFor="thumbnail">Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)</label><input id="thumbnail" name="thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required /><small className="upload-hint">Gambar akan ditampilkan pada kartu dan halaman karya. Wajib landscape (lebar lebih besar dari tinggi); gambar portrait atau persegi akan ditolak.</small>
               {contributionType === "video"
                 ? <><label htmlFor="youtube_url">Tautan video YouTube</label><input id="youtube_url" name="youtube_url" type="url" placeholder="https://www.youtube.com/watch?v=..." required /><small className="upload-hint">Kolom ini hanya tampil untuk kategori Video.</small></>
                 : <><label htmlFor="document">Berkas karya (PDF)</label><input id="document" name="document" type="file" accept="application/pdf,.pdf" required /><small className="upload-hint">Kolom PDF tampil untuk semua kategori selain Video.</small></>}
@@ -1798,14 +1798,14 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {passwordMessage && <p className={`password-feedback${passwordMessage.includes("berhasil") ? " success" : ""}`} role={passwordMessage.includes("berhasil") ? "status" : "alert"}>{passwordMessage}</p>}
             </section>}
           </div>}
-          {submissionManagementView && <div className="workspace-panel submissions-panel admin-posts-panel" id="daftar-pengajuan"><div className="panel-title"><div><span className="eyebrow">{verifierRole ? "ANTREAN VERIFIKASI" : "SELURUH PENGAJUAN"}</span><h3>{verifierRole ? "Tinjau karya kontributor" : "Kelola materi kontributor"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
+          {submissionManagementView && <div className={`workspace-panel submissions-panel admin-posts-panel${verifierRole ? " verifier-posts-panel" : ""}`} id="daftar-pengajuan"><div className="panel-title"><div><span className="eyebrow">{verifierRole ? "ANTREAN VERIFIKASI" : "SELURUH PENGAJUAN"}</span><h3>{verifierRole ? "Tinjau karya kontributor" : "Kelola materi kontributor"}</h3></div><span className="submission-count">{submissions.length.toString().padStart(2, "0")}</span></div>
             <div className="admin-post-toolbar"><label className="admin-post-search"><Icon name="search" size={17} /><input type="search" value={submissionQuery} onChange={(event) => setSubmissionQuery(event.target.value)} placeholder="Cari judul, kontributor, atau kategori..." aria-label="Cari postingan kontributor" /></label><div className="managed-account-filters" role="group" aria-label="Filter status postingan">{([{ value: "all", label: "Semua" }, { value: "pending", label: "Menunggu" }, { value: "approved", label: "Terverifikasi" }, { value: "rejected", label: "Revisi" }] as const).map((filter) => <button type="button" key={filter.value} className={submissionStatusFilter === filter.value ? "active" : ""} aria-pressed={submissionStatusFilter === filter.value} onClick={() => setSubmissionStatusFilter(filter.value)}>{filter.label}<span>{filter.value === "all" ? submissions.length : submissions.filter((item) => item.status === filter.value).length}</span></button>)}</div></div>
             {filteredSubmissions.length > 0 && <div className="admin-post-table-head" aria-hidden="true"><span>Detail karya</span><span>Format / kategori</span><span>Status</span><span>Tanggal</span><span>Aksi</span></div>}
             {submissions.length === 0 ? <div className="no-submissions"><Icon name="file" size={24} /><p>{verifierRole ? "Belum ada pengajuan dari kontributor." : "Belum ada materi di sini."}</p></div> : filteredSubmissions.length === 0 ? <div className="no-submissions"><Icon name="search" size={24} /><p>{verifierRole && submissionStatusFilter === "pending" && !submissionQuery.trim() ? "Tidak ada pengajuan yang menunggu verifikasi." : "Tidak ada postingan yang cocok dengan pencarian atau filter."}</p></div> : <div className="submission-list">{filteredSubmissions.map((item) => <article className="submission-item" key={item.id}><div className="submission-top"><span className={`status status-${item.status}`}>{item.status === "pending" ? "Menunggu verifikasi" : item.status === "approved" ? "Terverifikasi" : "Perlu revisi"}</span><time>{new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</time></div>{editingId === item.id ? <form className="contribution-form edit-post-form" onSubmit={(event) => saveSubmission(event, item.id)}>
               <label htmlFor={`edit_title_${item.id}`}>Judul</label><input id={`edit_title_${item.id}`} name="edit_title" defaultValue={item.title} required maxLength={120} />
               <label htmlFor={`edit_description_${item.id}`}>Deskripsi</label><textarea id={`edit_description_${item.id}`} name="edit_description" defaultValue={item.description} rows={4} required maxLength={2000} />
               <label htmlFor={`edit_category_slug_${item.id}`}>Kategori karya</label><select id={`edit_category_slug_${item.id}`} name="edit_category_slug" defaultValue={item.category_slug} required>{[...workCategories, ...legacyWorkCategories.filter((category) => category.slug === item.category_slug)].filter((category) => category.slug === item.category_slug || (item.content_type === "video") === (category.slug === "video")).map((category) => <option value={category.slug} key={category.slug}>{category.name}</option>)}</select>
-              <label htmlFor={`edit_thumbnail_${item.id}`}>Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" />
+              <label htmlFor={`edit_thumbnail_${item.id}`}>{item.thumbnail_path ? "Ganti gambar sampul (opsional, JPG/PNG/WebP, maks. 500 KB)" : "Gambar sampul (wajib, JPG/PNG/WebP, maks. 500 KB)"}</label><input id={`edit_thumbnail_${item.id}`} name="edit_thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required={!item.thumbnail_path} />
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
               {item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>

@@ -3909,6 +3909,92 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .contributor-submission-item .contributor-submission-copy h4 { font-size: 13px; }
 }
 
+.verifier-posts-panel .submission-list { gap: 14px; margin-top: 20px; }
+.verifier-posts-panel .admin-post-table-head { display: none; }
+.verifier-posts-panel .submission-item {
+  align-items: start;
+  background: #fff;
+  border: 1px solid #e0e9f3;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(36,72,102,.045);
+  gap: 8px 18px;
+  grid-template-areas:
+    "thumb status date actions"
+    "thumb title title actions"
+    "thumb kind kind actions"
+    "thumb description description actions"
+    "thumb byline byline actions"
+    "document document document document"
+    "feedback feedback feedback feedback"
+    "edit edit edit edit";
+  grid-template-columns: minmax(150px,220px) minmax(0,1fr) auto auto;
+  padding: 16px;
+}
+.verifier-posts-panel .submission-list-thumbnail {
+  align-self: start;
+  aspect-ratio: 16 / 10;
+  grid-row: 1 / 6;
+  height: auto;
+  min-height: 0;
+  width: 100%;
+}
+.verifier-posts-panel .submission-top .status { align-self: center; grid-area: status; }
+.verifier-posts-panel .submission-top time { grid-area: date; justify-self: end; }
+.verifier-posts-panel .submission-item h4 { align-self: end; font-size: 16px; grid-area: title; }
+.verifier-posts-panel .submission-kind { grid-area: kind; grid-row: auto; }
+.verifier-posts-panel .submission-description {
+  -webkit-line-clamp: 3;
+  grid-area: description;
+  line-height: 1.6;
+}
+.verifier-posts-panel .submitted-by { grid-area: byline; }
+.verifier-posts-panel .review-feedback { -webkit-line-clamp: unset; padding: 11px 13px; }
+.verifier-posts-panel .review-actions { align-self: center; flex-direction: column; grid-area: actions; }
+.verifier-posts-panel .review-actions button { justify-content: center; min-width: 140px; }
+.verifier-posts-panel .edit-post-form { grid-area: edit; }
+
+@media (max-width: 900px) {
+  .verifier-posts-panel .submission-item {
+    grid-template-areas:
+      "thumb status date"
+      "thumb title title"
+      "thumb kind kind"
+      "thumb description description"
+      "byline byline byline"
+      "actions actions actions"
+      "document document document"
+      "feedback feedback feedback"
+      "edit edit edit";
+    grid-template-columns: minmax(110px,150px) minmax(0,1fr) auto;
+  }
+  .verifier-posts-panel .submission-list-thumbnail { grid-row: 1 / 5; }
+  .verifier-posts-panel .review-actions { align-items: flex-start; flex-direction: row; }
+  .verifier-posts-panel .review-actions button { min-width: 0; }
+}
+
+@media (max-width: 520px) {
+  .verifier-posts-panel .submission-item {
+    gap: 10px;
+    grid-template-areas:
+      "status date"
+      "thumb thumb"
+      "title title"
+      "kind kind"
+      "description description"
+      "byline byline"
+      "actions actions"
+      "document document"
+      "feedback feedback"
+      "edit edit";
+    grid-template-columns: minmax(0,1fr) auto;
+    padding: 13px;
+  }
+  .verifier-posts-panel .submission-list-thumbnail { grid-row: auto; }
+  .verifier-posts-panel .submission-item h4 { font-size: 15px; }
+  .verifier-posts-panel .submission-description { -webkit-line-clamp: 4; }
+  .verifier-posts-panel .review-actions { flex-wrap: wrap; }
+}
+
 .site-header { display: grid; gap: 20px; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); justify-content: initial; }
 .site-header .brand { flex: 0 0 auto; justify-self: start; letter-spacing: -.04em; }
 .site-header .brand-logo { height: auto; width: 220px; }
