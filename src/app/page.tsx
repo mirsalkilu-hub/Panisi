@@ -38,7 +38,7 @@ type Submission = {
   feedback: string | null;
   is_published: boolean;
   created_at: string;
-  profiles?: { full_name: string }[] | null;
+  profiles?: { full_name: string } | { full_name: string }[] | null;
 };
 type PublishedSubmission = {
   id: string;
@@ -261,6 +261,11 @@ function profileShareImageUrl(path: string | null | undefined) {
   return path && supabase
     ? supabase.storage.from("profile-photos").getPublicUrl(path).data.publicUrl
     : "/panisi-home-banner.jpg";
+}
+
+function submissionContributorName(submission: Submission) {
+  const profile = Array.isArray(submission.profiles) ? submission.profiles[0] : submission.profiles;
+  return profile?.full_name || "Tidak diketahui";
 }
 
 function hasValidImageSignature(type: string, bytes: Uint8Array) {
@@ -1255,7 +1260,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
   });
   const filteredSubmissions = submissions.filter((submission) => {
     const matchesStatus = submissionStatusFilter === "all" || submission.status === submissionStatusFilter;
-    const contributorName = submission.profiles?.[0]?.full_name ?? "";
+    const contributorName = submissionContributorName(submission);
     const categoryName = allWorkCategories.find((category) => category.slug === submission.category_slug)?.name ?? "";
     const searchText = `${submission.title} ${submission.description} ${contributorName} ${categoryName}`.toLocaleLowerCase("id-ID");
     return matchesStatus && (!submissionQuery.trim() || searchText.includes(submissionQuery.trim().toLocaleLowerCase("id-ID")));
@@ -1813,7 +1818,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               {item.content_type === "video" && <><label htmlFor={`edit_youtube_url_${item.id}`}>Tautan YouTube</label><input id={`edit_youtube_url_${item.id}`} name="edit_youtube_url" type="url" defaultValue={item.youtube_url ?? ""} required /></>}
               {!verifierRole && item.content_type === "ebook" && <><label htmlFor={`edit_document_${item.id}`}>Ganti file PDF (opsional)</label><input id={`edit_document_${item.id}`} name="edit_document" type="file" accept="application/pdf,.pdf" /></>}
               <div className="review-actions"><button type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan perubahan"}</button><button type="button" onClick={() => setEditingId(null)}>Batal</button></div>
-            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by"><Icon name="user" size={15} /><span>Diajukan oleh</span><Link href={`/kontributor/${item.profile_id}`}>{item.profiles?.[0]?.full_name ?? "Tidak diketahui"}</Link></span>}{item.content_type === "video" && item.youtube_url && youtubeId(item.youtube_url) && <a className="admin-video-link" href={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} target="_blank" rel="noreferrer"><Icon name="video" size={18} /><span><strong>Tinjau video</strong><small>Buka pemutar video di tab baru</small></span><span className="admin-document-open">Putar video <Icon name="arrow" size={14} /></span></a>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && <div className="review-actions admin-post-actions">{item.status === "pending" && <><button type="button" onClick={() => setEditingId(item.id)} disabled={busy}><Icon name="file" size={15} /> Edit pengajuan</button><button type="button" onClick={() => reviewSubmission(item.id, "approved")} disabled={busy}><Icon name="check" size={15} /> Setujui</button><button type="button" onClick={() => reviewSubmission(item.id, "rejected")} disabled={busy}>Minta revisi</button></> }<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
+            </form> : <><SubmissionThumbnail id={item.id} title={item.title} contentType={item.content_type} categorySlug={item.category_slug} youtubeUrl={item.youtube_url} thumbnailPath={item.thumbnail_path} accessToken={session?.access_token} className="submission-list-thumbnail" /><div className="submission-kind">{item.content_type === "ebook" ? <Icon name="book" size={15} /> : <Icon name="video" size={15} />}{item.content_type === "ebook" ? "PDF" : "VIDEO"}<CategoryLabel className="submission-category" categorySlug={item.category_slug} /></div><h4>{item.title}</h4><p className="submission-description">{item.description}</p></>}{(adminRole || verifierRole) && <span className="submitted-by"><Icon name="user" size={15} /><span>Diajukan oleh</span><Link href={`/kontributor/${item.profile_id}`}>{submissionContributorName(item)}</Link></span>}{item.content_type === "video" && item.youtube_url && youtubeId(item.youtube_url) && <a className="admin-video-link" href={`https://www.youtube-nocookie.com/embed/${youtubeId(item.youtube_url)}`} target="_blank" rel="noreferrer"><Icon name="video" size={18} /><span><strong>Tinjau video</strong><small>Buka pemutar video di tab baru</small></span><span className="admin-document-open">Putar video <Icon name="arrow" size={14} /></span></a>}{item.document_path && <DocumentPreview path={item.document_path} title={item.title} />}{item.feedback && <p className="review-feedback">{item.feedback}</p>}{verifierRole && <div className="review-actions admin-post-actions">{item.status === "pending" && <><button type="button" onClick={() => setEditingId(item.id)} disabled={busy}><Icon name="file" size={15} /> Edit pengajuan</button><button type="button" onClick={() => reviewSubmission(item.id, "approved")} disabled={busy}><Icon name="check" size={15} /> Setujui</button><button type="button" onClick={() => reviewSubmission(item.id, "rejected")} disabled={busy}>Minta revisi</button></> }<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}{adminRole && <div className="review-actions admin-post-actions">{editingId !== item.id && <button type="button" onClick={() => setEditingId(item.id)}>Edit postingan</button>}{item.status === "approved" && <button type="button" onClick={() => togglePublished(item)} disabled={busy}>{item.is_published ? "Tarik dari beranda" : "Terbitkan di beranda"}</button>}<button type="button" onClick={() => deleteSubmission(item)} disabled={busy}>Hapus postingan</button></div>}</article>)}</div>}
           </div>}
         </div>}
       </section>
