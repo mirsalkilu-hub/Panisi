@@ -3960,16 +3960,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .verifier-posts-panel .submitted-by {
   align-items: center;
-  color: #54708c;
+  background: #f2f7fc;
+  border: 1px solid #e0eaf4;
+  border-radius: 9px;
+  color: #3f5e7b;
   display: flex;
-  font-size: 11px;
-  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 7px;
   grid-area: byline;
   min-width: 0;
+  padding: 8px 10px;
 }
-.verifier-posts-panel .submitted-by > svg { color: #6f91b3; flex: 0 0 auto; }
-.verifier-posts-panel .submitted-by > span { color: #7b8fa4; }
-.verifier-posts-panel .submitted-by > a { color: #2d5e8b; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verifier-posts-panel .submitted-by > svg { color: #4779aa; flex: 0 0 auto; }
+.verifier-posts-panel .submitted-by > span { color: #70869d; font-size: 10px; font-weight: 650; }
+.verifier-posts-panel .submitted-by > a { color: #245987; font-size: 12px; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .verifier-posts-panel .submitted-by > a:hover { text-decoration: underline; }
 .verifier-posts-panel .review-feedback { -webkit-line-clamp: unset; padding: 11px 13px; }
 .verifier-posts-panel .review-actions { align-self: center; flex-direction: column; grid-area: actions; }
