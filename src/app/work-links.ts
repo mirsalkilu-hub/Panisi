@@ -11,6 +11,6 @@ export function workHref(id: string, title: string) {
   return `/karya/${encodeURIComponent(id)}/${workSlug(title)}`;
 }
 
-export function workShareHref(id: string) {
-  return `/karya/${encodeURIComponent(id)}`;
+export function workShareHref(title: string) {
+  return `/karya/${encodeURIComponent(title)}`;
 }

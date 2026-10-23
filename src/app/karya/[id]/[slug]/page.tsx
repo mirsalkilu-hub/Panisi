@@ -54,6 +54,37 @@ async function getWork(id: string) {
   return { ...data, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
 }
 
+async function getWorkByTitle(title: string) {
+  if (!title || title.length > 500) return null;
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("verified_submissions")
+    .select("id, title, description, content_type, category_slug, youtube_url, thumbnail_path, created_at, full_name, profile_id")
+    .eq("title", title)
+    .limit(2);
+  if (error) throw new Error(`Karya tidak dapat dimuat: ${error.message}`);
+  if (data?.length !== 1) return null;
+  const work = data[0] as WorkRow;
+  const { data: contributor, error: contributorError } = await supabase
+    .from("contributor_public_profiles")
+    .select("profile_photo_path")
+    .eq("id", work.profile_id)
+    .maybeSingle();
+  if (contributorError) throw new Error(`Foto profil kontributor tidak dapat dimuat: ${contributorError.message}`);
+  return { ...work, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
+}
+
+async function getWorkFromRouteSegment(segment: string) {
+  const exactTitleMatch = await getWorkByTitle(segment);
+  if (exactTitleMatch) return exactTitleMatch;
+  try {
+    const decodedSegment = decodeURIComponent(segment);
+    return decodedSegment === segment ? null : getWorkByTitle(decodedSegment);
+  } catch {
+    return null;
+  }
+}
+
 async function getWorkBySlugs(contributorSlug: string, titleSlug: string) {
   if (!/^[a-z0-9-]+$/.test(contributorSlug) || !/^[a-z0-9-]+$/.test(titleSlug)) return null;
   const supabase = getSupabase();
@@ -85,11 +116,11 @@ async function getWorkBySlugs(contributorSlug: string, titleSlug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug?: string }> }): Promise<Metadata> {
   const { id, slug } = await params;
-  const work = await getWork(id) ?? await getWorkBySlugs(id, slug ?? "");
+  const work = await getWork(id) ?? await getWorkFromRouteSegment(id) ?? await getWorkBySlugs(id, slug ?? "");
   if (!work) return { title: "Karya tidak ditemukan | PINISI" };
 
   const baseUrl = await getPublicSiteBaseUrl();
-  const canonicalUrl = new URL(workShareHref(work.id), baseUrl);
+  const canonicalUrl = new URL(workShareHref(work.title), baseUrl);
   const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
   const thumbnailPath = work.thumbnail_path
     ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
@@ -147,9 +178,18 @@ async function getPublicSiteBaseUrl() {
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ id: string; slug?: string }> }) {
   const { id, slug } = await params;
-  const work = await getWork(id) ?? await getWorkBySlugs(id, slug ?? "");
+  const work = await getWork(id) ?? await getWorkFromRouteSegment(id) ?? await getWorkBySlugs(id, slug ?? "");
   if (!work) notFound();
-  if (slug || id !== work.id) redirect(workShareHref(work.id));
+  const isLegacyId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  let routeTitle = id;
+  try {
+    routeTitle = decodeURIComponent(id);
+  } catch {
+    routeTitle = id;
+  }
+  if (slug || (isLegacyId && id !== work.id) || (!isLegacyId && routeTitle !== work.title)) {
+    redirect(workShareHref(work.title));
+  }
   const category = allWorkCategories.find((item) => item.slug === work.category_slug);
   const publishedDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(work.created_at));
   const publishedYear = new Intl.DateTimeFormat("id-ID", { year: "numeric" }).format(new Date(work.created_at));
@@ -165,7 +205,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Kontributor"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
           <p className="work-detail-byline">Dibagikan oleh <Link href={`/kontributor/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
-          <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} shareHref={workShareHref(work.id)} />
+          <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} shareHref={workShareHref(work.title)} />
         </header>
         <div className="work-detail-layout">
           <section className="work-detail-content" aria-label="Isi karya">
