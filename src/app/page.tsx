@@ -252,7 +252,9 @@ function youtubeId(url: string) {
 }
 
 function submissionShareImageUrl(submission: { id: string; thumbnail_path?: string | null; youtube_url?: string | null }) {
-  if (submission.thumbnail_path) return `/api/submissions/${encodeURIComponent(submission.id)}/thumbnail`;
+  if (submission.thumbnail_path) {
+    return `/api/submissions/${encodeURIComponent(submission.id)}/thumbnail?v=${encodeURIComponent(submission.thumbnail_path)}`;
+  }
   const videoId = submission.youtube_url ? youtubeId(submission.youtube_url) : null;
   return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "/panisi-home-banner.jpg";
 }

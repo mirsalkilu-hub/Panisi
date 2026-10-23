@@ -11,7 +11,14 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl }: { ti
   const [shareImageStatus, setShareImageStatus] = useState<"idle" | "loading" | "ready" | "unavailable">("idle");
 
   function getShareUrl() {
-    return new URL(href, window.location.origin).toString();
+    const shareUrl = new URL(href, window.location.origin);
+    const previewImageUrl = imageUrl ?? document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
+    if (previewImageUrl) {
+      const preview = new URL(previewImageUrl, window.location.origin);
+      const version = preview.searchParams.get("v") ?? preview.pathname;
+      shareUrl.searchParams.set("preview", version);
+    }
+    return shareUrl.toString();
   }
 
   function prepareShareImage() {
