@@ -14,3 +14,7 @@ export function workHref(id: string, title: string) {
 export function workShareHref(title: string) {
   return `/karya/${encodeURIComponent(title)}`;
 }
+
+export function contributorShareHref(fullName: string) {
+  return `/kontributor/${encodeURIComponent(fullName)}`;
+}

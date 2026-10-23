@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { allWorkCategories, legacyWorkCategories, workCategories, type ContentType, type WorkCategorySlug } from "./work-categories";
-import { workHref, workShareHref } from "./work-links";
+import { contributorShareHref, workHref, workShareHref } from "./work-links";
 import { SubmissionThumbnail } from "./submission-thumbnail";
 import { WorkSocialShare } from "./work-share-actions";
 import { CategoryIcon } from "./category-icon";
@@ -1524,7 +1524,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
                 <p className="contributor-profile-bio">{selectedContributor.widyaiswara_experience || "Berbagi pengalaman, pengetahuan, dan karya untuk pembelajaran yang lebih bermakna."}</p>
                 <div className="contributor-profile-work-count"><Icon name="book" size={17} /><span><strong>{contributorWorks.length}</strong> Karya Terbit</span></div>
                 <div className="contributor-profile-share">
-                  <WorkSocialShare title={`Profil ${selectedContributor.full_name} | PINISI`} href={`/kontributor/${selectedContributor.id}`} imageUrl={profileShareImageUrl(selectedContributor.profile_photo_path)} />
+                  <WorkSocialShare title={`Profil ${selectedContributor.full_name} | PINISI`} href={`/kontributor/${selectedContributor.id}`} shareHref={contributorShareHref(selectedContributor.full_name)} imageUrl={profileShareImageUrl(selectedContributor.profile_photo_path)} />
                 </div>
               </div>
             </article>
@@ -1579,7 +1579,7 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
               </div>
               {hasAdditionalExperience && <p className="directory-bio">{experience}</p>}
             </Link>
-            <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} imageUrl={profileShareImageUrl(contributor.profile_photo_path)} compact /></div>
+            <div className="contributor-directory-card-actions"><Link className="directory-action" href={`/kontributor/${contributor.id}`}>Lihat Profil &amp; Karya <Icon name="arrow" size={15} /></Link><WorkSocialShare title={`Profil ${contributor.full_name} | PINISI`} href={`/kontributor/${contributor.id}`} shareHref={contributorShareHref(contributor.full_name)} imageUrl={profileShareImageUrl(contributor.profile_photo_path)} compact /></div>
           </article>;
           })}</div>
           : publicContributors.length > 0 ? <div className="contributor-search-empty"><Icon name="search" size={21} /><p>Tidak ada kontributor yang cocok dengan pencarian.</p><button type="button" onClick={() => setContributorQuery("")}>Hapus pencarian</button></div>

@@ -8,18 +8,27 @@ type ContributorPageProps = {
   params: Promise<{ id: string }>;
 };
 
-async function getContributor(id: string) {
+type ContributorRecord = {
+  id: string;
+  full_name: string;
+  job_title: string | null;
+  area_of_expertise: string | null;
+  profile_photo_path: string | null;
+};
+
+async function getContributor(segment: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error("Konfigurasi Supabase belum tersedia.");
   const supabase = createClient(url, key);
+  const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(segment);
   const { data, error } = await supabase
     .from("contributor_public_profiles")
     .select("id, full_name, job_title, area_of_expertise, profile_photo_path")
-    .eq("id", id)
-    .maybeSingle();
+    .eq(isId ? "id" : "full_name", segment)
+    .limit(2);
   if (error) throw new Error(`Profil kontributor tidak dapat dimuat: ${error.message}`);
-  return data;
+  return data?.length === 1 ? data[0] as ContributorRecord : null;
 }
 
 async function getPublicSiteBaseUrl() {
@@ -36,14 +45,11 @@ async function getPublicSiteBaseUrl() {
 
 export async function generateMetadata({ params }: ContributorPageProps): Promise<Metadata> {
   const { id } = await params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
-    return { title: "Kontributor tidak ditemukan | PINISI" };
-  }
   const contributor = await getContributor(id);
   if (!contributor) return { title: "Kontributor tidak ditemukan | PINISI" };
 
   const baseUrl = await getPublicSiteBaseUrl();
-  const canonicalUrl = new URL(`/kontributor/${encodeURIComponent(id)}`, baseUrl);
+  const canonicalUrl = new URL(`/kontributor/${encodeURIComponent(contributor.full_name)}`, baseUrl);
   const imageUrl = contributor.profile_photo_path
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
       .storage.from("profile-photos").getPublicUrl(contributor.profile_photo_path).data.publicUrl
@@ -75,8 +81,7 @@ export async function generateMetadata({ params }: ContributorPageProps): Promis
 
 export default async function ContributorPage({ params }: ContributorPageProps) {
   const { id } = await params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
-    notFound();
-  }
-  return <Home activePage="widyaiswara" selectedContributorId={id} />;
+  const contributor = await getContributor(id);
+  if (!contributor) notFound();
+  return <Home activePage="widyaiswara" selectedContributorId={contributor.id} />;
 }
