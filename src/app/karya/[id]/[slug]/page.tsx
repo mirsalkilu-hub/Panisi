@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: work.title,
       description: work.description,
       url: canonicalUrl,
-      images: [{ url: shareImageUrl, alt: work.title, type: thumbnailType }],
+      images: [{ url: shareImageUrl, secureUrl: shareImageUrl, alt: work.title, type: thumbnailType }],
     },
     twitter: {
       card: "summary_large_image",
