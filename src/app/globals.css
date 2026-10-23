@@ -154,7 +154,7 @@ button { color: inherit; }
 .work-social-share > summary svg { height: 16px; width: 16px; }
 .work-social-share-compact > summary { height: 30px; justify-content: center; padding: 6px; width: 30px; }
 .work-social-backdrop { display: none; }
-.work-social-menu { background: linear-gradient(145deg,#fff,#f7fafd); border: 1px solid #dbe6f0; border-radius: 13px; box-shadow: 0 16px 38px rgba(26,61,94,.2); display: grid; gap: 12px; padding: 15px; position: absolute; right: 0; top: calc(100% + 8px); width: min(420px,calc(100vw - 30px)); z-index: 50; }
+.work-social-menu { background: linear-gradient(145deg,#fff,#f7fafd); border: 1px solid #dbe6f0; border-radius: 13px; box-shadow: 0 16px 38px rgba(26,61,94,.2); display: grid; gap: 12px; left: 50%; max-height: calc(100dvh - 48px); overflow-y: auto; padding: 15px; position: fixed; right: auto; top: 50%; transform: translate(-50%,-50%); width: min(560px,calc(100vw - 48px)); z-index: 50; }
 .work-social-menu-heading { color: #294968; font-size: 13px; font-weight: 700; }
 .work-social-preview { align-items: center; background: #eef4f8; border: 1px solid #e0e9f0; border-radius: 9px; display: flex; gap: 10px; min-width: 0; padding: 9px; }
 .work-social-preview-icon { align-items: center; background: #fff; border: 1px solid #dce6ee; border-radius: 7px; color: #3979ad; display: flex; flex: 0 0 36px; height: 36px; justify-content: center; }
@@ -179,9 +179,8 @@ button { color: inherit; }
 .work-social-option-email svg { color: #c84c4c; }
 .work-social-feedback { background: #edf7f0; border: 1px solid #d4eadb; border-radius: 7px; color: #286448; display: block; font-size: 10px; line-height: 1.45; margin-top: 6px; max-width: min(420px,calc(100vw - 30px)); padding: 7px 9px; }
 .work-social-share[open] .work-social-backdrop { background: rgba(16,31,48,.42); display: block; inset: 0; position: fixed; z-index: 40; }
-.work-social-share[open] .work-social-menu { border-radius: 14px; left: 50%; max-height: calc(100dvh - 48px); overflow-y: auto; position: fixed; right: auto; top: 50%; transform: translate(-50%,-50%); width: min(560px,calc(100vw - 48px)); z-index: 50; }
 .work-social-share[open] .work-social-options { grid-template-columns: repeat(5,minmax(0,1fr)); }
-.lesson-card:has(.work-social-share[open]), .contributor-directory-page .contributor-directory-card:has(.work-social-share[open]) { position: relative; transform: none; z-index: 1000; }
+.lesson-card:has(.work-social-share[open]), .contributor-directory-page .contributor-directory-card:has(.work-social-share[open]) { position: relative; transform: none; transition: none; z-index: 1000; }
 .contributor-profile-share { margin-top: 16px; }
 .contributor-profile-share .work-social-share > summary { background: #fff; }
 .author-avatar { align-items: center; background: #dce5d5; border-radius: 50%; color: #4d694e; display: flex; font-size: 9px; height: 25px; justify-content: center; width: 25px; }
