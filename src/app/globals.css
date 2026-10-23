@@ -3932,12 +3932,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .verifier-posts-panel .submission-list-thumbnail {
   align-self: start;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   grid-row: 1 / 6;
   height: auto;
   min-height: 0;
   width: 100%;
 }
+.verifier-posts-panel .submission-list-thumbnail:has(.submission-thumbnail-image) .submission-thumbnail-copy,
+.verifier-posts-panel .submission-list-thumbnail:has(.submission-thumbnail-image) .submission-thumbnail-overlay { display: none; }
+.verifier-posts-panel .submission-list-thumbnail:has(.submission-thumbnail-image) .submission-thumbnail-mark {
+  background: rgba(18,44,72,.8);
+  border-color: rgba(255,255,255,.7);
+  color: #fff;
+  height: 36px;
+  margin: 0 10px 10px 0;
+  width: 36px;
+}
+.verifier-posts-panel .submission-list-thumbnail:has(.submission-thumbnail-image) .submission-thumbnail-mark svg { height: 18px; width: 18px; }
 .verifier-posts-panel .submission-top .status { align-self: center; grid-area: status; }
 .verifier-posts-panel .submission-top time { grid-area: date; justify-self: end; }
 .verifier-posts-panel .submission-item h4 { align-self: end; font-size: 16px; grid-area: title; }
@@ -3947,7 +3958,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   grid-area: description;
   line-height: 1.6;
 }
-.verifier-posts-panel .submitted-by { grid-area: byline; }
+.verifier-posts-panel .submitted-by {
+  align-items: center;
+  color: #54708c;
+  display: flex;
+  font-size: 11px;
+  gap: 6px;
+  grid-area: byline;
+  min-width: 0;
+}
+.verifier-posts-panel .submitted-by > svg { color: #6f91b3; flex: 0 0 auto; }
+.verifier-posts-panel .submitted-by > span { color: #7b8fa4; }
+.verifier-posts-panel .submitted-by > a { color: #2d5e8b; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verifier-posts-panel .submitted-by > a:hover { text-decoration: underline; }
 .verifier-posts-panel .review-feedback { -webkit-line-clamp: unset; padding: 11px 13px; }
 .verifier-posts-panel .review-actions { align-self: center; flex-direction: column; grid-area: actions; }
 .verifier-posts-panel .review-actions button { justify-content: center; min-width: 140px; }
