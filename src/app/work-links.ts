@@ -16,5 +16,5 @@ export function workShareHref(title: string) {
 }
 
 export function contributorShareHref(fullName: string) {
-  return `/kontributor/${encodeURIComponent(fullName)}`;
+  return `/kontributor/${workSlug(fullName)}`;
 }
