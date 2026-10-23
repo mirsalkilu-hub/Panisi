@@ -4,21 +4,14 @@ import { MouseEvent, useRef, useState } from "react";
 
 type SocialNetwork = "whatsapp" | "instagram" | "facebook" | "x" | "linkedin" | "telegram" | "email";
 
-export function WorkSocialShare({ title, href, compact = false, imageUrl, citation }: { title: string; href: string; compact?: boolean; imageUrl?: string; citation?: string }) {
+export function WorkSocialShare({ title, href, compact = false, imageUrl, citation, shareHref }: { title: string; href: string; compact?: boolean; imageUrl?: string; citation?: string; shareHref?: string }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const [feedback, setFeedback] = useState("");
   const [shareImage, setShareImage] = useState<File | null>(null);
   const [shareImageStatus, setShareImageStatus] = useState<"idle" | "loading" | "ready" | "unavailable">("idle");
 
   function getShareUrl() {
-    const shareUrl = new URL(href, window.location.origin);
-    const previewImageUrl = imageUrl ?? document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
-    if (previewImageUrl) {
-      const preview = new URL(previewImageUrl, window.location.origin);
-      const version = preview.searchParams.get("v") ?? preview.pathname;
-      shareUrl.searchParams.set("preview", version);
-    }
-    return shareUrl.toString();
+    return new URL(shareHref ?? href, window.location.origin).toString();
   }
 
   function prepareShareImage() {
@@ -159,7 +152,7 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
           <span className="work-social-preview-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.71-1.71" /></svg>
           </span>
-          <span className="work-social-preview-text"><strong>{title}</strong><span>{href}</span></span>
+          <span className="work-social-preview-text"><strong>{title}</strong><span>{shareHref ?? href}</span></span>
           <button className="work-social-copy" type="button" aria-label="Salin tautan" title="Salin tautan" onClick={(event) => void shareTo(event, "copy")}>
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>
           </button>
@@ -208,6 +201,6 @@ function SocialIcon({ network }: { network: SocialNetwork | "copy" }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>;
 }
 
-export function WorkShareActions({ title, citation, href }: { title: string; citation: string; href: string }) {
-  return <div className="work-share-actions"><WorkSocialShare title={title} citation={citation} href={href} /></div>;
+export function WorkShareActions({ title, citation, href, shareHref }: { title: string; citation: string; href: string; shareHref: string }) {
+  return <div className="work-share-actions"><WorkSocialShare title={title} citation={citation} href={href} shareHref={shareHref} /></div>;
 }

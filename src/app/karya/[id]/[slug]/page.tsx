@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
-import { workHref, workSlug } from "../../../work-links";
+import { workHref, workShareHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
 import { WorkShareActions } from "../../../work-share-actions";
 import { WorkDetailHeader } from "../../../work-detail-header";
@@ -25,6 +25,8 @@ type WorkRecord = {
   profile_id: string;
   profile_photo_path: string | null;
 };
+
+type WorkRow = Omit<WorkRecord, "profile_photo_path">;
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52,13 +54,42 @@ async function getWork(id: string) {
   return { ...data, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  const work = await getWork(id);
+async function getWorkBySlugs(contributorSlug: string, titleSlug: string) {
+  if (!/^[a-z0-9-]+$/.test(contributorSlug) || !/^[a-z0-9-]+$/.test(titleSlug)) return null;
+  const supabase = getSupabase();
+  const { data: contributors, error: contributorsError } = await supabase
+    .from("contributor_public_profiles")
+    .select("id, full_name");
+  if (contributorsError) throw new Error(`Daftar kontributor tidak dapat dimuat: ${contributorsError.message}`);
+  const matchingProfiles = (contributors ?? []).filter((profile) => workSlug(profile.full_name) === contributorSlug);
+  if (matchingProfiles.length === 0) return null;
+
+  const { data: works, error: worksError } = await supabase
+    .from("verified_submissions")
+    .select("id, title, description, content_type, category_slug, youtube_url, thumbnail_path, created_at, full_name, profile_id")
+    .in("profile_id", matchingProfiles.map((profile) => profile.id));
+  if (worksError) throw new Error(`Karya tidak dapat dimuat: ${worksError.message}`);
+  const matches = (works ?? []).filter((work) =>
+    workSlug(work.full_name) === contributorSlug && workSlug(work.title) === titleSlug);
+  if (matches.length !== 1) return null;
+
+  const work = matches[0] as WorkRow;
+  const { data: contributor, error: contributorError } = await supabase
+    .from("contributor_public_profiles")
+    .select("profile_photo_path")
+    .eq("id", work.profile_id)
+    .maybeSingle();
+  if (contributorError) throw new Error(`Foto profil kontributor tidak dapat dimuat: ${contributorError.message}`);
+  return { ...work, profile_photo_path: contributor?.profile_photo_path ?? null } as WorkRecord;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string; slug?: string }> }): Promise<Metadata> {
+  const { id, slug } = await params;
+  const work = await getWork(id) ?? await getWorkBySlugs(id, slug ?? "");
   if (!work) return { title: "Karya tidak ditemukan | PINISI" };
 
   const baseUrl = await getPublicSiteBaseUrl();
-  const canonicalUrl = new URL(workHref(work.id, work.title), baseUrl);
+  const canonicalUrl = new URL(workShareHref(work.id), baseUrl);
   const videoId = work.youtube_url ? getYoutubeId(work.youtube_url) : null;
   const thumbnailPath = work.thumbnail_path
     ? `/api/submissions/${encodeURIComponent(work.id)}/thumbnail`
@@ -114,11 +145,11 @@ async function getPublicSiteBaseUrl() {
   return new URL(`${protocol}://${host}`);
 }
 
-export default async function WorkDetailPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
+export default async function WorkDetailPage({ params }: { params: Promise<{ id: string; slug?: string }> }) {
   const { id, slug } = await params;
-  const work = await getWork(id);
+  const work = await getWork(id) ?? await getWorkBySlugs(id, slug ?? "");
   if (!work) notFound();
-  if (slug !== workSlug(work.title)) redirect(workHref(work.id, work.title));
+  if (slug || id !== work.id) redirect(workShareHref(work.id));
   const category = allWorkCategories.find((item) => item.slug === work.category_slug);
   const publishedDate = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(work.created_at));
   const publishedYear = new Intl.DateTimeFormat("id-ID", { year: "numeric" }).format(new Date(work.created_at));
@@ -134,7 +165,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
           <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Kontributor"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
           <p className="work-detail-byline">Dibagikan oleh <Link href={`/kontributor/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
-          <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} />
+          <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} shareHref={workShareHref(work.id)} />
         </header>
         <div className="work-detail-layout">
           <section className="work-detail-content" aria-label="Isi karya">
