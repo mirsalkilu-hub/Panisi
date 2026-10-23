@@ -10,7 +10,7 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` di `.env.local` dari **Supabase Project Settings → API** sebelum menggunakan fitur autentikasi dan Profil. Isi juga `SUPABASE_SERVICE_ROLE_KEY` untuk endpoint pembuatan akun admin serta pemberian akses aman ke e-book dan thumbnail karya yang telah diverifikasi. Kunci ini hanya digunakan di server dan jangan pernah menaruhnya di variabel `NEXT_PUBLIC_*` atau mengirimkannya ke browser.
+Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY` di `.env.local` dari **Supabase Project Settings → API** sebelum menggunakan fitur autentikasi dan Profil. Atur `NEXT_PUBLIC_SITE_URL` ke domain publik aplikasi agar tautan karya dan gambar pratinjau media sosial menggunakan domain produksi yang stabil; jika tidak diatur, aplikasi menggunakan host dari permintaan. Isi juga `SUPABASE_SERVICE_ROLE_KEY` untuk endpoint pembuatan akun admin serta pemberian akses aman ke e-book dan thumbnail karya yang telah diverifikasi. Kunci ini hanya digunakan di server dan jangan pernah menaruhnya di variabel `NEXT_PUBLIC_*` atau mengirimkannya ke browser.
 
 ## Asisten AI
 

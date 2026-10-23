@@ -102,7 +102,7 @@ function getThumbnailMimeType(path: string) {
 }
 
 async function getPublicSiteBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_URL;
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (configuredUrl) return new URL(/^https?:\/\//i.test(configuredUrl) ? configuredUrl : `https://${configuredUrl}`);
 
   const requestHeaders = await headers();
