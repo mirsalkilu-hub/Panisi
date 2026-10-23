@@ -7,8 +7,8 @@ export function workSlug(title: string) {
     .replace(/^-|-$/g, "") || "karya";
 }
 
-export function workHref(id: string, title: string) {
-  return `/karya/${encodeURIComponent(id)}/${workSlug(title)}`;
+export function workHref(_id: string, title: string) {
+  return `/karya/${encodeURIComponent(title)}`;
 }
 
 export function workShareHref(title: string) {

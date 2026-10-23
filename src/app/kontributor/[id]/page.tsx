@@ -1,8 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Home } from "../../page";
+import { contributorShareHref } from "../../work-links";
 
 type ContributorPageProps = {
   params: Promise<{ id: string }>;
@@ -83,5 +84,9 @@ export default async function ContributorPage({ params }: ContributorPageProps) 
   const { id } = await params;
   const contributor = await getContributor(id);
   if (!contributor) notFound();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    const namedContributor = await getContributor(contributor.full_name);
+    if (namedContributor?.id === contributor.id) redirect(contributorShareHref(contributor.full_name));
+  }
   return <Home activePage="widyaiswara" selectedContributorId={contributor.id} />;
 }

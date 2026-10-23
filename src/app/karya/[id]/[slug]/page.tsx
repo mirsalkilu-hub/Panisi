@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { allWorkCategories, type WorkCategorySlug } from "../../../work-categories";
-import { workHref, workShareHref, workSlug } from "../../../work-links";
+import { contributorShareHref, workHref, workShareHref, workSlug } from "../../../work-links";
 import { PdfBookReader } from "../../../pdf-book-reader";
 import { WorkShareActions } from "../../../work-share-actions";
 import { WorkDetailHeader } from "../../../work-detail-header";
@@ -187,7 +187,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   } catch {
     routeTitle = id;
   }
-  if (slug || (isLegacyId && id !== work.id) || (!isLegacyId && routeTitle !== work.title)) {
+  if (slug || isLegacyId || (!isLegacyId && routeTitle !== work.title)) {
     redirect(workShareHref(work.title));
   }
   const category = allWorkCategories.find((item) => item.slug === work.category_slug);
@@ -204,7 +204,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <header className="work-detail-heading">
           <div className="work-detail-tags"><span>{category && <CategoryIcon categorySlug={work.category_slug} size={13} />}{category?.name ?? "Karya Kontributor"}</span><span>{work.content_type === "ebook" ? "PDF" : "Tautan YouTube"}</span><span><span aria-hidden="true">✓</span> Terverifikasi</span></div>
           <h1>{work.title}</h1>
-          <p className="work-detail-byline">Dibagikan oleh <Link href={`/kontributor/${work.profile_id}`}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
+          <p className="work-detail-byline">Dibagikan oleh <Link href={contributorShareHref(work.full_name)}>{work.full_name}</Link><span>·</span><time dateTime={work.created_at}>{publishedDate}</time></p>
           <WorkShareActions title={work.title} citation={citation} href={workHref(work.id, work.title)} shareHref={workShareHref(work.title)} />
         </header>
         <div className="work-detail-layout">
@@ -225,7 +225,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
                 ? <Image src={getSupabase().storage.from("profile-photos").getPublicUrl(work.profile_photo_path).data.publicUrl} alt={`Foto profil ${work.full_name}`} width={58} height={58} unoptimized />
                 : work.full_name.slice(0, 1).toLocaleUpperCase("id-ID")}</div>
               <h2>{work.full_name}</h2>
-              <Link className="button button-outline" href={`/kontributor/${work.profile_id}`}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
+              <Link className="button button-outline" href={contributorShareHref(work.full_name)}>Lihat profil kontributor <span aria-hidden="true">→</span></Link>
             </section>
             <section className="work-detail-sidebar-section work-detail-metadata">
               <span className="eyebrow">INFORMASI KARYA</span>
