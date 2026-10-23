@@ -48,7 +48,7 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
       });
   }
 
-  async function shareTo(event: MouseEvent<HTMLButtonElement>, network: SocialNetwork | "native" | "copy") {
+  async function shareTo(event: MouseEvent<HTMLButtonElement>, network: SocialNetwork | "copy") {
     const button = event.currentTarget;
     menuRef.current?.removeAttribute("open");
     button.blur();
@@ -57,20 +57,6 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
 
     if (network === "instagram") {
       await shareToInstagram(url);
-    } else if (network === "native") {
-      if (navigator.share) {
-        try {
-          await navigator.share({ title, text: title, url });
-          setFeedback("");
-        } catch (error) {
-          if (error instanceof DOMException && error.name === "AbortError") return;
-          setFeedback(error instanceof Error
-            ? `Tidak dapat membuka menu berbagi: ${error.message}`
-            : "Tidak dapat membuka menu berbagi.");
-        }
-      } else {
-        await copyLink(url, "Tautan berhasil disalin.");
-      }
     } else if (network === "copy") {
       await copyLink(url, "Tautan berhasil disalin.");
     } else {
@@ -154,7 +140,15 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
         if (event.currentTarget.open) prepareShareImage();
       }}
     >
-      <summary aria-label={`Bagikan ${title} ke media sosial`} title="Bagikan ke media sosial">
+      <summary
+        aria-label={`Bagikan ${title} ke media sosial`}
+        title="Bagikan ke media sosial"
+        onClick={() => {
+          document.querySelectorAll<HTMLDetailsElement>(".work-social-share[open]").forEach((openMenu) => {
+            if (openMenu !== menuRef.current) openMenu.removeAttribute("open");
+          });
+        }}
+      >
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4" /></svg>
         {!compact && <span>Bagikan</span>}
       </summary>
@@ -171,10 +165,6 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
           </button>
         </div>
         <div className="work-social-options">
-          <button className="work-social-option work-social-option-native" type="button" onClick={(event) => void shareTo(event, "native")}>
-            <SocialIcon network="native" />
-            <span>Bagikan lainnya</span>
-          </button>
           {(["whatsapp", "instagram", "facebook", "x", "linkedin", "telegram", "email"] as const).map((network) => (
           <button
             className={`work-social-option work-social-option-${network}`}
@@ -201,10 +191,7 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl, citati
   );
 }
 
-function SocialIcon({ network }: { network: SocialNetwork | "native" | "copy" }) {
-  if (network === "native") {
-    return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V3m0 0L7 8m5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>;
-  }
+function SocialIcon({ network }: { network: SocialNetwork | "copy" }) {
   if (network === "copy") {
     return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>;
   }
