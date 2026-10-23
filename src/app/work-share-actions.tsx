@@ -4,7 +4,7 @@ import { MouseEvent, useRef, useState } from "react";
 
 type SocialNetwork = "whatsapp" | "instagram" | "facebook" | "x" | "linkedin" | "telegram" | "email";
 
-export function WorkSocialShare({ title, href, compact = false, imageUrl }: { title: string; href: string; compact?: boolean; imageUrl?: string }) {
+export function WorkSocialShare({ title, href, compact = false, imageUrl, citation }: { title: string; href: string; compact?: boolean; imageUrl?: string; citation?: string }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const [feedback, setFeedback] = useState("");
   const [shareImage, setShareImage] = useState<File | null>(null);
@@ -134,6 +134,18 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl }: { ti
     }
   }
 
+  async function copyCitation() {
+    if (!citation) return;
+    try {
+      await navigator.clipboard.writeText(`${citation} ${getShareUrl()}`);
+      setFeedback("Sitasi berhasil disalin.");
+    } catch (error) {
+      setFeedback(error instanceof Error
+        ? `Tidak dapat menyalin sitasi: ${error.message}`
+        : "Tidak dapat menyalin sitasi.");
+    }
+  }
+
   return (
     <details
       className={`work-social-share${compact ? " work-social-share-compact" : ""}`}
@@ -174,6 +186,14 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl }: { ti
             <span>{network === "whatsapp" ? "WhatsApp" : network === "instagram" ? "Instagram" : network === "facebook" ? "Facebook" : network === "x" ? "X" : network === "linkedin" ? "LinkedIn" : network === "telegram" ? "Telegram" : "Email"}</span>
           </button>
           ))}
+          {citation && <button
+            className="work-social-option work-social-option-citation"
+            type="button"
+            onClick={() => void copyCitation()}
+          >
+            <SocialIcon network="copy" />
+            <span>Salin sitasi</span>
+          </button>}
         </div>
       </div>
       {feedback && <span className="work-social-feedback" role="status">{feedback}</span>}
@@ -181,9 +201,12 @@ export function WorkSocialShare({ title, href, compact = false, imageUrl }: { ti
   );
 }
 
-function SocialIcon({ network }: { network: SocialNetwork | "native" }) {
+function SocialIcon({ network }: { network: SocialNetwork | "native" | "copy" }) {
   if (network === "native") {
     return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 16V3m0 0L7 8m5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>;
+  }
+  if (network === "copy") {
+    return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>;
   }
   if (network === "whatsapp") {
     return <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.85 9.85 0 0 0-8.45 14.92L2.2 22l5.23-1.37A9.96 9.96 0 1 0 12.04 2Zm0 18.1a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.1.81.83-3.02-.2-.31a8.12 8.12 0 1 1 6.9 3.83Zm4.45-6.08c-.24-.12-1.43-.71-1.65-.79-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.4h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.31.98 2.47c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.52.1.47-.07 1.43-.59 1.63-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28Z" /></svg>;
@@ -199,28 +222,5 @@ function SocialIcon({ network }: { network: SocialNetwork | "native" }) {
 }
 
 export function WorkShareActions({ title, citation, href }: { title: string; citation: string; href: string }) {
-  const [feedback, setFeedback] = useState("");
-
-  async function copyCitation() {
-    const url = new URL(href, window.location.origin).toString();
-    try {
-      await navigator.clipboard.writeText(`${citation} ${url}`);
-      setFeedback("Sitasi berhasil disalin.");
-    } catch (error) {
-      setFeedback(error instanceof Error
-        ? `Tidak dapat menyalin: ${error.message}`
-        : "Tidak dapat menyalin ke clipboard.");
-    }
-  }
-
-  return (
-    <div className="work-share-actions">
-      <WorkSocialShare title={title} href={href} />
-      <button type="button" onClick={copyCitation}>
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>
-        Salin sitasi
-      </button>
-      {feedback && <span className="work-share-feedback" role="status">{feedback}</span>}
-    </div>
-  );
+  return <div className="work-share-actions"><WorkSocialShare title={title} citation={citation} href={href} /></div>;
 }
