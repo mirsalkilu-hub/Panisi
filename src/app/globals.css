@@ -4256,6 +4256,43 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .impact-success, .impact-error { border-radius: 10px; font-size: 11px; line-height: 1.6; margin: 13px 0 0; padding: 10px 12px; }
 .impact-success { background: #edf7f1; border: 1px solid #d0e9d9; color: #357853; }
 .impact-error { background: #fff3f0; border: 1px solid #f0d5ce; color: #954d41; }
+.work-impact-public-records { display: grid; gap: 12px; }
+.impact-public-record-list { display: grid; gap: 10px; }
+.impact-public-record { background: #f8fafc; border: 1px solid #dfe8f1; border-radius: 12px; padding: 13px 15px; }
+.impact-public-record > div { align-items: center; display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: space-between; }
+.impact-public-record strong { color: #244866; font-size: 12px; }
+.impact-public-record time { color: #71859a; font-size: 10px; }
+.impact-public-record p { color: #536e86; font-size: 12px; line-height: 1.7; margin: 9px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.impact-public-completed { color: #187452; display: inline-flex; font-size: 10px; font-weight: 700; margin-top: 8px; }
+.impact-review-page { margin: 0 auto; max-width: 1120px; min-height: 70vh; padding: 38px 24px 70px; }
+.impact-review-header { align-items: center; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; margin-bottom: 24px; }
+.impact-review-header .eyebrow, .impact-review-queue-heading .eyebrow { color: #397caf; display: block; font-size: 9px; font-weight: 750; letter-spacing: .14em; }
+.impact-review-header h1 { color: #244866; font-size: clamp(25px,4vw,34px); line-height: 1.2; margin: 5px 0; }
+.impact-review-header p { color: #71859a; font-size: 13px; line-height: 1.7; margin: 0; }
+.impact-review-queue { background: #fff; border: 1px solid #dce6f0; border-radius: 16px; box-shadow: 0 10px 28px rgba(27,63,97,.055); overflow: hidden; }
+.impact-review-queue-heading { align-items: center; border-bottom: 1px solid #e7edf3; display: flex; justify-content: space-between; padding: 18px 22px; }
+.impact-review-queue-heading h2 { color: #244866; font-size: 18px; margin: 4px 0 0; }
+.impact-review-queue-heading > span { align-items: center; background: #edf4ff; border-radius: 999px; color: #2867a5; display: inline-flex; font-size: 12px; font-weight: 750; justify-content: center; min-height: 32px; min-width: 32px; padding: 0 9px; }
+.impact-review-empty { color: #71859a; font-size: 12px; line-height: 1.7; margin: 0; padding: 24px; }
+.impact-review-list { display: grid; gap: 12px; padding: 18px; }
+.impact-review-record { background: #f8fafc; border: 1px solid #dfe8f1; border-radius: 13px; padding: 17px; }
+.impact-review-record-top { align-items: center; display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: space-between; }
+.impact-review-record-top > span { color: #28699d; font-size: 10px; font-weight: 750; }
+.impact-review-record time { color: #71859a; font-size: 10px; }
+.impact-review-record h3 { font-size: 15px; margin: 8px 0; }
+.impact-review-record h3 a { color: #244866; text-decoration: underline; text-underline-offset: 3px; }
+.impact-review-legacy { background: #fff7e8; border-radius: 7px; color: #865d13; display: inline-block; font-size: 10px; line-height: 1.5; margin: 0 0 7px; padding: 5px 8px; }
+.impact-review-record > p { color: #536e86; font-size: 12px; line-height: 1.7; margin: 8px 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.impact-review-completed { color: #187452; display: inline-flex; font-size: 10px; font-weight: 700; }
+.impact-review-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.impact-review-actions button { background: #fff; border: 1px solid #c9dce9; border-radius: 9px; color: #28699d; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; min-height: 38px; padding: 8px 13px; }
+.impact-review-actions button:first-child { background: #176b53; border-color: #176b53; color: #fff; }
+.impact-review-actions button:last-child { color: #98463e; }
+.impact-review-actions button:disabled { cursor: not-allowed; opacity: .6; }
+.impact-review-error, .impact-review-notice { border-radius: 10px; font-size: 11px; line-height: 1.6; margin: 14px 18px 0; padding: 10px 12px; }
+.impact-review-error { background: #fff3f0; border: 1px solid #f0d5ce; color: #954d41; }
+.impact-review-notice { background: #edf7f1; border: 1px solid #d0e9d9; color: #357853; }
+.impact-review-empty a { color: #28699d; font-weight: 700; }
 @media (max-width: 760px) {
   .work-impact-panel { border-radius: 16px; }
   .work-impact-heading { padding: 19px 18px 15px; }
@@ -4280,6 +4317,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .work-impact-contribute > h3 { font-size: 16px; }
   .work-impact-action { padding: 13px 12px; }
   .work-impact-action h4 { align-items: flex-start; }
+  .impact-review-page { padding: 24px 14px 50px; }
+  .impact-review-header { align-items: flex-start; }
+  .impact-review-list { padding: 12px; }
+  .impact-review-record { padding: 13px; }
 }
 
 .login-register-link {
