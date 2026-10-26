@@ -418,11 +418,13 @@ export function Home({ activePage = "beranda", selectedContributorId }: { active
       .from("profiles")
       .select("id, full_name, role, bio, job_title, profile_photo_path, area_of_expertise, widyaiswara_experience")
       .eq("id", activeSession.user.id)
-      .single();
+      .maybeSingle();
     if (profileError || !currentProfile) {
       setProfile(null);
       setProfileLoading(false);
-      setMessage(profileError ? `Profil tidak dapat dimuat: ${profileError.message}` : "Profil tidak ditemukan.");
+      setMessage(profileError
+        ? `Profil tidak dapat dimuat: ${profileError.message}`
+        : "Profil akun belum ditemukan di Supabase. Minta admin memulihkan profil akun ini di tabel public.profiles.");
       return null;
     }
     setProfile(currentProfile as Profile);

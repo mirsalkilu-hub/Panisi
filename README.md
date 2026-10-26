@@ -40,6 +40,26 @@ Chatbot hanya memiliki panduan umum aplikasi; ia tidak dapat melihat akun, statu
    Buat akun admin pertama melalui **Authentication → Users**, lalu ganti alamat contoh dengan email tersebut. Setelah masuk, admin dapat membuat akun verifikator dan kontributor dari **Profil**. Akun baru aktif langsung dan harus diberikan kata sandi sementaranya secara aman. Peran dilindungi oleh Row Level Security dan tidak bisa diubah sendiri oleh pengguna.
 4. Pastikan provider **Email** aktif di Supabase Authentication. Gunakan tombol **Masuk** pada aplikasi untuk login.
 
+Jika setelah masuk muncul pesan bahwa profil akun tidak ditemukan, baris akun tersebut belum ada di `public.profiles`. Admin dapat memeriksa dan memulihkan profil verifikator melalui **Supabase SQL Editor**. Ganti alamat email contoh dengan email akun yang tepat:
+
+```sql
+select u.id, u.email, p.role
+from auth.users u
+left join public.profiles p on p.id = u.id
+where u.email = 'verifikator@contoh.com';
+
+insert into public.profiles (id, full_name, role)
+select
+  u.id,
+  coalesce(u.raw_user_meta_data ->> 'full_name', split_part(u.email, '@', 1), 'Verifikator'),
+  'verifikator'::public.panisi_role
+from auth.users u
+where u.email = 'verifikator@contoh.com'
+on conflict (id) do nothing;
+```
+
+Pastikan hasil pemeriksaan menunjukkan akun yang benar dan baris profil memang belum ada sebelum menjalankan pemulihan. Jika baris profil sudah ada tetapi perannya tidak tepat, admin harus memverifikasi identitas akun terlebih dahulu sebelum mengubah peran.
+
 Admin mengisi nama lengkap dan jabatan saat membuat akun kontributor maupun verifikator, serta dapat mengunggah foto profil JPG, PNG, atau WebP hingga 500 KB. Foto bersifat opsional dan disimpan pada bucket publik `profile-photos` agar dapat tampil di profil kontributor; jangan unggah foto yang tidak boleh diakses publik. Untuk akun kontributor, admin juga harus mengisi bidang keahlian dan pengalaman sebagai kontributor. Admin dapat membuat kode undangan berulang pakai dari **Ruang Kerja → Kelola akun**; bagikan kode beserta tautan `/daftar` kepada calon kontributor. Kode asli hanya ditampilkan saat dibuat dan disimpan sebagai hash. Admin dapat mencabut atau mengaktifkan kembali kode kapan saja. Pendaftar wajib mengisi nama, email, kata sandi, jabatan, bidang keahlian, pengalaman profesional, dan kode undangan yang masih aktif. Kontributor dapat memperbarui jabatan dan informasi profesionalnya di halaman Profil. Setiap kontributor memiliki halaman publik `/kontributor/[id]` yang menampilkan profil profesional dan semua karya yang telah diterbitkan. Verifikator menyetujui atau meminta revisi. Seluruh pengajuan berstatus disetujui ditampilkan pada bagian karya terverifikasi di halaman utama. Kontrol admin untuk menerbitkan atau menarik materi mengatur halaman karya publik lainnya. Dokumen disimpan pada bucket privat; akses file menggunakan signed URL sementara.
 
 Kontributor dapat mengajukan enam kategori karya: Video (video pembelajaran atau webinar) menggunakan tautan YouTube; E-Book (buku digital atau modul), Review (review buku), Best Practice (praktik, inovasi, atau lesson learned), Science (kajian, KTI, atau policy brief), dan Insight (pengetahuan singkat) menggunakan PDF. Setiap pengajuan juga memerlukan thumbnail landscape JPG, PNG, atau WebP maksimal 500 KB. Thumbnail dan PDF disimpan di bucket privat; thumbnail hanya dapat dibuka oleh kontributor pemilik, tim verifikasi, atau publik setelah karya disetujui. Pengajuan yang masih menunggu keputusan dapat diedit dari halaman **Unggah Karya**. Admin dapat melihat dan menghapus pengajuan dari semua status; verifikator dapat menghapus pengajuan yang masih menunggu verifikasi. Semua pengajuan ditinjau verifikator; tautan halaman publik berbentuk `/karya/[id]/[judul]` dan hanya berfungsi setelah karya disetujui.
